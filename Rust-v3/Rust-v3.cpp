@@ -2,19 +2,78 @@
 //
 
 #include <iostream>
+#include <Windows.h>
 
-int main()
+#include "mrt/lazy_importer.hpp"
+#include "mrt/xorstr.hpp"
+
+int Start(uint64_t imageBase)
 {
-    std::cout << "Hello World!\n";
+    std::cout << _("Hello World!\n");
+
+    char buf[32] {0};
+
+    sprintf(buf, _("Base: 0x%llX"), imageBase);
+
+    LI_FN(MessageBoxA)((HWND)NULL, buf, _("Title Test"), 0);
+
+    return 0;
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
+bool __stdcall Initialize(uint64_t imageBase)
+{
+    // kernel32 = mem::GetModuleAddress(_(L"kernel32.dll"));
+    // return Start(imageBase);
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+    LI_FN(CreateThread)
+    ((LPSECURITY_ATTRIBUTES)NULL, NULL, reinterpret_cast<LPTHREAD_START_ROUTINE>(Start), (void *)imageBase, 0,
+        (LPDWORD)0);
+
+    return true;
+}
+
+bool __stdcall InitializeEAC(uint64_t hModule, DWORD ul_reason_for_call, uint64_t lpReserved)
+{
+    // EAC module prepare
+
+    return true;
+}
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL,  // handle to DLL module
+    DWORD                     fdwReason, // reason for calling function
+    LPVOID                    lpvReserved)                  // reserved
+{
+    // Perform actions based on the reason for calling.
+    switch (fdwReason)
+    {
+    case DLL_PROCESS_ATTACH:
+        // Initialize once for each new process.
+        // Return FALSE to fail DLL load.
+
+        // NON-EAC RUN
+        Initialize((uint64_t)hinstDLL);
+
+        // EAC RUN
+        // Initialize((uint64_t)ul_reason_for_call, lpReserved);
+        break;
+
+    case DLL_THREAD_ATTACH:
+        // Do thread-specific initialization.
+        break;
+
+    case DLL_THREAD_DETACH:
+        // Do thread-specific cleanup.
+        break;
+
+    case DLL_PROCESS_DETACH:
+
+        if (lpvReserved != nullptr)
+        {
+            break; // do not do cleanup if process termination scenario
+        }
+
+        // Perform any necessary cleanup.
+        break;
+    }
+    return TRUE; // Successful DLL_PROCESS_ATTACH.
+}

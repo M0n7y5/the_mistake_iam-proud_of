@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Path to custom LLVM compiler -->
+<Project DefaultTargets="Build">
+	<PropertyGroup>
+		<LLVMInstallDir>G:\llvm16\LLVM\bin</LLVMInstallDir>
+		<LLVMToolsVersion>16.0.3</LLVMToolsVersion>
+	</PropertyGroup>
+</Project>

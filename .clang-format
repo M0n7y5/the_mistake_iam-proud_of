@@ -1,0 +1,34 @@
+---
+BasedOnStyle: Microsoft
+AlignAfterOpenBracket: DontAlign
+AlignArrayOfStructures: Right
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+  AlignCompound: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossComments: true
+  AlignCompound: true
+  PadOperators: true
+AlignEscapedNewlines: Left
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
+BraceWrapping:
+  AfterUnion: true
+  BeforeLambdaBody: true
+  BeforeWhile: true
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+IndentPPDirectives: BeforeHash
+NamespaceIndentation: All
+SortIncludes: Never
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeParensOptions:
+  BeforeNonEmptyParentheses: true
+SpaceInEmptyBlock: true
