@@ -76,7 +76,7 @@ enum class PlayerFlags : int32_t {
 };
 
 //Todo: update
-enum class PlayerBones : int
+enum class PlayerBones : int32_t
 {
 	// assets / prefabs / player / player_mod = 0,
 	//pelvis = 1,
@@ -164,4 +164,19 @@ enum class PlayerBones : int
 	BreastCensor_LOD2 = 82,
 	collision = 83,
 	displacement = 84
+};
+
+enum class ModelStateFlags : int32_t
+{
+    Ducked    = 1,
+    Jumped    = 2,
+    OnGround  = 4,
+    Sleeping  = 8,
+    Sprinting = 16,
+    OnLadder  = 32,
+    Flying    = 64,
+    Aiming    = 128,
+    Prone     = 256,
+    Mounted   = 512,
+    Relaxed   = 1024
 };

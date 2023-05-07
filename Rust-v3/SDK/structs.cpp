@@ -2,6 +2,55 @@
 #include "../Kotlar/Kotlar.h"
 #include "Offsets.h"
 #include "globals.h"
+#include "../mrt/fnv1a.hpp"
+
+float CTime::GetTime()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_time);
+    return ((float (*)())(G::baseGameAssemlby + off))();
+}
+
+float CTime::GetRealTime()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_realtimeSinceStartup);
+    return ((float (*)())(G::baseGameAssemlby + off))();
+}
+
+float CTime::GetDeltaTime()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_deltaTime);
+    return ((float (*)())(G::baseGameAssemlby + off))();
+}
+
+float CTime::GetFixedDeltaTime()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_fixedDeltaTime);
+    return ((float (*)())(G::baseGameAssemlby + off))();
+}
+
+float CTime::GetSmoothDeltaTime()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_smoothDeltaTime);
+    return ((float (*)())(G::baseGameAssemlby + off))();
+}
+
+float CTime::GetFixedTime()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_fixedTime);
+    return ((float (*)())(G::baseGameAssemlby + off))();
+}
+
+float CTime::GetTimeScale()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_timeScale);
+    return ((float (*)())(G::baseGameAssemlby + off))();
+}
+
+void CTime::SetTimeScale(float value)
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::set_timeScale_System_Single_value);
+    return ((void (*)(float))(G::baseGameAssemlby + off))(value);
+}
 
 // Impl : CTransform
 
@@ -14,26 +63,26 @@ CTransform *CTransform::GetTransform(void *addr)
 Vector3 CTransform::GetPosition() /* rand crash, to:do track*/
 {
     static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::get_position);
-    return ((Vector3(__thiscall *)(UnityEngine_Transform_o *))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall *)(CTransform *))(G::baseGameAssemlby + addr))(this);
 }
 
 void CTransform::SetPosition(Vector3 position)
 {
     static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::set_position_UnityEngine_Vector3_value);
-    return ((void(__thiscall *)(UnityEngine_Transform_o *, Vector3))(G::baseGameAssemlby + addr))(this, position);
+    return ((void(__thiscall *)(CTransform *, Vector3))(G::baseGameAssemlby + addr))(this, position);
 }
 
 void CTransform::SetRotation(Vector4 rotation)
 {
     static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::set_rotation_UnityEngine_Quaternion_value);
-    return ((void(__thiscall *)(UnityEngine_Transform_o *, Vector4))(G::baseGameAssemlby + addr))(this, rotation);
+    return ((void(__thiscall *)(CTransform *, Vector4))(G::baseGameAssemlby + addr))(this, rotation);
 }
 
 // Impl : CModel
 
 Vector3 CModel::GetBonePosition(PlayerBones bone)
 {
-    auto boneTransformArray = this->fields.boneDict->fields.transforms;
+    auto boneTransformArray = this->boneDict->fields.transforms;
 
     if ((int)bone > boneTransformArray->bounds->length)
         return {};
@@ -45,7 +94,7 @@ Vector3 CModel::GetBonePosition(PlayerBones bone)
 
 CTransform *CModel::GetBoneTransform(PlayerBones bone)
 {
-    auto boneTransformArray = this->fields.boneDict->fields.transforms;
+    auto boneTransformArray = this->boneDict->fields.transforms;
 
     if ((int)bone > boneTransformArray->bounds->length)
         return {};
@@ -116,7 +165,7 @@ Vector3 CCamera::GetPosition()
 Matrix4x4 CCamera::GetViewMatrix()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::get_worldToCameraMatrix);
-    return ((Matrix4x4(__thiscall *)(CCamera *))(G::baseGameAssemlby + addr))(this);
+    return ((Matrix4x4(__thiscall *)(CCamera *))(G::baseUnityPlayer + addr))(this);
 }
 
 bool CCamera::WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPosition)
@@ -146,5 +195,155 @@ bool CCamera::WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPo
 Vector3 CCamera::WorldToScreen(Vector3 position)
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
-    return ((Vector3(__thiscall *)(CCamera *, Vector3))(G::baseGameAssemlby + addr))(this, position);
+    return ((Vector3(__thiscall *)(CCamera *, Vector3))(G::baseUnityPlayer + addr))(this, position);
+}
+
+void CTerrainCollision::Reset(CColider *collider)
+{
+    static auto addr = OFF(Offsets::TerrainCollision::Methods::Reset_UnityEngine_Collider_collider);
+    ((void(__thiscall *)(void *, void *))(G::baseGameAssemlby + addr))(this, collider);
+}
+
+float CBaseCombatEntity::MaxPlayerVelocity()
+{
+    static auto addr = OFF(Offsets::BasePlayer::Methods::MaxVelocity);
+    return reinterpret_cast<float (*)(CBaseCombatEntity *)>(G::baseGameAssemlby + addr)(this);
+}
+
+CItem *CHeldEntity::GetItem()
+{
+    static auto addr = OFF(Offsets::HeldEntity::Methods::GetItem);
+    return ((CItem * (__thiscall *)(void *))(G::baseGameAssemlby + addr))(this);
+}
+
+bool CHeldEntity::IsBaseProjectile()
+{
+    if (auto item = this->GetItem())
+    {
+        if (auto itemdef = (CItemDefinition *)item->info)
+        {
+            switch (itemdef->itemid)
+            {
+            // RIFLE AMMO
+            case 1545779598:  // assault rifle
+            case -1335497659: // ICE AK
+            case -1812555177: // LR-300 Assault Rifle
+            case -904863145:  // Semi-Automatic Rifle
+            case 1588298435:  // Bolt Action Rifle
+            case -778367295:  // L96 Rifle
+            case 28201841:    // M39 Rifle
+            case -2069578888: // M249
+            case -1214542497: // HMLMG
+
+            // PISTOL AMMO
+            case 1796682209:  // Custom SMG
+            case 1318558775:  // MP5A4
+            case -852563019:  // M92 Pistol
+            case 1373971859:  // Python Revolver
+            case 649912614:   // Revolver
+            case 818877484:   // Semi-Automatic Pistol
+            case -1758372725: // Thompson
+
+            // SHOTGUNS
+            case -765183617:  // Double Barrel Shotgun
+            case 795371088:   // Pump Shotgun
+            case -1367281941: // Waterpipe Shotgun
+            case -41440462:   // Spas-12 Shotgun
+            case -75944661:   // Eoka Pistol
+
+            // ARROWS
+            case 1443579727: // Hunting Bow
+            case 884424049:  // Compound Bow
+            case 1965232394: // Crossbow
+
+            case 1953903201:  // Nailgun
+            case 442886268:   // rocket launcher
+            case -1123473824: // grenade launcher
+                return true;
+
+            default:
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+bool CAttackEntity::IsWeaponReady(bool bow)
+{
+    if (this->nextAttackTime >= CTime::GetTime() || (!bow && this->timeSinceDeploy < this->deployDelay))
+        return false;
+
+    return true;
+}
+
+bool CAttackEntity::IsMelee()
+{
+    const auto item   = (CItemDefinition *)(this->GetItem()->info);
+    const auto itemId = item->itemid;
+
+    switch (itemId)
+    {
+    case 1814288539: // knife.bone
+    case -194509282: // knife.butcher
+    case 2040726127: // knife.combat
+
+    case -1780802565: // icepick.salvaged
+    case 1104520648:  // chainsaw
+    case 1488979457:  // jackhammer
+
+    case -1360171080: // concretepickaxe
+    case -1302129395: // pickaxe
+    case 236677901:   // lumberjack.pickaxe
+    case 171931394:   // stone.pickaxe
+    case -262590403:  // axe.salvaged
+
+    case -196667575:  // flashlight.held
+    case 1973165031:  // cakefiveyear
+    case 1803831286:  // toolgun
+    case 200773292:   // hammer
+    case -1506397857: // hammer.salvaged
+    case -1583967946: // stonehatchet
+    case 1176355476:  // concretehatchet
+    case -1252059217: // hatchet
+    case -399173933:  // lumberjack.hatchet
+
+    case 963906841:   // rock
+    case 795236088:   // torch
+    case -1966748496: // mace
+    case -1978999529: // salvaged.cleaver
+    case -1137865085: // machete
+    case 1789825282:  // candycaneclub
+    case -1469578201: // longsword
+    case 1326180354:  // salvaged.sword
+    case 1090916276:  // pitchfork
+    case 1540934679:  // spear.wooden
+    case 1602646136:  // spear.stone
+    case -363689972:  // snowball
+        return true;
+
+    default:
+        return false;
+    }
+
+    // TODO: use ItemID instead
+    // const uint64_t hWeaponName = 0;
+    ///*         HASH_RUNTIME(Globals::Local->GetHeldEntity()->GetItem()->m_pItemDefinition->m_szShortName->str);*/
+    // return (
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"knife.combat")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"icepick.salvaged")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"chainsaw"))
+    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"jackhammer")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"pickaxe")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"flashlight.held")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"cakefiveyear")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"stone.pickaxe"))
+    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"hammer.salvaged")) || HASH_EQUAL(hWeaponName,
+    //     HASH_CTIME(L"axe.salvaged")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"stonehatchet")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"hatchet")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"rock")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"torch")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"jack")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"knife.butcher")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"bone.club")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"mace")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"knife.bone")) ||
+    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"salvaged.cleaver")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"machete"))
+    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"candycaneclub")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"longsword"))
+    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"salvaged.sword")) || HASH_EQUAL(hWeaponName,
+    //     HASH_CTIME(L"pitchfork")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"spear.wooden")) || HASH_EQUAL(hWeaponName,
+    //     HASH_CTIME(L"spear.stone")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"snowball")));
 }

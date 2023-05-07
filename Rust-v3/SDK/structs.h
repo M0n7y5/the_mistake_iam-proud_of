@@ -25,7 +25,23 @@
 // it will not be included in repo since its 35MB
 #include "il2cpp.h"
 
-struct CTransform : UnityEngine_Transform_o
+template <typename T> struct ILObjectBase : Il2CppObject, T
+{ };
+
+class CTime
+{
+  public:
+    static float GetTime();
+    static float GetRealTime();
+    static float GetDeltaTime();
+    static float GetFixedDeltaTime();
+    static float GetSmoothDeltaTime();
+    static float GetFixedTime();
+    static float GetTimeScale();
+    static void  SetTimeScale(float value);
+};
+
+struct CTransform : ILObjectBase<UnityEngine_Transform_Fields>
 {
     static CTransform *GetTransform(void *addr);
     Vector3            GetPosition();
@@ -65,7 +81,7 @@ struct OBB
     Vector3 ClosestPoint(Vector3 position);
 };
 
-struct CCamera : UnityEngine_Camera_o
+struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
 {
     static CCamera *GetCurrentCamera();
     static CCamera *GetMainCamera();
@@ -75,13 +91,21 @@ struct CCamera : UnityEngine_Camera_o
     Vector3         WorldToScreen(Vector3 elementPosition);
 };
 
-struct CModel : Model_o
+struct CColider : ILObjectBase<UnityEngine_Collider_Fields>
+{ };
+
+struct CTerrainCollision : TerrainCollision_o
+{
+    void Reset(CColider *collider);
+};
+
+struct CModel : ILObjectBase<Model_Fields>
 {
     Vector3     GetBonePosition(PlayerBones bone);
     CTransform *GetBoneTransform(PlayerBones bone);
 };
 
-struct CBaseNetworkable : Il2CppObject, BaseNetworkable_Fields
+struct CBaseNetworkable : ILObjectBase<BaseNetworkable_Fields>
 { };
 
 struct CBaseEntity : CBaseNetworkable, BaseEntity_Fields_s
@@ -90,4 +114,70 @@ struct CBaseEntity : CBaseNetworkable, BaseEntity_Fields_s
     Vector3 GetLocalVelocity();
     Vector3 GetWorldVelocity();
     Vector3 GetParentVelocity();
+};
+
+struct CBaseMovement : ILObjectBase<BaseMovement_Fields>
+{ };
+
+struct CPlayerWalkMovement : CBaseMovement, PlayerWalkMovement_Fields_s
+{ };
+
+struct CBaseCombatEntity : CBaseEntity, BaseCombatEntity_Fields_s
+{
+    float MaxPlayerVelocity();
+};
+
+struct CModelState : ILObjectBase<ModelState_Fields>
+{
+    bool HasFlag(ModelStateFlags Flag)
+    {
+        return ((ModelStateFlags)(this->flags & (int32_t)Flag) == Flag);
+    }
+
+    void SetFlag(ModelStateFlags Flag, bool State)
+    {
+        auto ActiveFlags = this->flags;
+
+        if (State)
+            ActiveFlags |= (int32_t)Flag;
+        else
+            ActiveFlags &= ~(int32_t)Flag;
+
+        this->flags = ActiveFlags;
+    }
+};
+
+struct CItemDefinition : ILObjectBase<ItemDefinition_Fields>
+{ };
+
+struct CItem : ILObjectBase<Item_Fields>
+{ };
+
+struct CHeldEntity : CBaseEntity, HeldEntity_Fields_s
+{
+    CItem *GetItem();
+    bool   IsBaseProjectile();
+};
+
+struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
+{
+    inline uint64_t     GetTeamID();
+    inline bool         IsLocalPlayer();
+    inline bool         IsWounded();
+    inline bool         IsSleeping();
+    inline bool         InSafeZone();
+    inline CHeldEntity *GetHeldEntity();
+    inline float        MaxHealth();
+    inline float        StartHealth();
+    inline float        StartMaxHealth();
+    inline float        BoundsPadding();
+    inline float        GetJumpHeight();
+    inline float        GetRadius();
+    inline float        NoClipRadius(float margin);
+};
+
+struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
+{
+    bool IsWeaponReady(bool bow);
+    bool IsMelee();
 };

@@ -78,12 +78,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Kotlar\Kotlar.h" />
+    <ClInclude Include="mrt\fnv1a.hpp" />
     <ClInclude Include="mrt\lazy_importer.hpp" />
     <ClInclude Include="mrt\xorstr.hpp" />
     <ClInclude Include="SDK\enums.h" />
     <ClInclude Include="SDK\globals.h" />
     <ClInclude Include="SDK\il2cpp.h" />
     <ClInclude Include="SDK\math.h" />
+    <ClInclude Include="SDK\Offsets.h" />
     <ClInclude Include="SDK\SDK.h" />
     <ClInclude Include="SDK\structs.h" />
   </ItemGroup>
