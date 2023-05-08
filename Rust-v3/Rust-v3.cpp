@@ -1,7 +1,6 @@
 // Rust-v3.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
-#include <iostream>
+#include "mrt/core.h"
 #include <Windows.h>
 
 #include "mrt/lazy_importer.hpp"
@@ -9,13 +8,17 @@
 
 int Start(uint64_t imageBase)
 {
-    std::cout << _("Hello World!\n");
+    _cinit();
 
     char buf[32] {0};
 
-    sprintf(buf, _("Base: 0x%llX"), imageBase);
+    auto lol = new char[1024];
+    memset(lol, 0, 1024);
+    sprintf(lol, _("Base: 0x%llX"), imageBase);
 
-    LI_FN(MessageBoxA)((HWND)NULL, buf, _("Title Test"), 0);
+    LI_FN(MessageBoxA)((HWND)NULL, lol, _("Title Test"), 0);
+
+    delete[] lol;
 
     return 0;
 }

@@ -21,6 +21,15 @@
     <ClCompile Include="SDK\structs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mrt\core.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\string.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mrt\xorstr.hpp">
@@ -54,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mrt\fnv1a.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mrt\core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -189,6 +189,7 @@ bool CCamera::WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPo
 
     screenPosition = {(G::screenWidth / 2) * (1.f + x / w), (G::screenHeight / 2) * (1.f - y / w)};
 
+
     return true;
 }
 
@@ -325,25 +326,4 @@ bool CAttackEntity::IsMelee()
     default:
         return false;
     }
-
-    // TODO: use ItemID instead
-    // const uint64_t hWeaponName = 0;
-    ///*         HASH_RUNTIME(Globals::Local->GetHeldEntity()->GetItem()->m_pItemDefinition->m_szShortName->str);*/
-    // return (
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"knife.combat")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"icepick.salvaged")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"chainsaw"))
-    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"jackhammer")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"pickaxe")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"flashlight.held")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"cakefiveyear")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"stone.pickaxe"))
-    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"hammer.salvaged")) || HASH_EQUAL(hWeaponName,
-    //     HASH_CTIME(L"axe.salvaged")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"stonehatchet")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"hatchet")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"rock")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"torch")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"jack")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"knife.butcher")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"bone.club")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"mace")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"knife.bone")) ||
-    //     HASH_EQUAL(hWeaponName, HASH_CTIME(L"salvaged.cleaver")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"machete"))
-    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"candycaneclub")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"longsword"))
-    //     || HASH_EQUAL(hWeaponName, HASH_CTIME(L"salvaged.sword")) || HASH_EQUAL(hWeaponName,
-    //     HASH_CTIME(L"pitchfork")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"spear.wooden")) || HASH_EQUAL(hWeaponName,
-    //     HASH_CTIME(L"spear.stone")) || HASH_EQUAL(hWeaponName, HASH_CTIME(L"snowball")));
 }

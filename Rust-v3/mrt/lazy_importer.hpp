@@ -30,6 +30,8 @@
 
 #define LI_FN(name) ::li::detail::lazy_function<LAZY_IMPORTER_KHASH(#name), decltype(&name)>()
 
+#define LI_FN2(name, type) ::li::detail::lazy_function<LAZY_IMPORTER_KHASH(#name), type>()
+
 #define LI_FN_DEF(name) ::li::detail::lazy_function<LAZY_IMPORTER_KHASH(#name), name>()
 
 #define LI_MODULE(name) ::li::detail::lazy_module<LAZY_IMPORTER_KHASH(name)>()
