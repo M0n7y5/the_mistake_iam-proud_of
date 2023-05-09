@@ -113,7 +113,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED;_HAS_STATIC_RTTI=0</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -124,10 +124,10 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables  %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>true</OmitFramePointers>
@@ -153,10 +153,12 @@
     <ClCompile Include="mrt\string.cpp" />
     <ClCompile Include="Rust-v3.cpp" />
     <ClCompile Include="SDK\structs.cpp" />
+    <ClCompile Include="ui\GUI.cpp" />
     <ClCompile Include="ui\imgui\imgui.cpp" />
     <ClCompile Include="ui\imgui\imgui_draw.cpp" />
     <ClCompile Include="ui\imgui\imgui_tables.cpp" />
     <ClCompile Include="ui\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="ui\mui.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Kotlar\Kotlar.h" />
@@ -171,12 +173,17 @@
     <ClInclude Include="SDK\Offsets.h" />
     <ClInclude Include="SDK\SDK.h" />
     <ClInclude Include="SDK\structs.h" />
+    <ClInclude Include="ui\GUI.h" />
     <ClInclude Include="ui\imgui\imconfig.h" />
     <ClInclude Include="ui\imgui\imgui.h" />
     <ClInclude Include="ui\imgui\imgui_internal.h" />
     <ClInclude Include="ui\imgui\imstb_rectpack.h" />
     <ClInclude Include="ui\imgui\imstb_textedit.h" />
     <ClInclude Include="ui\imgui\imstb_truetype.h" />
+    <ClInclude Include="ui\miniState.h" />
+    <ClInclude Include="ui\MiniTween.h" />
+    <ClInclude Include="ui\mui.h" />
+    <ClInclude Include="ui\STween.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

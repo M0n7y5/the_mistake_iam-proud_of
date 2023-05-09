@@ -161,23 +161,67 @@ extern "C" void __cdecl _invalid_parameter_noinfo(void)
 { }
 
 extern "C" __declspec(noreturn) void __cdecl _invalid_parameter_noinfo_noreturn(void)
-{ 
-     while (1)
+{
+    while (1)
         ;
 }
 
 extern "C" int _purecall(void)
 {
-
     return 0;
 }
 
 extern "C" void __chkstk()
+{ }
+
+extern "C" void abort()
 {
-    //static auto fn = LI_FN(__chkstk).safe();
-    //fn();
+    __debugbreak();
+
+    while (1)
+        ;
 }
 
+    #include <functional>
 
+namespace std
+{
+    _Prhand _Raise_handler;
+}
+
+void __cdecl std::_Xlength_error(char const *)
+{
+    __debugbreak();
+
+    while (1)
+        ;
+}
+
+void __cdecl std::_Xbad_function_call(void)
+{
+    __debugbreak();
+    while (1)
+        ;
+}
+
+void __cdecl std::_Xout_of_range(char const *)
+{
+    __debugbreak();
+    while (1)
+        ;
+}
+
+EXTERN_C
+_ACRTIMP void __cdecl _invoke_watson(_In_opt_z_ wchar_t const *_Expression, _In_opt_z_ wchar_t const *_FunctionName,
+    _In_opt_z_ wchar_t const *_FileName, _In_ unsigned int _LineNo, _In_ uintptr_t _Reserved)
+{
+    //
+    //"The invalid parameter handler dispatch function calls the currently assigned invalid parameter handler. By "
+    //    "default, the invalid parameter calls _invoke_watson, which causes the application to close and generate a "
+    //    "mini-dump."
+    __debugbreak();
+    while (1)
+        ;
+}
 
 #endif // MRT_ENABLED
