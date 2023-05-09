@@ -8,7 +8,9 @@
 
 int Start(uint64_t imageBase)
 {
+#ifdef MRT_ENABLED
     _cinit();
+#endif // MRT_ENABLED
 
     char buf[32] {0};
 

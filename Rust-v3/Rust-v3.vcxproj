@@ -124,7 +124,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalOptions> /Zc:threadSafeInit- /Gs99999  /clang:-fno-unwind-tables %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
@@ -148,10 +148,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mrt\core.cpp" />
+    <ClCompile Include="mrt\math.cpp" />
     <ClCompile Include="mrt\memory.cpp" />
     <ClCompile Include="mrt\string.cpp" />
     <ClCompile Include="Rust-v3.cpp" />
     <ClCompile Include="SDK\structs.cpp" />
+    <ClCompile Include="ui\imgui\imgui.cpp" />
+    <ClCompile Include="ui\imgui\imgui_draw.cpp" />
+    <ClCompile Include="ui\imgui\imgui_tables.cpp" />
+    <ClCompile Include="ui\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Kotlar\Kotlar.h" />
@@ -166,6 +171,12 @@
     <ClInclude Include="SDK\Offsets.h" />
     <ClInclude Include="SDK\SDK.h" />
     <ClInclude Include="SDK\structs.h" />
+    <ClInclude Include="ui\imgui\imconfig.h" />
+    <ClInclude Include="ui\imgui\imgui.h" />
+    <ClInclude Include="ui\imgui\imgui_internal.h" />
+    <ClInclude Include="ui\imgui\imstb_rectpack.h" />
+    <ClInclude Include="ui\imgui\imstb_textedit.h" />
+    <ClInclude Include="ui\imgui\imstb_truetype.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

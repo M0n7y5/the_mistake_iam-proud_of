@@ -1,13 +1,15 @@
 #include "lazy_importer.hpp"
 #include <Windows.h>
 
+#ifdef MRT_ENABLED
+
 // Prototypes for lazyiporter type forwarding
 PVOID RtlAllocateHeap(PVOID HeapHandle, ULONG Flags, SIZE_T Size);
 PVOID RtlFreeHeap(PVOID HeapHandle, ULONG Flags, PVOID BaseAddress);
 
-#define MALLOC_MAGIC  'MGIC'
-#define M_GETPEB      __readgsqword(0x60)
-#define M_PROCESSHEAP *reinterpret_cast<void **>(__readgsqword(0x60) + 0x30)
+    #define MALLOC_MAGIC  'MGIC'
+    #define M_GETPEB      __readgsqword(0x60)
+    #define M_PROCESSHEAP *reinterpret_cast<void **>(__readgsqword(0x60) + 0x30)
 
 constexpr auto crtbaseModule = LI_MODULE("ucrtbase.dll");
 
@@ -85,40 +87,38 @@ void *memcpy(void *dst, const void *src, size_t n)
     return dst;
 }
 
-void const * memchr(void const *s, int c_in, size_t n)
+void const *memchr(void const *s, int c_in, size_t n)
 {
-    using memchr_t   = void const *(__cdecl *)(void const *s, int c_in, size_t n);
+    using memchr_t = void const *(__cdecl *)(void const *s, int c_in, size_t n);
     static auto fn = LI_FN2(memchr, memchr_t).in_safe(crtbaseModule.get());
     return fn(s, c_in, n);
 }
 
-#pragma function(memmove)
 void *memmove(void *dest, const void *src, size_t n)
 {
     static auto fn = LI_FN(memmove).in_safe(crtbaseModule.get());
     return fn(dest, src, n);
 }
 
-
 void *__cdecl malloc(size_t size)
 {
     static auto fn = LI_FN(malloc).in_safe(crtbaseModule.get());
     return fn(size);
 
-    //static auto allocateHeap = LI_FN(RtlAllocateHeap).safe();
+    // static auto allocateHeap = LI_FN(RtlAllocateHeap).safe();
 
-    //PMALLOC_HEADER mhdr      = NULL;
-    //const size_t   new_size  = size + sizeof(MALLOC_HEADER);
-    //mhdr                     = (PMALLOC_HEADER)allocateHeap(M_PROCESSHEAP, HEAP_ZERO_MEMORY, new_size);
+    // PMALLOC_HEADER mhdr      = NULL;
+    // const size_t   new_size  = size + sizeof(MALLOC_HEADER);
+    // mhdr                     = (PMALLOC_HEADER)allocateHeap(M_PROCESSHEAP, HEAP_ZERO_MEMORY, new_size);
 
-    //if (mhdr)
+    // if (mhdr)
     //{
-    //    mhdr->Magic = MALLOC_MAGIC;
-    //    mhdr->Size  = size;
-    //    return GET_MALLOC_ADDRESS(mhdr);
-    //}
+    //     mhdr->Magic = MALLOC_MAGIC;
+    //     mhdr->Size  = size;
+    //     return GET_MALLOC_ADDRESS(mhdr);
+    // }
 
-    //return NULL;
+    // return NULL;
 }
 
 void __cdecl free(void *ptr)
@@ -126,12 +126,10 @@ void __cdecl free(void *ptr)
     static auto fn = LI_FN(free).in_safe(crtbaseModule.get());
     return fn(ptr);
 
-
-
-    //if (ptr)
+    // if (ptr)
     //{
-    //    static auto _RtlRaiseException = LI_FN(RtlRaiseException).safe();
-    //    static auto _RtlFreeHeap       = LI_FN(RtlFreeHeap).safe();
+    //     static auto _RtlRaiseException = LI_FN(RtlRaiseException).safe();
+    //     static auto _RtlFreeHeap       = LI_FN(RtlFreeHeap).safe();
 
     //    MALLOC_HEADER *mhdr            = GET_MALLOC_HEADER(ptr);
 
@@ -149,18 +147,18 @@ void *__cdecl realloc(void *ptr, size_t new_size)
     static auto fn = LI_FN(realloc).in_safe(crtbaseModule.get());
     return fn(ptr, new_size);
 
-    //if (!ptr)
+    // if (!ptr)
     //{
-    //    return malloc(new_size);
-    //}
-    //else if (new_size == 0)
+    //     return malloc(new_size);
+    // }
+    // else if (new_size == 0)
     //{
-    //    free(ptr);
-    //    return NULL;
-    //}
-    //else
+    //     free(ptr);
+    //     return NULL;
+    // }
+    // else
     //{
-    //    size_t old_size = GET_MALLOC_SIZE(ptr);
+    //     size_t old_size = GET_MALLOC_SIZE(ptr);
 
     //    if (new_size <= old_size)
     //    {
@@ -178,7 +176,7 @@ void *__cdecl realloc(void *ptr, size_t new_size)
     //        }
     //    }
     //}
-    //return NULL;
+    // return NULL;
 }
 
 void *__cdecl operator new(size_t size)
@@ -215,3 +213,6 @@ void *operator new[](size_t size, size_t, size_t, const char *, int, unsigned, c
 {
     return malloc(size);
 }
+
+
+#endif // MRT_ENABLED

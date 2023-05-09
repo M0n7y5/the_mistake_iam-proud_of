@@ -168,7 +168,16 @@ extern "C" __declspec(noreturn) void __cdecl _invalid_parameter_noinfo_noreturn(
 
 extern "C" int _purecall(void)
 {
+
     return 0;
 }
+
+extern "C" void __chkstk()
+{
+    //static auto fn = LI_FN(__chkstk).safe();
+    //fn();
+}
+
+
 
 #endif // MRT_ENABLED
