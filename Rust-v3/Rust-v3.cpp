@@ -6,6 +6,7 @@
 #include "mrt/lazy_importer.hpp"
 #include "mrt/xorstr.hpp"
 
+
 int Start(uint64_t imageBase)
 {
 #ifdef MRT_ENABLED
@@ -16,7 +17,7 @@ int Start(uint64_t imageBase)
 
     auto lol = new char[1024];
     memset(lol, 0, 1024);
-    sprintf(lol, _("Base: 0x%llX"), imageBase);
+    sprintf(lol, _("Base: 0x%llX %i"), imageBase, 5);
 
     LI_FN(MessageBoxA)((HWND)NULL, lol, _("Title Test"), 0);
 

@@ -3,6 +3,7 @@
 // since its using its types but doesnt include its header
 // its the il2cppdumper issue
 #include <cstdint>
+#include <vadefs.h>
 
 #include "math.h"
 #include "enums.h"
@@ -79,6 +80,54 @@ struct OBB
 
     Bounds  ToBounds();
     Vector3 ClosestPoint(Vector3 position);
+};
+
+struct CRect : UnityEngine_Rect_Fields // native
+{ };
+
+struct CShader : ILObjectBase<UnityEngine_Shader_Fields>
+{
+    int PropertyToID(char *name);
+};
+
+struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
+{ };
+
+struct CMaterial : ILObjectBase<UnityEngine_Material_Fields>
+{
+    CMaterial *ctor(CShader *shader);
+};
+
+struct CTexture : ILObjectBase<UnityEngine_Texture_Fields>
+{
+    uintptr_t GetNativeTexturePtr();
+};
+
+struct CTexture2D : ILObjectBase<UnityEngine_Texture2D_Fields>
+{
+    void ctor(int width, int height, TextureFormat textureFormat, bool mipChain, bool linear);
+    void LoadRawTextureData(uintptr_t data, int size);
+    void Apply();
+};
+
+struct CSprite : ILObjectBase<UnityEngine_Sprite_Fields>
+{
+
+};
+
+struct CMaterialPropertyBlock : ILObjectBase<UnityEngine_MaterialPropertyBlock_Fields>
+{
+    void SetTexture(int nameID, CTexture *value);
+};
+
+struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
+{
+    void SetViewport(CRect *pixelRect);
+    void SetViewProjectionMatrices(Matrix4x4 *view, Matrix4x4 *proj);
+    void EnableScissorRect(CRect *rect);
+    void DisableScissorRect();
+    void DrawMesh(CMesh *mesh, Matrix4x4 *matrix, CMaterial *material, int submeshIndex, int shaderPass,
+        CMaterialPropertyBlock *properties);
 };
 
 struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>

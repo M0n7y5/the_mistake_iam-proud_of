@@ -12,6 +12,8 @@ template <typename T> inline bool IsAddressValid(T address)
         (uint64_t)(address) >= (uint64_t)(MinimumUserAddress) && (uint64_t)(address) <= (uint64_t)(MaximumUserAddress));
 }
 
+
+
     #ifdef __cplusplus
 extern "C"
 {

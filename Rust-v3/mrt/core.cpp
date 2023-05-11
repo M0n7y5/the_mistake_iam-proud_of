@@ -8,7 +8,7 @@
 
 #ifdef MRT_ENABLED
 
-extern "C" __declspec(selectany) int _fltused = 1;
+extern "C" __declspec(selectany)  int _fltused = 1;
 
 extern "C"
 {
@@ -96,6 +96,11 @@ void _initterm(_PVFV *pfbegin, _PVFV *pfend)
 int __cdecl _cinit(void)
 {
     static auto _RtlInitializeSListHead = LI_FN(RtlInitializeSListHead).safe();
+
+    if (_RtlInitializeSListHead != NULL)
+    {
+        _fltused = 0; // shit gets optimized out, so this tricks optimizations for LLVM
+    }
 
     _cinitfs();
 
