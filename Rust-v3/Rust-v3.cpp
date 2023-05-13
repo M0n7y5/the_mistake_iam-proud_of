@@ -6,7 +6,6 @@
 #include "mrt/lazy_importer.hpp"
 #include "mrt/xorstr.hpp"
 
-
 int Start(uint64_t imageBase)
 {
 #ifdef MRT_ENABLED
@@ -32,7 +31,7 @@ bool __stdcall Initialize(uint64_t imageBase)
     // return Start(imageBase);
 
     LI_FN(CreateThread)
-    ((LPSECURITY_ATTRIBUTES)NULL, NULL, reinterpret_cast<LPTHREAD_START_ROUTINE>(Start), (void *)imageBase, 0,
+    ((LPSECURITY_ATTRIBUTES)NULL, NULL, reinterpret_cast<LPTHREAD_START_ROUTINE>(Start), (void*)imageBase, 0,
         (LPDWORD)0);
 
     return true;

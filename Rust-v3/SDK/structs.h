@@ -26,8 +26,15 @@
 // it will not be included in repo since its 35MB
 #include "il2cpp.h"
 
-template <typename T> struct ILObjectBase : Il2CppObject, T
-{ };
+template <typename T>
+struct ILObjectBase : Il2CppObject, T
+{
+    template <typename TType>
+    TType* StaticFields()
+    {
+        return reinterpret_cast<TType*>(this->klass->static_fields);
+    }
+};
 
 class CTime
 {
@@ -44,7 +51,7 @@ class CTime
 
 struct CTransform : ILObjectBase<UnityEngine_Transform_Fields>
 {
-    static CTransform *GetTransform(void *addr);
+    static CTransform* GetTransform(void* addr);
     Vector3            GetPosition();
     void               SetPosition(Vector3 position);
     void               SetRotation(Vector4 rotation);
@@ -87,7 +94,7 @@ struct CRect : UnityEngine_Rect_Fields // native
 
 struct CShader : ILObjectBase<UnityEngine_Shader_Fields>
 {
-    int PropertyToID(char *name);
+    int PropertyToID(char* name);
 };
 
 struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
@@ -95,7 +102,7 @@ struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
 
 struct CMaterial : ILObjectBase<UnityEngine_Material_Fields>
 {
-    CMaterial *ctor(CShader *shader);
+    CMaterial* ctor(CShader* shader);
 };
 
 struct CTexture : ILObjectBase<UnityEngine_Texture_Fields>
@@ -111,32 +118,30 @@ struct CTexture2D : ILObjectBase<UnityEngine_Texture2D_Fields>
 };
 
 struct CSprite : ILObjectBase<UnityEngine_Sprite_Fields>
-{
-
-};
+{ };
 
 struct CMaterialPropertyBlock : ILObjectBase<UnityEngine_MaterialPropertyBlock_Fields>
 {
-    void SetTexture(int nameID, CTexture *value);
+    void SetTexture(int nameID, CTexture* value);
 };
 
 struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
 {
-    void SetViewport(CRect *pixelRect);
-    void SetViewProjectionMatrices(Matrix4x4 *view, Matrix4x4 *proj);
-    void EnableScissorRect(CRect *rect);
+    void SetViewport(CRect* pixelRect);
+    void SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
+    void EnableScissorRect(CRect* rect);
     void DisableScissorRect();
-    void DrawMesh(CMesh *mesh, Matrix4x4 *matrix, CMaterial *material, int submeshIndex, int shaderPass,
-        CMaterialPropertyBlock *properties);
+    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, int submeshIndex, int shaderPass,
+        CMaterialPropertyBlock* properties);
 };
 
 struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
 {
-    static CCamera *GetCurrentCamera();
-    static CCamera *GetMainCamera();
+    static CCamera* GetCurrentCamera();
+    static CCamera* GetMainCamera();
     Vector3         GetPosition();
     Matrix4x4       GetViewMatrix();
-    bool            WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPosition);
+    bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
     Vector3         WorldToScreen(Vector3 elementPosition);
 };
 
@@ -145,17 +150,22 @@ struct CColider : ILObjectBase<UnityEngine_Collider_Fields>
 
 struct CTerrainCollision : TerrainCollision_o
 {
-    void Reset(CColider *collider);
+    void Reset(CColider* collider);
 };
 
 struct CModel : ILObjectBase<Model_Fields>
 {
     Vector3     GetBonePosition(PlayerBones bone);
-    CTransform *GetBoneTransform(PlayerBones bone);
+    CTransform* GetBoneTransform(PlayerBones bone);
 };
 
 struct CBaseNetworkable : ILObjectBase<BaseNetworkable_Fields>
-{ };
+{
+    // void test()
+    // {
+    //     auto lol = this->StaticFields<BaseNetworkable_StaticFields>()->clientEntities;
+    // }
+};
 
 struct CBaseEntity : CBaseNetworkable, BaseEntity_Fields_s
 {
@@ -204,7 +214,7 @@ struct CItem : ILObjectBase<Item_Fields>
 
 struct CHeldEntity : CBaseEntity, HeldEntity_Fields_s
 {
-    CItem *GetItem();
+    CItem* GetItem();
     bool   IsBaseProjectile();
 };
 
@@ -215,7 +225,7 @@ struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
     inline bool         IsWounded();
     inline bool         IsSleeping();
     inline bool         InSafeZone();
-    inline CHeldEntity *GetHeldEntity();
+    inline CHeldEntity* GetHeldEntity();
     inline float        MaxHealth();
     inline float        StartHealth();
     inline float        StartMaxHealth();

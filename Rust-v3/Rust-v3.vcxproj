@@ -154,6 +154,7 @@
     <ClCompile Include="mrt\memory.cpp" />
     <ClCompile Include="mrt\string.cpp" />
     <ClCompile Include="Rust-v3.cpp" />
+    <ClCompile Include="SDK\il2cpp_api.cpp" />
     <ClCompile Include="SDK\structs.cpp" />
     <ClCompile Include="ui\GUI.cpp" />
     <ClCompile Include="ui\imgui\imgui.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="SDK\enums.h" />
     <ClInclude Include="SDK\globals.h" />
     <ClInclude Include="SDK\il2cpp.h" />
+    <ClInclude Include="SDK\il2cpp_api.h" />
     <ClInclude Include="SDK\math.h" />
     <ClInclude Include="SDK\Offsets.h" />
     <ClInclude Include="SDK\SDK.h" />
