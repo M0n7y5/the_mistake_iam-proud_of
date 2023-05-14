@@ -22,6 +22,8 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
+IndentCaseBlocks: true
+IndentCaseLabels: true
 IndentPPDirectives: BeforeHash
 NamespaceIndentation: All
 PointerAlignment: Left

@@ -4,6 +4,8 @@
 #include "globals.h"
 #include "../mrt/fnv1a.hpp"
 
+// Impl : CTime
+
 float CTime::GetTime()
 {
     static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_time);
@@ -54,28 +56,28 @@ void CTime::SetTimeScale(float value)
 
 // Impl : CTransform
 
-CTransform *CTransform::GetTransform(void *addr)
+CTransform* CTransform::GetTransform(void* addr)
 {
     static auto off = OFF(Offsets::UnityEngine_Component::Methods::get_transform);
-    return ((CTransform * (*)(void *))(G::baseGameAssemlby + off))(addr);
+    return ((CTransform * (*)(void*))(G::baseGameAssemlby + off))(addr);
 }
 
 Vector3 CTransform::GetPosition() /* rand crash, to:do track*/
 {
     static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::get_position);
-    return ((Vector3(__thiscall *)(CTransform *))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall*)(CTransform*))(G::baseGameAssemlby + addr))(this);
 }
 
 void CTransform::SetPosition(Vector3 position)
 {
     static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::set_position_UnityEngine_Vector3_value);
-    return ((void(__thiscall *)(CTransform *, Vector3))(G::baseGameAssemlby + addr))(this, position);
+    return ((void(__thiscall*)(CTransform*, Vector3))(G::baseGameAssemlby + addr))(this, position);
 }
 
 void CTransform::SetRotation(Vector4 rotation)
 {
     static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::set_rotation_UnityEngine_Quaternion_value);
-    return ((void(__thiscall *)(CTransform *, Vector4))(G::baseGameAssemlby + addr))(this, rotation);
+    return ((void(__thiscall*)(CTransform*, Vector4))(G::baseGameAssemlby + addr))(this, rotation);
 }
 
 // Impl : CModel
@@ -87,19 +89,19 @@ Vector3 CModel::GetBonePosition(PlayerBones bone)
     if ((int)bone > boneTransformArray->bounds->length)
         return {};
 
-    auto boneTransform = (CTransform *)boneTransformArray->m_Items[(int)bone];
+    auto boneTransform = (CTransform*)boneTransformArray->m_Items[(int)bone];
 
     return boneTransform->GetPosition();
 }
 
-CTransform *CModel::GetBoneTransform(PlayerBones bone)
+CTransform* CModel::GetBoneTransform(PlayerBones bone)
 {
     auto boneTransformArray = this->boneDict->fields.transforms;
 
     if ((int)bone > boneTransformArray->bounds->length)
         return {};
 
-    auto boneTransform = (CTransform *)boneTransformArray->m_Items[(int)bone];
+    auto boneTransform = (CTransform*)boneTransformArray->m_Items[(int)bone];
 
     return boneTransform;
 }
@@ -114,44 +116,44 @@ Vector3 CBaseEntity::GetOriginPosition()
 Vector3 CBaseEntity::GetLocalVelocity()
 {
     static auto addr = OFF(Offsets::BaseEntity::Methods::GetLocalVelocity);
-    return ((Vector3(__thiscall *)(void *))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
 }
 Vector3 CBaseEntity::GetWorldVelocity()
 {
     static auto addr = OFF(Offsets::BaseEntity::Methods::GetWorldVelocity);
-    return ((Vector3(__thiscall *)(void *))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
 }
 Vector3 CBaseEntity::GetParentVelocity()
 {
     static auto addr = OFF(Offsets::BaseEntity::Methods::GetParentVelocity);
-    return ((Vector3(__thiscall *)(void *))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
 }
 
 float Bounds::SqrDistance(Vector3 point)
 {
     static auto addr = OFF(Offsets::UnityEngine_Bounds::Methods::SqrDistance_UnityEngine_Vector3_point);
-    return reinterpret_cast<float (*)(Bounds *, Vector3)>(G::baseGameAssemlby + addr)(this, point);
+    return reinterpret_cast<float (*)(Bounds*, Vector3)>(G::baseGameAssemlby + addr)(this, point);
 }
 
 Bounds OBB::ToBounds()
 {
     static auto addr = OFF(Offsets::OBB::Methods::ToBounds);
-    return ((Bounds(__thiscall *)(OBB *))(G::baseGameAssemlby + addr))(this);
+    return ((Bounds(__thiscall*)(OBB*))(G::baseGameAssemlby + addr))(this);
 }
 
 Vector3 OBB::ClosestPoint(Vector3 position)
 {
     static auto addr = OFF(Offsets::OBB::Methods::ClosestPoint_UnityEngine_Vector3_target);
-    return ((Vector3(__thiscall *)(OBB *, Vector3))(G::baseGameAssemlby + addr))(this, position);
+    return ((Vector3(__thiscall*)(OBB*, Vector3))(G::baseGameAssemlby + addr))(this, position);
 }
 
-CCamera *CCamera::GetCurrentCamera()
+CCamera* CCamera::GetCurrentCamera()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::StaticMethods::get_current);
     return ((CCamera * (*)())(G::baseUnityPlayer + addr))();
 }
 
-CCamera *CCamera::GetMainCamera()
+CCamera* CCamera::GetMainCamera()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::StaticMethods::get_main);
     return ((CCamera * (*)())(G::baseUnityPlayer + addr))();
@@ -165,10 +167,10 @@ Vector3 CCamera::GetPosition()
 Matrix4x4 CCamera::GetViewMatrix()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::get_worldToCameraMatrix);
-    return ((Matrix4x4(__thiscall *)(CCamera *))(G::baseUnityPlayer + addr))(this);
+    return ((Matrix4x4(__thiscall*)(CCamera*))(G::baseUnityPlayer + addr))(this);
 }
 
-bool CCamera::WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPosition)
+bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition)
 {
     auto view_matrix = this->GetViewMatrix();
 
@@ -184,11 +186,10 @@ bool CCamera::WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPo
     if (w < _flt(0.001f))
         return false;
 
-    float x        = right_vec.dot_product(elementPosition) + view_matrix[3][0];
-    float y        = up_vec.dot_product(elementPosition) + view_matrix[3][1];
+    float x = right_vec.dot_product(elementPosition) + view_matrix[3][0];
+    float y = up_vec.dot_product(elementPosition) + view_matrix[3][1];
 
     screenPosition = {(G::screenWidth / 2) * (1.f + x / w), (G::screenHeight / 2) * (1.f - y / w)};
-
 
     return true;
 }
@@ -196,74 +197,74 @@ bool CCamera::WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPo
 Vector3 CCamera::WorldToScreen(Vector3 position)
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
-    return ((Vector3(__thiscall *)(CCamera *, Vector3))(G::baseUnityPlayer + addr))(this, position);
+    return ((Vector3(__thiscall*)(CCamera*, Vector3))(G::baseUnityPlayer + addr))(this, position);
 }
 
-void CTerrainCollision::Reset(CColider *collider)
+void CTerrainCollision::Reset(CColider* collider)
 {
     static auto addr = OFF(Offsets::TerrainCollision::Methods::Reset_UnityEngine_Collider_collider);
-    ((void(__thiscall *)(void *, void *))(G::baseGameAssemlby + addr))(this, collider);
+    ((void(__thiscall*)(void*, void*))(G::baseGameAssemlby + addr))(this, collider);
 }
 
 float CBaseCombatEntity::MaxPlayerVelocity()
 {
     static auto addr = OFF(Offsets::BasePlayer::Methods::MaxVelocity);
-    return reinterpret_cast<float (*)(CBaseCombatEntity *)>(G::baseGameAssemlby + addr)(this);
+    return reinterpret_cast<float (*)(CBaseCombatEntity*)>(G::baseGameAssemlby + addr)(this);
 }
 
-CItem *CHeldEntity::GetItem()
+CItem* CHeldEntity::GetItem()
 {
     static auto addr = OFF(Offsets::HeldEntity::Methods::GetItem);
-    return ((CItem * (__thiscall *)(void *))(G::baseGameAssemlby + addr))(this);
+    return ((CItem * (__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
 }
 
 bool CHeldEntity::IsBaseProjectile()
 {
     if (auto item = this->GetItem())
     {
-        if (auto itemdef = (CItemDefinition *)item->info)
+        if (auto itemdef = (CItemDefinition*)item->info)
         {
             switch (itemdef->itemid)
             {
-            // RIFLE AMMO
-            case 1545779598:  // assault rifle
-            case -1335497659: // ICE AK
-            case -1812555177: // LR-300 Assault Rifle
-            case -904863145:  // Semi-Automatic Rifle
-            case 1588298435:  // Bolt Action Rifle
-            case -778367295:  // L96 Rifle
-            case 28201841:    // M39 Rifle
-            case -2069578888: // M249
-            case -1214542497: // HMLMG
+                // RIFLE AMMO
+                case 1545779598:  // assault rifle
+                case -1335497659: // ICE AK
+                case -1812555177: // LR-300 Assault Rifle
+                case -904863145:  // Semi-Automatic Rifle
+                case 1588298435:  // Bolt Action Rifle
+                case -778367295:  // L96 Rifle
+                case 28201841:    // M39 Rifle
+                case -2069578888: // M249
+                case -1214542497: // HMLMG
 
-            // PISTOL AMMO
-            case 1796682209:  // Custom SMG
-            case 1318558775:  // MP5A4
-            case -852563019:  // M92 Pistol
-            case 1373971859:  // Python Revolver
-            case 649912614:   // Revolver
-            case 818877484:   // Semi-Automatic Pistol
-            case -1758372725: // Thompson
+                // PISTOL AMMO
+                case 1796682209:  // Custom SMG
+                case 1318558775:  // MP5A4
+                case -852563019:  // M92 Pistol
+                case 1373971859:  // Python Revolver
+                case 649912614:   // Revolver
+                case 818877484:   // Semi-Automatic Pistol
+                case -1758372725: // Thompson
 
-            // SHOTGUNS
-            case -765183617:  // Double Barrel Shotgun
-            case 795371088:   // Pump Shotgun
-            case -1367281941: // Waterpipe Shotgun
-            case -41440462:   // Spas-12 Shotgun
-            case -75944661:   // Eoka Pistol
+                // SHOTGUNS
+                case -765183617:  // Double Barrel Shotgun
+                case 795371088:   // Pump Shotgun
+                case -1367281941: // Waterpipe Shotgun
+                case -41440462:   // Spas-12 Shotgun
+                case -75944661:   // Eoka Pistol
 
-            // ARROWS
-            case 1443579727: // Hunting Bow
-            case 884424049:  // Compound Bow
-            case 1965232394: // Crossbow
+                // ARROWS
+                case 1443579727: // Hunting Bow
+                case 884424049:  // Compound Bow
+                case 1965232394: // Crossbow
 
-            case 1953903201:  // Nailgun
-            case 442886268:   // rocket launcher
-            case -1123473824: // grenade launcher
-                return true;
+                case 1953903201:  // Nailgun
+                case 442886268:   // rocket launcher
+                case -1123473824: // grenade launcher
+                    return true;
 
-            default:
-                return false;
+                default:
+                    return false;
             }
         }
     }
@@ -280,50 +281,119 @@ bool CAttackEntity::IsWeaponReady(bool bow)
 
 bool CAttackEntity::IsMelee()
 {
-    const auto item   = (CItemDefinition *)(this->GetItem()->info);
+    const auto item   = (CItemDefinition*)(this->GetItem()->info);
     const auto itemId = item->itemid;
 
     switch (itemId)
     {
-    case 1814288539: // knife.bone
-    case -194509282: // knife.butcher
-    case 2040726127: // knife.combat
+        case 1814288539: // knife.bone
+        case -194509282: // knife.butcher
+        case 2040726127: // knife.combat
 
-    case -1780802565: // icepick.salvaged
-    case 1104520648:  // chainsaw
-    case 1488979457:  // jackhammer
+        case -1780802565: // icepick.salvaged
+        case 1104520648:  // chainsaw
+        case 1488979457:  // jackhammer
 
-    case -1360171080: // concretepickaxe
-    case -1302129395: // pickaxe
-    case 236677901:   // lumberjack.pickaxe
-    case 171931394:   // stone.pickaxe
-    case -262590403:  // axe.salvaged
+        case -1360171080: // concretepickaxe
+        case -1302129395: // pickaxe
+        case 236677901:   // lumberjack.pickaxe
+        case 171931394:   // stone.pickaxe
+        case -262590403:  // axe.salvaged
 
-    case -196667575:  // flashlight.held
-    case 1973165031:  // cakefiveyear
-    case 1803831286:  // toolgun
-    case 200773292:   // hammer
-    case -1506397857: // hammer.salvaged
-    case -1583967946: // stonehatchet
-    case 1176355476:  // concretehatchet
-    case -1252059217: // hatchet
-    case -399173933:  // lumberjack.hatchet
+        case -196667575:  // flashlight.held
+        case 1973165031:  // cakefiveyear
+        case 1803831286:  // toolgun
+        case 200773292:   // hammer
+        case -1506397857: // hammer.salvaged
+        case -1583967946: // stonehatchet
+        case 1176355476:  // concretehatchet
+        case -1252059217: // hatchet
+        case -399173933:  // lumberjack.hatchet
 
-    case 963906841:   // rock
-    case 795236088:   // torch
-    case -1966748496: // mace
-    case -1978999529: // salvaged.cleaver
-    case -1137865085: // machete
-    case 1789825282:  // candycaneclub
-    case -1469578201: // longsword
-    case 1326180354:  // salvaged.sword
-    case 1090916276:  // pitchfork
-    case 1540934679:  // spear.wooden
-    case 1602646136:  // spear.stone
-    case -363689972:  // snowball
-        return true;
+        case 963906841:   // rock
+        case 795236088:   // torch
+        case -1966748496: // mace
+        case -1978999529: // salvaged.cleaver
+        case -1137865085: // machete
+        case 1789825282:  // candycaneclub
+        case -1469578201: // longsword
+        case 1326180354:  // salvaged.sword
+        case 1090916276:  // pitchfork
+        case 1540934679:  // spear.wooden
+        case 1602646136:  // spear.stone
+        case -363689972:  // snowball
+            return true;
 
-    default:
-        return false;
+        default:
+            return false;
     }
+}
+
+// Impl : CBasePlayer
+
+uint64_t CBasePlayer::GetTeamID()
+{
+    return this->currentTeam;
+}
+
+bool CBasePlayer::IsLocalPlayer()
+{
+    static auto addr = OFF(Offsets::BasePlayer::Methods::IsLocalPlayer);
+    return reinterpret_cast<bool (*)(CBasePlayer*)>(G::baseGameAssemlby + addr)(this);
+}
+
+bool CBasePlayer::IsWounded()
+{
+    return this->HasFlag(PlayerFlags::Wounded);
+}
+
+bool CBasePlayer::IsSleeping()
+{
+    return ((CModelState*)this->modelState)->HasFlag(ModelStateFlags::Sleeping);
+}
+
+bool CBasePlayer::InSafeZone()
+{
+    return this->HasFlag(PlayerFlags::SafeZone);
+}
+
+CHeldEntity* CBasePlayer::GetHeldEntity()
+{
+    auto addr = OFF(Offsets::BasePlayer::Methods::GetHeldEntity);
+    return ((CHeldEntity * (__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
+}
+
+float CBasePlayer::MaxHealth()
+{
+    return 0.0f;
+}
+
+float CBasePlayer::StartHealth()
+{
+    return 0.0f;
+}
+
+float CBasePlayer::StartMaxHealth()
+{
+    return 0.0f;
+}
+
+float CBasePlayer::BoundsPadding()
+{
+    return 0.0f;
+}
+
+float CBasePlayer::GetJumpHeight()
+{
+    return 0.0f;
+}
+
+float CBasePlayer::GetRadius()
+{
+    return 0.0f;
+}
+
+float CBasePlayer::NoClipRadius(float margin)
+{
+    return 0.0f;
 }

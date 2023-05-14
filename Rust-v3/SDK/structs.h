@@ -167,6 +167,9 @@ struct CBaseNetworkable : ILObjectBase<BaseNetworkable_Fields>
     // }
 };
 
+struct CInputState : ILObjectBase<InputState_Fields>
+{ };
+
 struct CBaseEntity : CBaseNetworkable, BaseEntity_Fields_s
 {
     Vector3 GetOriginPosition();
@@ -218,21 +221,39 @@ struct CHeldEntity : CBaseEntity, HeldEntity_Fields_s
     bool   IsBaseProjectile();
 };
 
-struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
+class CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
 {
-    inline uint64_t     GetTeamID();
-    inline bool         IsLocalPlayer();
-    inline bool         IsWounded();
-    inline bool         IsSleeping();
-    inline bool         InSafeZone();
-    inline CHeldEntity* GetHeldEntity();
-    inline float        MaxHealth();
-    inline float        StartHealth();
-    inline float        StartMaxHealth();
-    inline float        BoundsPadding();
-    inline float        GetJumpHeight();
-    inline float        GetRadius();
-    inline float        NoClipRadius(float margin);
+  public:
+    uint64_t     GetTeamID();
+    bool         IsLocalPlayer();
+    bool         IsWounded();
+    bool         IsSleeping();
+    bool         InSafeZone();
+    CHeldEntity* GetHeldEntity();
+    float        MaxHealth();
+    float        StartHealth();
+    float        StartMaxHealth();
+    float        BoundsPadding();
+    float        GetJumpHeight();
+    float        GetRadius();
+    float        NoClipRadius(float margin);
+
+    bool HasFlag(PlayerFlags Flag)
+    {
+        return ((PlayerFlags)(this->playerFlags & (int32_t)Flag) == Flag);
+    }
+
+    void SetFlag(PlayerFlags Flag, bool State)
+    {
+        auto ActiveFlags = this->playerFlags;
+
+        if (State)
+            ActiveFlags |= (int32_t)Flag;
+        else
+            ActiveFlags &= ~(int32_t)Flag;
+
+        this->playerFlags = ActiveFlags;
+    }
 };
 
 struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s

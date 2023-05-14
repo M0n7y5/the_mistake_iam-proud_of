@@ -149,10 +149,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Hooks\BasePlayer.cpp" />
+    <ClCompile Include="Hooks\ItemIcon.cpp" />
+    <ClCompile Include="SDK\mem.cpp" />
     <ClCompile Include="mrt\core.cpp" />
     <ClCompile Include="mrt\math.cpp" />
     <ClCompile Include="mrt\memory.cpp" />
     <ClCompile Include="mrt\string.cpp" />
+    <ClCompile Include="Hooks\Projectile.cpp" />
+    <ClCompile Include="Hooks\PlayerWalkMovement.cpp" />
     <ClCompile Include="Rust-v3.cpp" />
     <ClCompile Include="SDK\il2cpp_api.cpp" />
     <ClCompile Include="SDK\structs.cpp" />
@@ -164,16 +169,23 @@
     <ClCompile Include="ui\mui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Hooks\BasePlayer.h" />
+    <ClInclude Include="Hooks\Hooks.h" />
+    <ClInclude Include="Hooks\ItemIcon.h" />
     <ClInclude Include="Kotlar\Kotlar.h" />
+    <ClInclude Include="SDK\mem.h" />
     <ClInclude Include="mrt\core.h" />
     <ClInclude Include="mrt\fnv1a.hpp" />
     <ClInclude Include="mrt\lazy_importer.hpp" />
     <ClInclude Include="mrt\xorstr.hpp" />
+    <ClInclude Include="Hooks\Projectile.h" />
+    <ClInclude Include="Hooks\PlayerWalkMovement.h" />
     <ClInclude Include="SDK\enums.h" />
     <ClInclude Include="SDK\globals.h" />
     <ClInclude Include="SDK\il2cpp.h" />
     <ClInclude Include="SDK\il2cpp_api.h" />
     <ClInclude Include="SDK\math.h" />
+    <ClInclude Include="SDK\ntwinddk.h" />
     <ClInclude Include="SDK\Offsets.h" />
     <ClInclude Include="SDK\SDK.h" />
     <ClInclude Include="SDK\structs.h" />
