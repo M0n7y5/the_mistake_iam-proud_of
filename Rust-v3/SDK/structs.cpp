@@ -150,13 +150,13 @@ Vector3 OBB::ClosestPoint(Vector3 position)
 CCamera* CCamera::GetCurrentCamera()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::StaticMethods::get_current);
-    return ((CCamera * (*)())(G::baseUnityPlayer + addr))();
+    return ((CCamera * (*)())(G::baseGameAssemlby + addr))();
 }
 
 CCamera* CCamera::GetMainCamera()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::StaticMethods::get_main);
-    return ((CCamera * (*)())(G::baseUnityPlayer + addr))();
+    return ((CCamera * (*)())(G::baseGameAssemlby + addr))();
 }
 
 Vector3 CCamera::GetPosition()
@@ -167,7 +167,7 @@ Vector3 CCamera::GetPosition()
 Matrix4x4 CCamera::GetViewMatrix()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::get_worldToCameraMatrix);
-    return ((Matrix4x4(__thiscall*)(CCamera*))(G::baseUnityPlayer + addr))(this);
+    return ((Matrix4x4(__thiscall*)(CCamera*))(G::baseGameAssemlby + addr))(this);
 }
 
 bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition)
@@ -197,7 +197,7 @@ bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPo
 Vector3 CCamera::WorldToScreen(Vector3 position)
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
-    return ((Vector3(__thiscall*)(CCamera*, Vector3))(G::baseUnityPlayer + addr))(this, position);
+    return ((Vector3(__thiscall*)(CCamera*, Vector3))(G::baseGameAssemlby + addr))(this, position);
 }
 
 void CTerrainCollision::Reset(CColider* collider)
@@ -397,3 +397,6 @@ float CBasePlayer::NoClipRadius(float margin)
 {
     return 0.0f;
 }
+
+void CCommandBuffer::ctor()
+{ }

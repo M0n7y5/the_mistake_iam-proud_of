@@ -2,6 +2,11 @@
 #include "../SDK/il2cpp_api.h"
 #include "../SDK/structs.h"
 #include "../mrt/xorstr.hpp"
+#include "../mrt/logging.h"
+
+uintptr_t DoFixedUpdate_o = 0;
+uintptr_t ClientInput_o   = 0;
+uintptr_t TeleportTo_o    = 0;
 
 bool joj = true;
 
@@ -10,9 +15,16 @@ void hk_DoFixedUpdate(CPlayerWalkMovement* _this, CModelState* modelState)
     static bool initme = true;
 
     if (initme)
-    { // lets init this function by allowing orinal function run first
+    {
+        // lets init this function by allowing orinal function run first
         initme = false;
-        reinterpret_cast<decltype(&hk_DoFixedUpdate)>(Hooks::PlayerWalkMovement::DoFixedUpdate_o)(_this, modelState);
+        reinterpret_cast<decltype(&hk_DoFixedUpdate)>(DoFixedUpdate_o)(_this, modelState);
+
+#ifdef _DEBUG
+        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
+        L::Print("PlayerWalkMovement DoFixedUpdate -> initMe");
+        L::PopConsoleColor();
+#endif
         return;
     }
 
@@ -20,7 +32,7 @@ void hk_DoFixedUpdate(CPlayerWalkMovement* _this, CModelState* modelState)
     {
         auto player = (CBasePlayer*)_this->_Owner_k__BackingField;
 
-        if (!player->IsLocalPlayer()) //hmm
+        if (!player->IsLocalPlayer()) // hmm
             break;
 
         if (modelState->HasFlag(ModelStateFlags::Sleeping))
@@ -37,7 +49,7 @@ void hk_DoFixedUpdate(CPlayerWalkMovement* _this, CModelState* modelState)
     }
     while (false);
 
-    reinterpret_cast<decltype(&hk_DoFixedUpdate)>(Hooks::PlayerWalkMovement::DoFixedUpdate_o)(_this, modelState);
+    reinterpret_cast<decltype(&hk_DoFixedUpdate)>(DoFixedUpdate_o)(_this, modelState);
 }
 
 void hk_ClientInput(CPlayerWalkMovement* _this, CInputState* inputState, CModelState* modelState)
@@ -47,13 +59,17 @@ void hk_ClientInput(CPlayerWalkMovement* _this, CInputState* inputState, CModelS
     if (initme)
     { // lets init this function by allowing orinal function run first
         initme = false;
-        reinterpret_cast<decltype(&hk_ClientInput)>(Hooks::PlayerWalkMovement::ClientInput_o)(
-            _this, inputState, modelState);
+        reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, inputState, modelState);
+
+#ifdef _DEBUG
+        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
+        L::Print("PlayerWalkMovement ClientInput -> initMe");
+        L::PopConsoleColor();
+#endif
         return;
     }
 
-    reinterpret_cast<decltype(&hk_ClientInput)>(Hooks::PlayerWalkMovement::ClientInput_o)(
-        _this, inputState, modelState);
+    reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, inputState, modelState);
 }
 
 void hk_TeleportTo(CPlayerWalkMovement* _this, Vector3 position, CBasePlayer* player)
@@ -63,22 +79,28 @@ void hk_TeleportTo(CPlayerWalkMovement* _this, Vector3 position, CBasePlayer* pl
     if (initme)
     { // lets init this function by allowing orinal function run first
         initme = false;
-        reinterpret_cast<decltype(&hk_TeleportTo)>(Hooks::PlayerWalkMovement::TeleportTo_o)(_this, position, player);
+        reinterpret_cast<decltype(&hk_TeleportTo)>(TeleportTo_o)(_this, position, player);
+
+#ifdef _DEBUG
+        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
+        L::Print("PlayerWalkMovement TeleportTo -> initMe");
+        L::PopConsoleColor();
+#endif
         return;
     }
 
-    reinterpret_cast<decltype(&hk_TeleportTo)>(Hooks::PlayerWalkMovement::TeleportTo_o)(_this, position, player);
+    reinterpret_cast<decltype(&hk_TeleportTo)>(TeleportTo_o)(_this, position, player);
 }
 
 void Hooks::PlayerWalkMovement::Init()
 {
-    Il2CppClass* klass = il2cpp::InitClass(_("PlayerWalkMovement"));
+    // auto call = "UnityEngine.Rendering.CommandBuffer::EnableScissorRect_Injected";
 
-    DoFixedUpdate_o = *(uintptr_t*)il2cpp::GetMethod(klass, _("DoFixedUpdate"));
-    il2cpp::HookVirtualFunction((uintptr_t)klass, DoFixedUpdate_o, &hk_DoFixedUpdate);
+    // auto test = il2cpp_resolve_icall(call);
 
-    // il2cpp::HookVirtualFunction(klass, _("DoFixedUpdate"), &hk_DoFixedUpdate);
+    auto klass = il2cpp::InitClass(_("PlayerWalkMovement"));
 
-    // ClientInput_o   = il2cpp::HookVirtualFunction(klass, _("ClientInput"), &hk_ClientInput);
-    // TeleportTo_o    = il2cpp::HookVirtualFunction(klass, _("TeleportTo"), &hk_DoFixedUpdate);
+    DoFixedUpdate_o = il2cpp::HookVirtualFunction(klass, _("DoFixedUpdate"), &hk_DoFixedUpdate);
+    ClientInput_o   = il2cpp::HookVirtualFunction(klass, _("ClientInput"), &hk_ClientInput);
+    TeleportTo_o    = il2cpp::HookVirtualFunction(klass, _("TeleportTo"), &hk_DoFixedUpdate);
 }

@@ -5,16 +5,25 @@
 
 #include "mrt/lazy_importer.hpp"
 #include "mrt/xorstr.hpp"
+#include "mrt/logging.h"
 
 #include "Hooks/Hooks.h"
 #include "SDK/globals.h"
 #include "SDK/mem.h"
+
+#include <fstream>
 
 int Start(uint64_t imageBase)
 {
 #ifdef MRT_ENABLED
     _cinit();
 #endif // MRT_ENABLED
+
+#ifdef _DEBUG
+    L::Attach("Rust v3 Dev Console");
+    L::Print("Sleeping for 10s ...");
+
+#endif // _DEBUG
 
     LI_FN(Sleep)(10000);
 
@@ -30,6 +39,11 @@ int Start(uint64_t imageBase)
 
     G::baseUnityPlayer  = mem::GetModuleAddress(_(L"UnityPlayer.dll"));
     G::baseGameAssemlby = mem::GetModuleAddress(_(L"GameAssembly.dll"));
+
+#ifdef _DEBUG
+    L::Print("UnityPlayer.dll base 0x{:X}", G::baseUnityPlayer);
+    L::Print("GameAssembly.dll base 0x{:X}", G::baseGameAssemlby);
+#endif // _DEBUG
 
     InitHooks();
 

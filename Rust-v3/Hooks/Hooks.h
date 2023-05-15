@@ -3,6 +3,8 @@
 #include "ItemIcon.h"
 #include "PlayerWalkMovement.h"
 #include "Projectile.h"
+#include "PerformanceText.h"
+#include "MainCamera.h"
 
 inline void InitHooks()
 {
@@ -11,4 +13,6 @@ inline void InitHooks()
     PlayerWalkMovement::Init();
     ItemIcon::Init();
     Projectile::Init();
+    PerformanceText::Init();
+    MainCamera::Init();
 }

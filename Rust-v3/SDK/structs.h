@@ -127,6 +127,7 @@ struct CMaterialPropertyBlock : ILObjectBase<UnityEngine_MaterialPropertyBlock_F
 
 struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
 {
+    void ctor();
     void SetViewport(CRect* pixelRect);
     void SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
     void EnableScissorRect(CRect* rect);
@@ -144,6 +145,9 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
     bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
     Vector3         WorldToScreen(Vector3 elementPosition);
 };
+
+struct CMainCamera : ILObjectBase<MainCamera_Fields>
+{ };
 
 struct CColider : ILObjectBase<UnityEngine_Collider_Fields>
 { };
