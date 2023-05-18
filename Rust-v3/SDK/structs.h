@@ -4,9 +4,12 @@
 // its the il2cppdumper issue
 #include <cstdint>
 #include <vadefs.h>
+#include <string>
 
 #include "math.h"
 #include "enums.h"
+
+#define IL2CPP_ZERO_LEN_ARRAY 0
 
 // il2cpp contains some keywords that are already used for macros
 
@@ -35,6 +38,45 @@ struct ILObjectBase : Il2CppObject, T
         return reinterpret_cast<TType*>(this->klass->static_fields);
     }
 };
+typedef wchar_t Il2CppNativeChar;
+typedef wchar_t Il2CppChar;
+
+// System.String
+typedef struct Il2CppString
+{
+    Il2CppObject object;
+    int32_t      length; ///< Length of string *excluding* the trailing null (which is included in 'chars').
+    Il2CppChar   chars[IL2CPP_ZERO_LEN_ARRAY];
+
+    static Il2CppString* newString(char* text);
+    std::string          str();
+
+} Il2CppString;
+
+using CString = Il2CppString;
+
+typedef struct Il2CppArray : public Il2CppObject
+{
+
+    /* bounds is NULL for szarrays */
+    Il2CppArrayBounds* bounds;
+    /* total number of elements of the array */
+    il2cpp_array_size_t max_length;
+} Il2CppArray;
+
+template <typename T>
+struct CArray : Il2CppArray
+{
+    T*         data[IL2CPP_ZERO_LEN_ARRAY];
+    CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size);
+    CArray<T>* New(char* klass, il2cpp_array_size_t size, const char* namespaze = "");
+};
+
+// template <typename T>
+// inline SystemArray<T>* ArrayNewSpecific(uintptr_t typeInfo, uint64_t size)
+//{
+//     return (SystemArray<T>*)methods::array_new_specific(typeInfo, size);
+// }
 
 class CTime
 {
@@ -92,13 +134,29 @@ struct OBB
 struct CRect : UnityEngine_Rect_Fields // native
 { };
 
+struct CVertexAttributeDescriptor : ILObjectBase<UnityEngine_Rendering_VertexAttributeDescriptor_Fields>
+{ };
+
 struct CShader : ILObjectBase<UnityEngine_Shader_Fields>
 {
-    int PropertyToID(char* name);
+    static uint32_t PropertyToID(char* name);
+};
+
+struct CSubMeshDescriptor
+{
+    Bounds bounds;
 };
 
 struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
-{ };
+{
+    void ctor(char* name);
+    void MarkDynamic();
+    void Clear();
+    void SetIndexBufferParams(uint32_t indexCount, TextureFormat format);
+    void SetVertexBufferParams(int vertexCount, CArray<CVertexAttributeDescriptor>* attributes);
+    void SetSubMeshes(CArray<CSubMeshDescriptor>* desc, MeshUpdateFlags flags);
+    void UploadMeshData(bool markNoLongerReadable);
+};
 
 struct CMaterial : ILObjectBase<UnityEngine_Material_Fields>
 {
@@ -122,7 +180,8 @@ struct CSprite : ILObjectBase<UnityEngine_Sprite_Fields>
 
 struct CMaterialPropertyBlock : ILObjectBase<UnityEngine_MaterialPropertyBlock_Fields>
 {
-    void SetTexture(int nameID, CTexture* value);
+    void ctor();
+    void SetTexture(uint32_t nameID, CTexture* value);
 };
 
 struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
@@ -132,7 +191,7 @@ struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
     void SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
     void EnableScissorRect(CRect* rect);
     void DisableScissorRect();
-    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, int submeshIndex, int shaderPass,
+    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, uint32_t shaderPass,
         CMaterialPropertyBlock* properties);
 };
 

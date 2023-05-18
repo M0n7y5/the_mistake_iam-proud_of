@@ -72,16 +72,16 @@ void hk_Awake(CMainCamera* _this)
 
         return;
     }
-
+#ifdef _DEBUG
     L::Print("MainCamera Awake -> Called");
-
+#endif
     reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
 }
 void Hooks::MainCamera::Init()
 {
-    auto klass = il2cpp::InitClass(_("MainCamera"));
+    // auto klass = il2cpp::InitClass(_("MainCamera"));
 
-    LateUpdate_o = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), &hk_LateUpdate);
-    OnDestroy_o  = il2cpp::HookVirtualFunction(klass, _("OnDestroy"), &hk_OnDestroy);
-    Awake_o      = il2cpp::HookVirtualFunction(klass, _("Awake"), &hk_Awake);
+    // LateUpdate_o = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), &hk_LateUpdate);
+    // OnDestroy_o  = il2cpp::HookVirtualFunction(klass, _("OnDestroy"), &hk_OnDestroy);
+    // Awake_o      = il2cpp::HookVirtualFunction(klass, _("Awake"), &hk_Awake);
 }

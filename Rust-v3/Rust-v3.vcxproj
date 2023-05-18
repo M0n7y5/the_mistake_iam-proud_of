@@ -72,7 +72,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;DEBUG_CONSOLE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
@@ -91,7 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
@@ -117,7 +117,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED;_HAS_STATIC_RTTI=0</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
@@ -154,6 +154,25 @@
     <ClCompile Include="Hooks\MainCamera.cpp" />
     <ClCompile Include="Hooks\PerformanceText.cpp" />
     <ClCompile Include="mrt\logging.cpp" />
+    <ClCompile Include="SDK\impl\Bounds.cpp" />
+    <ClCompile Include="SDK\impl\CAttackEntity.cpp" />
+    <ClCompile Include="SDK\impl\CBaseCombatEntity.cpp" />
+    <ClCompile Include="SDK\impl\CBaseEntity.cpp" />
+    <ClCompile Include="SDK\impl\CBasePlayer.cpp" />
+    <ClCompile Include="SDK\impl\CCamera.cpp" />
+    <ClCompile Include="SDK\impl\CCommandBuffer.cpp" />
+    <ClCompile Include="SDK\impl\CHeldEntity.cpp" />
+    <ClCompile Include="SDK\impl\CMaterial.cpp" />
+    <ClCompile Include="SDK\impl\CMaterialPropertyBlock.cpp" />
+    <ClCompile Include="SDK\impl\CMesh.cpp" />
+    <ClCompile Include="SDK\impl\CModel.cpp" />
+    <ClCompile Include="SDK\impl\CShader.cpp" />
+    <ClCompile Include="SDK\impl\CTerrainCollision.cpp" />
+    <ClCompile Include="SDK\impl\CTexture.cpp" />
+    <ClCompile Include="SDK\impl\CTexture2D.cpp" />
+    <ClCompile Include="SDK\impl\CTime.cpp" />
+    <ClCompile Include="SDK\impl\CTransform.cpp" />
+    <ClCompile Include="SDK\impl\OBB.cpp" />
     <ClCompile Include="SDK\mem.cpp" />
     <ClCompile Include="mrt\core.cpp" />
     <ClCompile Include="mrt\math.cpp" />
@@ -179,6 +198,7 @@
     <ClInclude Include="Hooks\PerformanceText.h" />
     <ClInclude Include="Kotlar\Kotlar.h" />
     <ClInclude Include="mrt\logging.h" />
+    <ClInclude Include="SDK\hashes.hpp" />
     <ClInclude Include="SDK\mem.h" />
     <ClInclude Include="mrt\core.h" />
     <ClInclude Include="mrt\fnv1a.hpp" />

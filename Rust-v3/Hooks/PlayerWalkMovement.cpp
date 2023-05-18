@@ -94,9 +94,7 @@ void hk_TeleportTo(CPlayerWalkMovement* _this, Vector3 position, CBasePlayer* pl
 
 void Hooks::PlayerWalkMovement::Init()
 {
-    // auto call = "UnityEngine.Rendering.CommandBuffer::EnableScissorRect_Injected";
 
-    // auto test = il2cpp_resolve_icall(call);
 
     auto klass = il2cpp::InitClass(_("PlayerWalkMovement"));
 

@@ -11,6 +11,21 @@ enum class MeshUpdateFlags : int32_t
     DontRecalculateBounds = 8
 };
 
+enum class IndexFormat : int32_t
+{
+    UInt16,
+    UInt32
+};
+
+enum class MeshTopology
+{
+    Triangles,
+    Quads = 2,
+    Lines,
+    LineStrip,
+    Points
+};
+
 enum class TextureFormat : int32_t
 {
     Alpha8 = 1,
