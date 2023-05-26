@@ -6,11 +6,11 @@
 Bounds OBB::ToBounds()
 {
     static auto addr = OFF(Offsets::OBB::Methods::ToBounds);
-    return ((Bounds(__thiscall*)(OBB*))(G::baseGameAssemlby + addr))(this);
+    return ((Bounds(__thiscall*)(OBB*))(addr))(this);
 }
 
 Vector3 OBB::ClosestPoint(Vector3 position)
 {
     static auto addr = OFF(Offsets::OBB::Methods::ClosestPoint_UnityEngine_Vector3_target);
-    return ((Vector3(__thiscall*)(OBB*, Vector3))(G::baseGameAssemlby + addr))(this, position);
+    return ((Vector3(__thiscall*)(OBB*, Vector3))(addr))(this, position);
 }

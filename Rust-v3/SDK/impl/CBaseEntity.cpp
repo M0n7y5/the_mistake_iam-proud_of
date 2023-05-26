@@ -13,15 +13,15 @@ Vector3 CBaseEntity::GetOriginPosition()
 Vector3 CBaseEntity::GetLocalVelocity()
 {
     static auto addr = OFF(Offsets::BaseEntity::Methods::GetLocalVelocity);
-    return ((Vector3(__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall*)(void*))(addr))(this);
 }
 Vector3 CBaseEntity::GetWorldVelocity()
 {
     static auto addr = OFF(Offsets::BaseEntity::Methods::GetWorldVelocity);
-    return ((Vector3(__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall*)(void*))(addr))(this);
 }
 Vector3 CBaseEntity::GetParentVelocity()
 {
     static auto addr = OFF(Offsets::BaseEntity::Methods::GetParentVelocity);
-    return ((Vector3(__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
+    return ((Vector3(__thiscall*)(void*))(addr))(this);
 }

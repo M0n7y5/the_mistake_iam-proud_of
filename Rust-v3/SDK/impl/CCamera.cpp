@@ -6,13 +6,13 @@
 CCamera* CCamera::GetCurrentCamera()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::StaticMethods::get_current);
-    return ((CCamera * (*)())(G::baseGameAssemlby + addr))();
+    return ((CCamera * (*)())(addr))();
 }
 
 CCamera* CCamera::GetMainCamera()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::StaticMethods::get_main);
-    return ((CCamera * (*)())(G::baseGameAssemlby + addr))();
+    return ((CCamera * (*)())(addr))();
 }
 
 Vector3 CCamera::GetPosition()
@@ -23,7 +23,7 @@ Vector3 CCamera::GetPosition()
 Matrix4x4 CCamera::GetViewMatrix()
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::get_worldToCameraMatrix);
-    return ((Matrix4x4(__thiscall*)(CCamera*))(G::baseGameAssemlby + addr))(this);
+    return ((Matrix4x4(__thiscall*)(CCamera*))(addr))(this);
 }
 
 bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition)
@@ -53,5 +53,5 @@ bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPo
 Vector3 CCamera::WorldToScreen(Vector3 position)
 {
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
-    return ((Vector3(__thiscall*)(CCamera*, Vector3))(G::baseGameAssemlby + addr))(this, position);
+    return ((Vector3(__thiscall*)(CCamera*, Vector3))(addr))(this, position);
 }

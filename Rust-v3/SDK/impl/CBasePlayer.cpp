@@ -13,7 +13,7 @@ uint64_t CBasePlayer::GetTeamID()
 bool CBasePlayer::IsLocalPlayer()
 {
     static auto addr = OFF(Offsets::BasePlayer::Methods::IsLocalPlayer);
-    return reinterpret_cast<bool (*)(CBasePlayer*)>(G::baseGameAssemlby + addr)(this);
+    return reinterpret_cast<bool (*)(CBasePlayer*)>(addr)(this);
 }
 
 bool CBasePlayer::IsWounded()
@@ -34,7 +34,7 @@ bool CBasePlayer::InSafeZone()
 CHeldEntity* CBasePlayer::GetHeldEntity()
 {
     auto addr = OFF(Offsets::BasePlayer::Methods::GetHeldEntity);
-    return ((CHeldEntity * (__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
+    return ((CHeldEntity * (__thiscall*)(void*))(addr))(this);
 }
 
 float CBasePlayer::MaxHealth()

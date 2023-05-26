@@ -1,4 +1,4 @@
 #pragma once
 
 // for now
-#define OFF(x) x
+#define OFF(x) uintptr_t(G::baseGameAssemlby + x)

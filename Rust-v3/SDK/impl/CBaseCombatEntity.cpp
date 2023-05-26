@@ -6,5 +6,5 @@
 float CBaseCombatEntity::MaxPlayerVelocity()
 {
     static auto addr = OFF(Offsets::BasePlayer::Methods::MaxVelocity);
-    return reinterpret_cast<float (*)(CBaseCombatEntity*)>(G::baseGameAssemlby + addr)(this);
+    return reinterpret_cast<float (*)(CBaseCombatEntity*)>(addr)(this);
 }

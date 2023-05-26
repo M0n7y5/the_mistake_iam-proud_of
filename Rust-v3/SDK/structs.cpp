@@ -1,5 +1,8 @@
 #include "structs.h"
 #include "il2cpp_api.h"
+#include "Offsets.h"
+#include "../Kotlar/Kotlar.h"
+#include "globals.h"
 
 Il2CppString* Il2CppString::newString(char* text)
 {
@@ -25,7 +28,7 @@ inline CArray<T>* CArray<T>::New(Il2CppClass* klass, il2cpp_array_size_t size)
 }
 
 template <typename T>
-inline CArray<T>* CArray<T>::New(char* klass, il2cpp_array_size_t size, const char* namespaze)
+inline CArray<T>* CArray<T>::New(const char* klass, il2cpp_array_size_t size, const char* namespaze)
 {
     auto klassType = il2cpp::InitClass(klass, namespaze);
 
@@ -35,3 +38,10 @@ inline CArray<T>* CArray<T>::New(char* klass, il2cpp_array_size_t size, const ch
     return il2cpp_array_new_specific(klassType, size);
 }
 
+Matrix4x4 Matrix4x4::Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Matrix4x4::StaticMethods::
+            Ortho_System_Single_left__System_Single_right__System_Single_bottom__System_Single_top__System_Single_zNear__System_Single_zFar);
+    return ((Matrix4x4(__thiscall*)(float, float, float, float, float, float))(addr))(
+        left, right, bottom, top, zNear, zFar);
+}

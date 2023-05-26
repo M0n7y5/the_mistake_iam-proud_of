@@ -6,7 +6,7 @@
 CItem* CHeldEntity::GetItem()
 {
     static auto addr = OFF(Offsets::HeldEntity::Methods::GetItem);
-    return ((CItem * (__thiscall*)(void*))(G::baseGameAssemlby + addr))(this);
+    return ((CItem * (__thiscall*)(void*))(addr))(this);
 }
 
 bool CHeldEntity::IsBaseProjectile()
