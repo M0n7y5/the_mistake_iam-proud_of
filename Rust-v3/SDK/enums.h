@@ -2,13 +2,200 @@
 #include <cstdint>
 #include <stdint.h>
 
+//
+// Summary:
+//     Mesh data update flags.
 enum class MeshUpdateFlags : int32_t
 {
-    Default               = 0,
-    DontValidateIndices   = 1,
-    DontResetBoneBounds   = 2,
-    DontNotifyMeshUsers   = 4,
-    DontRecalculateBounds = 8
+    //
+    // Summary:
+    //     Indicates that Unity should perform the default checks and validation when you
+    //     update a Mesh's data.
+    Default = 0x0,
+    //
+    // Summary:
+    //     Indicates that Unity should not check index values when you use Mesh.SetIndexBufferData
+    //     to modify a Mesh's data.
+    DontValidateIndices = 0x1,
+    //
+    // Summary:
+    //     Indicates that Unity should not reset skinned mesh bone bounds when you modify
+    //     Mesh data using Mesh.SetVertexBufferData or Mesh.SetIndexBufferData.
+    DontResetBoneBounds = 0x2,
+    //
+    // Summary:
+    //     Indicates that Unity should not notify Renderer components about a possible Mesh
+    //     bounds change, when you modify Mesh data.
+    DontNotifyMeshUsers = 0x4,
+    //
+    // Summary:
+    //     Indicates that Unity should not recalculate the bounds when you set Mesh data
+    //     using Mesh.SetSubMesh.
+    DontRecalculateBounds = 0x8
+};
+
+//
+// Summary:
+//     Possible attribute types that describe a vertex in a Mesh.
+enum class VertexAttribute : int32_t
+{
+    //
+    // Summary:
+    //     Vertex position.
+    Position,
+    //
+    // Summary:
+    //     Vertex normal.
+    Normal,
+    //
+    // Summary:
+    //     Vertex tangent.
+    Tangent,
+    //
+    // Summary:
+    //     Vertex color.
+    Color,
+    //
+    // Summary:
+    //     Primary texture coordinate (UV).
+    TexCoord0,
+    //
+    // Summary:
+    //     Additional texture coordinate.
+    TexCoord1,
+    //
+    // Summary:
+    //     Additional texture coordinate.
+    TexCoord2,
+    //
+    // Summary:
+    //     Additional texture coordinate.
+    TexCoord3,
+    //
+    // Summary:
+    //     Additional texture coordinate.
+    TexCoord4,
+    //
+    // Summary:
+    //     Additional texture coordinate.
+    TexCoord5,
+    //
+    // Summary:
+    //     Additional texture coordinate.
+    TexCoord6,
+    //
+    // Summary:
+    //     Additional texture coordinate.
+    TexCoord7,
+    //
+    // Summary:
+    //     Bone blend weights for skinned Meshes.
+    BlendWeight,
+    //
+    // Summary:
+    //     Bone indices for skinned Meshes.
+    BlendIndices
+};
+
+//
+// Summary:
+//     Data type of a VertexAttribute.
+enum class VertexAttributeFormat : int32_t
+{
+    //
+    // Summary:
+    //     32-bit float number.
+    Float32,
+    //
+    // Summary:
+    //     16-bit float number.
+    Float16,
+    //
+    // Summary:
+    //     8-bit unsigned normalized number.
+    UNorm8,
+    //
+    // Summary:
+    //     8-bit signed normalized number.
+    SNorm8,
+    //
+    // Summary:
+    //     16-bit unsigned normalized number.
+    UNorm16,
+    //
+    // Summary:
+    //     16-bit signed normalized number.
+    SNorm16,
+    //
+    // Summary:
+    //     8-bit unsigned integer.
+    UInt8,
+    //
+    // Summary:
+    //     8-bit signed integer.
+    SInt8,
+    //
+    // Summary:
+    //     16-bit unsigned integer.
+    UInt16,
+    //
+    // Summary:
+    //     16-bit signed integer.
+    SInt16,
+    //
+    // Summary:
+    //     32-bit unsigned integer.
+    UInt32,
+    //
+    // Summary:
+    //     32-bit signed integer.
+    SInt32
+};
+
+//
+// Summary:
+//     Bit mask that controls object destruction, saving and visibility in inspectors.
+enum class HideFlags : int32_t
+{
+    //
+    // Summary:
+    //     A normal, visible object. This is the default.
+    None = 0x0,
+    //
+    // Summary:
+    //     The object will not appear in the hierarchy.
+    HideInHierarchy = 0x1,
+    //
+    // Summary:
+    //     It is not possible to view it in the inspector.
+    HideInInspector = 0x2,
+    //
+    // Summary:
+    //     The object will not be saved to the Scene in the editor.
+    DontSaveInEditor = 0x4,
+    //
+    // Summary:
+    //     The object is not editable in the Inspector.
+    NotEditable = 0x8,
+    //
+    // Summary:
+    //     The object will not be saved when building a player.
+    DontSaveInBuild = 0x10,
+    //
+    // Summary:
+    //     The object will not be unloaded by Resources.UnloadUnusedAssets.
+    DontUnloadUnusedAsset = 0x20,
+    //
+    // Summary:
+    //     The object will not be saved to the Scene. It will not be destroyed when a new
+    //     Scene is loaded. It is a shortcut for HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor
+    //     | HideFlags.DontUnloadUnusedAsset.
+    DontSave = 0x34,
+    //
+    // Summary:
+    //     The GameObject is not shown in the Hierarchy, not saved to Scenes, and not unloaded
+    //     by Resources.UnloadUnusedAssets.
+    HideAndDontSave = 0x3D
 };
 
 enum class IndexFormat : int32_t
@@ -17,13 +204,51 @@ enum class IndexFormat : int32_t
     UInt32
 };
 
-enum class MeshTopology
+//
+// Summary:
+//     Topology of Mesh faces.
+enum class MeshTopology : int32_t
 {
-    Triangles,
+    //
+    // Summary:
+    //     Mesh is made from triangles.
+    Triangles = 0,
+    //
+    // Summary:
+    //     Mesh is made from quads.
     Quads = 2,
-    Lines,
-    LineStrip,
-    Points
+    //
+    // Summary:
+    //     Mesh is made from lines.
+    Lines = 3,
+    //
+    // Summary:
+    //     Mesh is a line strip.
+    LineStrip = 4,
+    //
+    // Summary:
+    //     Mesh is made from points.
+    Points = 5
+};
+
+//
+// Summary:
+//     Filtering mode for textures. Corresponds to the settings in a.
+enum class FilterMode : int32_t
+{
+    //
+    // Summary:
+    //     Point filtering - texture pixels become blocky up close.
+    Point,
+    //
+    // Summary:
+    //     Bilinear filtering - texture samples are averaged.
+    Bilinear,
+    //
+    // Summary:
+    //     Trilinear filtering - texture samples are averaged and also blended between mipmap
+    //     levels.
+    Trilinear
 };
 
 enum class TextureFormat : int32_t
@@ -236,4 +461,112 @@ enum class ModelStateFlags : int32_t
     Prone     = 256,
     Mounted   = 512,
     Relaxed   = 1024
+};
+
+//
+// Summary:
+//     Defines a place in camera's rendering to attach Rendering.CommandBuffer objects
+//     to.
+enum class CameraEvent
+{
+    //
+    // Summary:
+    //     Before camera's depth texture is generated.
+    BeforeDepthTexture,
+    //
+    // Summary:
+    //     After camera's depth texture is generated.
+    AfterDepthTexture,
+    //
+    // Summary:
+    //     Before camera's depth+normals texture is generated.
+    BeforeDepthNormalsTexture,
+    //
+    // Summary:
+    //     After camera's depth+normals texture is generated.
+    AfterDepthNormalsTexture,
+    //
+    // Summary:
+    //     Before deferred rendering G-buffer is rendered.
+    BeforeGBuffer,
+    //
+    // Summary:
+    //     After deferred rendering G-buffer is rendered.
+    AfterGBuffer,
+    //
+    // Summary:
+    //     Before lighting pass in deferred rendering.
+    BeforeLighting,
+    //
+    // Summary:
+    //     After lighting pass in deferred rendering.
+    AfterLighting,
+    //
+    // Summary:
+    //     Before final geometry pass in deferred lighting.
+    BeforeFinalPass,
+    //
+    // Summary:
+    //     After final geometry pass in deferred lighting.
+    AfterFinalPass,
+    //
+    // Summary:
+    //     Before opaque objects in forward rendering.
+    BeforeForwardOpaque,
+    //
+    // Summary:
+    //     After opaque objects in forward rendering.
+    AfterForwardOpaque,
+    //
+    // Summary:
+    //     Before image effects that happen between opaque & transparent objects.
+    BeforeImageEffectsOpaque,
+    //
+    // Summary:
+    //     After image effects that happen between opaque & transparent objects.
+    AfterImageEffectsOpaque,
+    //
+    // Summary:
+    //     Before skybox is drawn.
+    BeforeSkybox,
+    //
+    // Summary:
+    //     After skybox is drawn.
+    AfterSkybox,
+    //
+    // Summary:
+    //     Before transparent objects in forward rendering.
+    BeforeForwardAlpha,
+    //
+    // Summary:
+    //     After transparent objects in forward rendering.
+    AfterForwardAlpha,
+    //
+    // Summary:
+    //     Before image effects.
+    BeforeImageEffects,
+    //
+    // Summary:
+    //     After image effects.
+    AfterImageEffects,
+    //
+    // Summary:
+    //     After camera has done rendering everything.
+    AfterEverything,
+    //
+    // Summary:
+    //     Before reflections pass in deferred rendering.
+    BeforeReflections,
+    //
+    // Summary:
+    //     After reflections pass in deferred rendering.
+    AfterReflections,
+    //
+    // Summary:
+    //     Before halo and lens flares.
+    BeforeHaloAndLensFlares,
+    //
+    // Summary:
+    //     After halo and lens flares.
+    AfterHaloAndLensFlares
 };

@@ -5,6 +5,7 @@
 #include "Projectile.h"
 #include "PerformanceText.h"
 #include "MainCamera.h"
+#include "Client.h"
 
 inline void InitHooks()
 {
@@ -15,4 +16,5 @@ inline void InitHooks()
     Projectile::Init();
     PerformanceText::Init();
     MainCamera::Init();
+    Client::Init();
 }

@@ -1,4 +1,5 @@
 #include "lazy_importer.hpp"
+#include "math.h"
 
 #ifdef MRT_ENABLED
 
@@ -84,3 +85,4 @@ extern "C" double __CRTDECL fabs(double _X)
 }
 
 #endif // MRT_ENABLED
+

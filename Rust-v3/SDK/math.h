@@ -49,13 +49,13 @@ class Vector2
 
     float x, y;
 
-    Vector2 operator+(const Vector2 &input) const;
+    Vector2 operator+(const Vector2& input) const;
 
-    Vector2 operator-(const Vector2 &input) const;
+    Vector2 operator-(const Vector2& input) const;
 
-    Vector2 operator-(const Vector3 &input) const;
+    Vector2 operator-(const Vector3& input) const;
 
-    Vector2 operator+(const Vector3 &input) const;
+    Vector2 operator+(const Vector3& input) const;
 
     Vector2 operator/(float input) const
     {
@@ -67,33 +67,33 @@ class Vector2
         return Vector2 {x * input, y * input};
     }
 
-    Vector2 &operator-=(const Vector2 &v)
+    Vector2& operator-=(const Vector2& v)
     {
         x -= v.x;
         y -= v.y;
         return *this;
     }
 
-    Vector2 &operator/=(float input)
+    Vector2& operator/=(float input)
     {
         x /= input;
         y /= input;
         return *this;
     }
 
-    Vector2 &operator*=(float input)
+    Vector2& operator*=(float input)
     {
         x *= input;
         y *= input;
         return *this;
     }
 
-    bool operator==(const Vector2 &input) const
+    bool operator==(const Vector2& input) const
     {
         return x == input.x && y == input.y;
     }
 
-    bool operator!=(const Vector2 &input) const
+    bool operator!=(const Vector2& input) const
     {
         return !(*this == input);
     }
@@ -160,32 +160,32 @@ class Vector3
 
     float x, y, z;
 
-    Vector3 operator+(const Vector3 &input) const
+    Vector3 operator+(const Vector3& input) const
     {
         return Vector3 {x + input.x, y + input.y, z + input.z};
     }
 
-    Vector3 operator+(const Vector2 &input) const
+    Vector3 operator+(const Vector2& input) const
     {
         return Vector3 {x + input.x, y + input.y, z};
     }
 
-    Vector3 operator-(const Vector3 &input) const
+    Vector3 operator-(const Vector3& input) const
     {
         return Vector3 {x - input.x, y - input.y, z - input.z};
     }
 
-    Vector3 operator-(const Vector2 &input) const
+    Vector3 operator-(const Vector2& input) const
     {
         return Vector3 {x - input.x, y - input.y, z};
     }
 
-    bool operator<(const Vector3 &input) const
+    bool operator<(const Vector3& input) const
     {
         return x < input.x && y < input.y && input.z < z;
     }
 
-    bool operator>(const Vector3 &input) const
+    bool operator>(const Vector3& input) const
     {
         return x > input.x && y > input.y && input.z > z;
     }
@@ -207,7 +207,7 @@ class Vector3
         return Vector3 {x * input, y * input, z * input};
     }
 
-    Vector3 &operator+=(const Vector3 &v)
+    Vector3& operator+=(const Vector3& v)
     {
         x += v.x;
         y += v.y;
@@ -216,7 +216,7 @@ class Vector3
         return *this;
     }
 
-    Vector3 &operator+=(const Vector2 &v)
+    Vector3& operator+=(const Vector2& v)
     {
         x += v.x;
         y += v.y;
@@ -224,7 +224,7 @@ class Vector3
         return *this;
     }
 
-    Vector3 &operator-=(const Vector3 &v)
+    Vector3& operator-=(const Vector3& v)
     {
         x -= v.x;
         y -= v.y;
@@ -233,7 +233,7 @@ class Vector3
         return *this;
     }
 
-    Vector3 &operator-=(const Vector2 &v)
+    Vector3& operator-=(const Vector2& v)
     {
         x -= v.x;
         y -= v.y;
@@ -241,7 +241,7 @@ class Vector3
         return *this;
     }
 
-    Vector3 &operator/=(float input)
+    Vector3& operator/=(float input)
     {
         x /= input;
         y /= input;
@@ -249,7 +249,7 @@ class Vector3
         return *this;
     }
 
-    Vector3 &operator*=(float input)
+    Vector3& operator*=(float input)
     {
         x *= input;
         y *= input;
@@ -257,7 +257,7 @@ class Vector3
         return *this;
     }
 
-    bool operator==(const Vector3 &input) const
+    bool operator==(const Vector3& input) const
     {
         return x == input.x && y == input.y && z == input.z;
     }
@@ -462,7 +462,7 @@ class Vector3
         return ToVec() * dist;
     }
 
-    Vector3 Angle(Vector3 *m_vecUp = nullptr)
+    Vector3 Angle(Vector3* m_vecUp = nullptr)
     {
         if (!x && !y)
             return {};
@@ -516,12 +516,12 @@ class Vector4
 
     float x, y, z, w;
 
-    Vector4 operator+(const Vector4 &input) const
+    Vector4 operator+(const Vector4& input) const
     {
         return Vector4 {x + input.x, y + input.y, z + input.z, w + input.w};
     }
 
-    Vector4 operator-(const Vector4 &input) const
+    Vector4 operator-(const Vector4& input) const
     {
         return Vector4 {x - input.x, y - input.y, z - input.z, w - input.w};
     }
@@ -544,7 +544,7 @@ class Vector4
             lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z};
     }
 
-    Vector4 &operator-=(const Vector4 &v)
+    Vector4& operator-=(const Vector4& v)
     {
         x -= v.x;
         y -= v.y;
@@ -554,7 +554,7 @@ class Vector4
         return *this;
     }
 
-    Vector4 &operator/=(float input)
+    Vector4& operator/=(float input)
     {
         x /= input;
         y /= input;
@@ -563,7 +563,7 @@ class Vector4
         return *this;
     }
 
-    Vector4 &operator*=(float input)
+    Vector4& operator*=(float input)
     {
         x *= input;
         y *= input;
@@ -572,12 +572,12 @@ class Vector4
         return *this;
     }
 
-    bool operator==(const Vector4 &input) const
+    bool operator==(const Vector4& input) const
     {
         return x == input.x && y == input.y && z == input.z && w == input.w;
     }
 
-    bool operator!=(const Vector4 &input) const
+    bool operator!=(const Vector4& input) const
     {
         return !(*this == input);
     }
@@ -647,18 +647,18 @@ class Vector4
 
     static Vector4 QuaternionLookRotation(Vector3 forward, Vector3 up)
     {
-        Vector3 vector   = forward.unity_Normalize();
-        Vector3 vector2  = (up).Cross(vector).unity_Normalize();
-        Vector3 vector3  = (vector).Cross(vector2);
-        auto    m00      = vector2.x;
-        auto    m01      = vector2.y;
-        auto    m02      = vector2.z;
-        auto    m10      = vector3.x;
-        auto    m11      = vector3.y;
-        auto    m12      = vector3.z;
-        auto    m20      = vector.x;
-        auto    m21      = vector.y;
-        auto    m22      = vector.z;
+        Vector3 vector  = forward.unity_Normalize();
+        Vector3 vector2 = (up).Cross(vector).unity_Normalize();
+        Vector3 vector3 = (vector).Cross(vector2);
+        auto    m00     = vector2.x;
+        auto    m01     = vector2.y;
+        auto    m02     = vector2.z;
+        auto    m10     = vector3.x;
+        auto    m11     = vector3.y;
+        auto    m12     = vector3.z;
+        auto    m20     = vector.x;
+        auto    m21     = vector.y;
+        auto    m22     = vector.z;
 
         float num8       = (m00 + m11) + m22;
         auto  quaternion = Vector4();
@@ -721,6 +721,19 @@ class Vector4
         result.z = (num8 - num11) * point.x + (num9 + num10) * point.y + (_flt(1.f) - (num4 + num5)) * point.z;
         return result;
     }
+
+    static Vector4 Scale(Vector4 a, Vector4 b)
+    {
+        return {a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w};
+    }
+
+    void Scale(Vector4 scale)
+    {
+        x *= scale.x;
+        y *= scale.y;
+        z *= scale.z;
+        w *= scale.w;
+    }
 };
 
 typedef Vector4 Quaternion;
@@ -728,22 +741,22 @@ typedef Vector4 Quaternion;
 class Matrix4x4
 {
   public:
-    inline float *operator[](int i)
+    inline float* operator[](int i)
     {
         return m[i];
     }
 
-    inline const float *operator[](int i) const
+    inline const float* operator[](int i) const
     {
         return m[i];
     }
 
-    inline float *Base()
+    inline float* Base()
     {
         return &m[0][0];
     }
 
-    inline const float *Base() const
+    inline const float* Base() const
     {
         return &m[0][0];
     }
@@ -785,16 +798,93 @@ class Matrix4x4
         m[3][3] = m33;
     }
 
+    Matrix4x4(Vector4 column0, Vector4 column1, Vector4 column2, Vector4 column3)
+    {
+        m00 = column0.x;
+        m01 = column1.x;
+        m02 = column2.x;
+        m03 = column3.x;
+        m10 = column0.y;
+        m11 = column1.y;
+        m12 = column2.y;
+        m13 = column3.y;
+        m20 = column0.z;
+        m21 = column1.z;
+        m22 = column2.z;
+        m23 = column3.z;
+        m30 = column0.w;
+        m31 = column1.w;
+        m32 = column2.w;
+        m33 = column3.w;
+    }
+
     Matrix4x4 transpose() const
     {
         return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2],
             m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
     }
 
-    float m[4][4];
+    static Matrix4x4 Translate(Vector3 vector)
+    {
+        Matrix4x4 result;
+        result.m00 = 1.f;
+        result.m01 = 0.f;
+        result.m02 = 0.f;
+        result.m03 = vector.x;
+        result.m10 = 0.f;
+        result.m11 = 1.f;
+        result.m12 = 0.f;
+        result.m13 = vector.y;
+        result.m20 = 0.f;
+        result.m21 = 0.f;
+        result.m22 = 1.f;
+        result.m23 = vector.z;
+        result.m30 = 0.f;
+        result.m31 = 0.f;
+        result.m32 = 0.f;
+        result.m33 = 1.f;
+
+        return result;
+    }
+
+    // game specific
+    // needs to be implemented outside
+    static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar);
+
+    union
+    {
+        float m[4][4];
+
+        struct
+        {
+            float m00;
+            float m10;
+            float m20;
+            float m30;
+            float m01;
+            float m11;
+            float m21;
+            float m31;
+            float m02;
+            float m12;
+            float m22;
+            float m32;
+            float m03;
+            float m13;
+            float m23;
+            float m33;
+        };
+    };
 };
 
-inline Vector3 quatmult(const Vector3 *point, Vector4 *quat)
+static const Matrix4x4 identityMatrix = {
+    {1.f, 0.f, 0.f, 0.f},
+    {0.f, 1.f, 0.f, 0.f},
+    {0.f, 0.f, 1.f, 0.f},
+    {0.f, 0.f, 0.f, 1.f},
+};
+
+inline Vector3 quatmult(const Vector3* point, Vector4* quat)
 {
     float   num   = quat->x * _flt(2.f);
     float   num2  = quat->y * _flt(2.f);

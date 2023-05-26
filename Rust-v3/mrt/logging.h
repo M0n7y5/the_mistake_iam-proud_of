@@ -54,12 +54,18 @@ namespace L
     {
         // format time
         const std::string szTime =
-            std::vformat("[{:%d-%m-%Y %X}] ", std::make_format_args(std::chrono::system_clock::now()));
+            std::vformat("{:%d-%m-%Y %X}", std::make_format_args(std::chrono::system_clock::now()));
 
         // print to console
-        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSE_GREEN);
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_WHITE);
+        std::cout << "[";
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_INTENSE_CYAN);
         std::cout << szTime;
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_WHITE);
+        std::cout << "] ";
+
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wConsoleColor);
+
         if constexpr (sizeof...(argList) > 0)
             std::cout << std::vformat(szText, std::make_format_args(argList...)) << std::endl;
         else
