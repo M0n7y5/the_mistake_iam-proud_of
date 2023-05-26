@@ -150,9 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Hooks\BasePlayer.cpp" />
+    <ClCompile Include="Hooks\Client.cpp" />
     <ClCompile Include="Hooks\ItemIcon.cpp" />
     <ClCompile Include="Hooks\MainCamera.cpp" />
     <ClCompile Include="Hooks\PerformanceText.cpp" />
+    <ClCompile Include="ui\imgui_backend\imgui_impl_unity.cpp" />
     <ClCompile Include="mrt\logging.cpp" />
     <ClCompile Include="SDK\impl\Bounds.cpp" />
     <ClCompile Include="SDK\impl\CAttackEntity.cpp" />
@@ -192,10 +194,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Hooks\BasePlayer.h" />
+    <ClInclude Include="Hooks\Client.h" />
     <ClInclude Include="Hooks\Hooks.h" />
     <ClInclude Include="Hooks\ItemIcon.h" />
     <ClInclude Include="Hooks\MainCamera.h" />
     <ClInclude Include="Hooks\PerformanceText.h" />
+    <ClInclude Include="ui\imgui_backend\imgui_impl_unity.h" />
     <ClInclude Include="Kotlar\Kotlar.h" />
     <ClInclude Include="mrt\logging.h" />
     <ClInclude Include="SDK\hashes.hpp" />

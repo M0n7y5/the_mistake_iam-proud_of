@@ -135,6 +135,12 @@
     <ClCompile Include="SDK\impl\CMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Hooks\Client.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\imgui_backend\imgui_impl_unity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mrt\xorstr.hpp">
@@ -240,6 +246,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SDK\hashes.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hooks\Client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\imgui_backend\imgui_impl_unity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

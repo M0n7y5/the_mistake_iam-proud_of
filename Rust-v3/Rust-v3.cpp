@@ -22,7 +22,8 @@ int Start(uint64_t imageBase)
 #ifdef _DEBUG
     L::Attach("Rust v3 Dev Console");
     L::Print("Sleeping for 10s ...");
-
+    L::Print("");
+    L::Print("");
 #endif // _DEBUG
 
     LI_FN(Sleep)(10000);
