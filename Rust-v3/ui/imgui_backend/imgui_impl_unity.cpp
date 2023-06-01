@@ -7,6 +7,7 @@
 #include "imgui_impl_unity.h"
 #include "../../SDK/structs.h"
 #include "../../SDK/il2cpp_api.h"
+#include "../../mrt/xorstr.hpp"
 
 static CMaterial* _material = nullptr;
 static CMesh*     _mesh     = nullptr;
@@ -31,6 +32,8 @@ private readonly MaterialPropertyBlock _materialProperties;
 private int _prevSubMeshCount = 1;  // number of sub meshes used previously
 
 */
+
+CCommandBuffer* _commandBuffer;
 
 bool ImGui_Impl_Unity_Init(CCamera* camera)
 {
@@ -68,9 +71,133 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     attr->_dimension_k__BackingField = 1;
     attr->_stream_k__BackingField    = 0;
 
-    return false;
+    _textureID = CShader::PropertyToID("_texture");
+
+    _materialProperties = CMaterialPropertyBlock::New();
+    _materialProperties->ctor();
+
+    // LOAD SHADER !!! Needs assetbundler API
+    __debugbreak();
+
+    _material = CMaterial::New();
+    _material->ctor(_shader);
+
+    _mesh = CMesh::New();
+    _mesh->MarkDynamic();
+
+    // manual Command buffer setup
+
+    _commandBuffer = CCommandBuffer::New();
+    _commandBuffer->ctor();
+    _commandBuffer->setName(_("System.GUI"));
+
+    camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
+
+    return true;
 }
 
+static void UpdateMesh(ImDrawData* draw_data)
+{
+    int subMeshCount = 0;
+
+    for (int n = 0, nMax = draw_data->CmdListsCount; n < nMax; ++n)
+    {
+        subMeshCount += draw_data->CmdLists[n]->CmdBuffer.Size;
+    }
+
+    if (_prevSubMeshCount != subMeshCount)
+    {
+        // Occasionally crashes when changing subMeshCount without clearing first.
+        _mesh->Clear(true);
+        _mesh->SetSubmeshCount(_prevSubMeshCount = subMeshCount);
+    }
+
+    _mesh->SetVertexBufferParams(draw_data->TotalVtxCount, _vertexAttributes);
+    _mesh->SetIndexBufferParams(draw_data->TotalIdxCount, IndexFormat::UInt16);
+
+    //  Upload data into mesh.
+    int vtxOf = 0;
+    int idxOf = 0;
+
+    std::vector<CSubMeshDescriptor> descriptors {};
+
+    for (int n = 0, nMax = draw_data->CmdListsCount; n < nMax; ++n)
+    {
+        auto drawList = draw_data->CmdLists[n];
+
+        _mesh->SetVertexBufferData(
+            0, drawList->VtxBuffer.Data, 0, vtxOf, drawList->VtxBuffer.Size, sizeof(ImDrawVert), NoMeshChecks);
+        _mesh->SetIndexBufferData(
+            drawList->IdxBuffer.Data, 0, idxOf, drawList->IdxBuffer.Size, sizeof(ImDrawIdx), NoMeshChecks);
+
+        // Define subMeshes.
+        for (int i = 0, iMax = drawList->CmdBuffer.Size; i < iMax; ++i)
+        {
+            auto cmd = drawList->CmdBuffer[i];
+
+            CSubMeshDescriptor descriptor {.topology = MeshTopology::Triangles,
+                .indexStart                          = idxOf + (int)cmd.IdxOffset,
+                .indexCount                          = (int)cmd.ElemCount,
+                .baseVertex                          = vtxOf + (int)cmd.VtxOffset};
+
+            descriptors.emplace_back(descriptor);
+        }
+
+        vtxOf += drawList->VtxBuffer.Size;
+        idxOf += drawList->IdxBuffer.Size;
+    }
+
+    _mesh->SetSubMeshes(descriptors.data(), descriptors.size(), NoMeshChecks);
+    _mesh->UploadMeshData(false);
+}
+
+static void CreateDrawCommands(CCommandBuffer* commandBuffer, ImDrawData* draw_data, Vector2 fbSize)
+{
+    uintptr_t prevTextureId = 0;
+    Vector4   clipOffset =
+        Vector4(draw_data->DisplayPos.x, draw_data->DisplayPos.y, draw_data->DisplayPos.x, draw_data->DisplayPos.y);
+
+    Vector4 clipScale = Vector4(draw_data->FramebufferScale.x, draw_data->FramebufferScale.y,
+        draw_data->FramebufferScale.x, draw_data->FramebufferScale.y);
+
+    auto rect = CRect {0.f, 0.f, fbSize.x, fbSize.y};
+    commandBuffer->SetViewport(&rect);
+
+    auto mTran  = Matrix4x4::Translate(Vector3(0.5f / fbSize.x, 0.5f / fbSize.y, 0.f));
+    auto mOrtho = Matrix4x4::Ortho(0.f, fbSize.x, fbSize.y, 0.f, 0.f, 1.f);
+    // Small adjustment to improve text.
+    commandBuffer->SetViewProjectionMatrices(&mTran, &mOrtho);
+
+    int subOf = 0;
+    for (int n = 0, nMax = draw_data->CmdListsCount; n < nMax; ++n)
+    {
+        auto drawList = draw_data->CmdLists[n];
+
+        for (int i = 0, iMax = drawList->CmdBuffer.Size; i < iMax; ++i, ++subOf)
+        {
+            auto drawCmd = drawList->CmdBuffer[i];
+
+            // Project scissor rectangle into framebuffer space and skip if fully outside.
+
+            Vector4 clipSize =
+                Vector4 {drawCmd.ClipRect.x, drawCmd.ClipRect.y, drawCmd.ClipRect.z, drawCmd.ClipRect.w} - clipOffset;
+            Vector4 clip = Vector4::Scale(clipSize, clipScale);
+
+            if (clip.x >= fbSize.x || clip.y >= fbSize.y || clip.z < 0.f || clip.w < 0.f)
+                continue;
+
+            // set shader property for texture
+            _materialProperties->SetTexture(_textureID, (CTexture*)drawCmd.TextureId);
+
+            auto clipRect = CRect(clip.x, fbSize.y - clip.w, clip.z - clip.x, clip.w - clip.y);
+            commandBuffer->EnableScissorRect(&clipRect); // Invert y.
+            commandBuffer->DrawMesh(_mesh, (Matrix4x4*)&identityMatrix, _material, subOf, -1, _materialProperties);
+        }
+    }
+    commandBuffer->DisableScissorRect();
+}
+
+// input update and shit
 void ImGui_Impl_Unity_NewFrame()
 {
     // prepare frame
@@ -78,7 +205,16 @@ void ImGui_Impl_Unity_NewFrame()
 
 void ImGui_Impl_Unity_RenderDrawData(ImDrawData* draw_data)
 {
-    // render draw data to camera
+    auto    scall = (draw_data->DisplaySize * draw_data->FramebufferScale);
+    Vector2 fbOSize(scall.x, scall.y);
+
+    // Avoid rendering when minimized.
+    if (fbOSize.x <= 0.f || fbOSize.y <= 0.f || draw_data->TotalVtxCount == 0)
+        return;
+
+    UpdateMesh(draw_data);
+
+    CreateDrawCommands(commandBuffer, drawData, fbOSize);
 }
 
 static CTexture2D* _atlasTexture = nullptr;

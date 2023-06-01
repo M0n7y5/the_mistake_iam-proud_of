@@ -55,3 +55,10 @@ Vector3 CCamera::WorldToScreen(Vector3 position)
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
     return ((Vector3(__thiscall*)(CCamera*, Vector3))(addr))(this, position);
 }
+
+void CCamera::AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::
+            AddCommandBuffer_UnityEngine_Rendering_CameraEvent_evt__UnityEngine_Rendering_CommandBuffer_buffer);
+    ((void(__thiscall*)(CCamera*, CameraEvent, CCommandBuffer*))(addr))(this, event, buffer);
+}

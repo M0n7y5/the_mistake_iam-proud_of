@@ -5,6 +5,13 @@
 #include "../il2cpp_api.h"
 #include "../../mrt/xorstr.hpp"
 
+CCommandBuffer* CCommandBuffer::New()
+{
+    const auto* klass = il2cpp::InitClass(_("CommandBuffer"), _("UnityEngine.Rendering"));
+
+    return (CCommandBuffer*)il2cpp_object_new(klass);
+}
+
 void CCommandBuffer::ctor()
 {
     static auto addr = OFF(Offsets::UnityEngine_Rendering_CommandBuffer::Methods::_ctor);
@@ -16,6 +23,15 @@ void CCommandBuffer::SetViewport(CRect* pixelRect)
     static auto addr =
         OFF(Offsets::UnityEngine_Rendering_CommandBuffer::Methods::SetViewport_UnityEngine_Rect_pixelRect);
     ((void(__thiscall*)(CCommandBuffer*, CRect*))(addr))(this, pixelRect);
+}
+
+void CCommandBuffer::setName(const char* name)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Rendering_CommandBuffer::Methods::set_name_System_String_value);
+
+    auto str = il2cpp_string_new(name);
+
+    ((void(__thiscall*)(CCommandBuffer*, Il2CppString*))(addr))(this, str);
 }
 
 void CCommandBuffer::SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj)
@@ -38,7 +54,7 @@ void CCommandBuffer::DisableScissorRect()
 }
 
 void CCommandBuffer::DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex,
-    uint32_t shaderPass, CMaterialPropertyBlock* properties)
+    int32_t shaderPass, CMaterialPropertyBlock* properties)
 {
     static auto addr = OFF(Offsets::UnityEngine_Rendering_CommandBuffer::Methods::
             DrawMesh_UnityEngine_Mesh_mesh__UnityEngine_Matrix4x4_matrix__UnityEngine_Material_material__System_Int32_submeshIndex__System_Int32_shaderPass__UnityEngine_MaterialPropertyBlock_properties);

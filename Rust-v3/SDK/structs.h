@@ -30,8 +30,14 @@
 #include "il2cpp.h"
 #include <vector>
 
-template <typename T>
-struct ILObjectBase : Il2CppObject, T
+// Unity base object, only contain methods
+struct CObject
+{
+    void setHideFlags(HideFlags flags);
+};
+
+template <typename T> // CObject is part of this cuz no fields
+struct ILObjectBase : Il2CppObject, T, CObject
 {
     template <typename TType>
     TType* StaticFields()
@@ -56,7 +62,7 @@ typedef struct Il2CppString
     int32_t      length; ///< Length of string *excluding* the trailing null (which is included in 'chars').
     Il2CppChar   chars[IL2CPP_ZERO_LEN_ARRAY];
 
-    static Il2CppString* newString(char* text);
+    static Il2CppString* newString(const char* text);
     std::string          str();
 
 } Il2CppString;
@@ -96,6 +102,13 @@ struct WeakArray
 //{
 //     return (SystemArray<T>*)methods::array_new_specific(typeInfo, size);
 // }
+
+struct CAssetBundle
+{
+    static CAssetBundle* LoadFileFromMemory(WeakArray<uint8_t>* assetBundle, uint32_t CRC, uint64_t offset);
+    template <typename T>
+    T* LoadAsset(const char* name, Il2CppType* type);
+};
 
 class CTime
 {
@@ -153,12 +166,12 @@ struct OBB
 struct CRect : UnityEngine_Rect_Fields // native
 { };
 
-struct CVertexAttributeDescriptor : ILObjectBase<UnityEngine_Rendering_VertexAttributeDescriptor_Fields>
+struct CVertexAttributeDescriptor : UnityEngine_Rendering_VertexAttributeDescriptor_Fields
 { };
 
 struct CShader : ILObjectBase<UnityEngine_Shader_Fields>
 {
-    static uint32_t PropertyToID(char* name);
+    static uint32_t PropertyToID(const char* name);
 };
 
 //
@@ -178,18 +191,25 @@ struct CSubMeshDescriptor
 
 struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
 {
-    void ctor(char* name);
-    void MarkDynamic();
-    void Clear();
-    void SetIndexBufferParams(uint32_t indexCount, TextureFormat format);
-    void SetVertexBufferParams(int vertexCount, CArray<CVertexAttributeDescriptor>* attributes);
-    void SetSubMeshes(std::vector<CSubMeshDescriptor> const& desc, uint32_t count, MeshUpdateFlags flags);
-    void UploadMeshData(bool markNoLongerReadable);
+    static CMesh* New();
+    void          ctor(char* name);
+    void          MarkDynamic();
+    void          Clear(bool keepVertexLayout);
+    void          SetIndexBufferParams(uint32_t indexCount, IndexFormat format);
+    void          SetVertexBufferParams(int32_t vertexCount, CArray<CVertexAttributeDescriptor>* attributes);
+    void          SetSubMeshes(CSubMeshDescriptor* desc, uint32_t count, MeshUpdateFlags flags);
+    void          UploadMeshData(bool markNoLongerReadable);
+    void          SetSubmeshCount(uint32_t count);
+    void SetVertexBufferData(int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count,
+        int32_t elemSize, MeshUpdateFlags flags);
+    void SetIndexBufferData(
+        void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count, int32_t elemSize, MeshUpdateFlags flags);
 };
 
 struct CMaterial : ILObjectBase<UnityEngine_Material_Fields>
 {
-    void ctor(CShader* shader);
+    void              ctor(CShader* shader);
+    static CMaterial* New();
 };
 
 struct CTexture : ILObjectBase<UnityEngine_Texture_Fields>
@@ -211,18 +231,21 @@ struct CSprite : ILObjectBase<UnityEngine_Sprite_Fields>
 
 struct CMaterialPropertyBlock : ILObjectBase<UnityEngine_MaterialPropertyBlock_Fields>
 {
-    void ctor();
-    void SetTexture(uint32_t nameID, CTexture* value);
+    void                           ctor();
+    void                           SetTexture(uint32_t nameID, CTexture* value);
+    static CMaterialPropertyBlock* New();
 };
 
 struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
 {
-    void ctor();
-    void SetViewport(CRect* pixelRect);
-    void SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
-    void EnableScissorRect(CRect* rect);
-    void DisableScissorRect();
-    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, uint32_t shaderPass,
+    static CCommandBuffer* New();
+    void                   ctor();
+    void                   setName(const char* name);
+    void                   SetViewport(CRect* pixelRect);
+    void                   SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
+    void                   EnableScissorRect(CRect* rect);
+    void                   DisableScissorRect();
+    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, int32_t shaderPass,
         CMaterialPropertyBlock* properties);
 };
 
@@ -234,6 +257,7 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
     Matrix4x4       GetViewMatrix();
     bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
     Vector3         WorldToScreen(Vector3 elementPosition);
+    void            AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer);
 };
 
 struct CMainCamera : ILObjectBase<MainCamera_Fields>
@@ -355,3 +379,4 @@ struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
     bool IsWeaponReady(bool bow);
     bool IsMelee();
 };
+
