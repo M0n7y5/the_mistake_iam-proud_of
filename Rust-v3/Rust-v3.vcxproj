@@ -199,6 +199,7 @@
     <ClInclude Include="Hooks\ItemIcon.h" />
     <ClInclude Include="Hooks\MainCamera.h" />
     <ClInclude Include="Hooks\PerformanceText.h" />
+    <ClInclude Include="mrt\bitmask.h" />
     <ClInclude Include="ui\imgui_backend\imgui_impl_unity.h" />
     <ClInclude Include="Kotlar\Kotlar.h" />
     <ClInclude Include="mrt\logging.h" />
@@ -212,7 +213,6 @@
     <ClInclude Include="Hooks\PlayerWalkMovement.h" />
     <ClInclude Include="SDK\enums.h" />
     <ClInclude Include="SDK\globals.h" />
-    <ClInclude Include="SDK\il2cpp.h" />
     <ClInclude Include="SDK\il2cpp_api.h" />
     <ClInclude Include="SDK\math.h" />
     <ClInclude Include="SDK\ntwinddk.h" />

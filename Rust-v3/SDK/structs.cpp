@@ -22,26 +22,10 @@ std::string Il2CppString::str()
     return std::string(output);
 }
 
-template <typename T>
-inline CArray<T>* CArray<T>::New(Il2CppClass* klass, il2cpp_array_size_t size)
-{
-    return il2cpp_array_new_specific(klass, size);
-}
-
-template <typename T>
-inline CArray<T>* CArray<T>::New(const char* klass, il2cpp_array_size_t size, const char* namespaze)
-{
-    auto klassType = il2cpp::InitClass(klass, namespaze);
-
-    if (!klassType)
-        __debugbreak();
-
-    return il2cpp_array_new_specific(klassType, size);
-}
-
 Matrix4x4 Matrix4x4::Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Matrix4x4::StaticMethods::
+    static auto addr = OFF(
+        Offsets::UnityEngine_Matrix4x4::StaticMethods::
             Ortho_System_Single_left__System_Single_right__System_Single_bottom__System_Single_top__System_Single_zNear__System_Single_zFar);
     return ((Matrix4x4(__thiscall*)(float, float, float, float, float, float))(addr))(
         left, right, bottom, top, zNear, zFar);
@@ -68,4 +52,19 @@ inline T* CAssetBundle::LoadAsset(const char* name, Il2CppType* type)
 
     static auto addr = OFF(Offsets::UnityEngine_AssetBundle::Methods::LoadAsset_System_String_name__System_Type_type);
     return ((T * (__thiscall*)(CAssetBundle*, Il2CppString*, Il2CppType*))(addr))(this, str, type);
+}
+
+void* CArrayBase::NewInternal(Il2CppClass* klass, il2cpp_array_size_t size)
+{
+    return il2cpp_array_new_specific(klass, size);
+}
+
+void* CArrayBase::NewInternal(const char* klass, il2cpp_array_size_t size, const char* namespaze)
+{
+    auto klassType = il2cpp::InitClass(klass, namespaze);
+
+    if (!klassType)
+        __debugbreak();
+
+    return il2cpp_array_new_specific(klassType, size);
 }

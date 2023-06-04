@@ -1,34 +1,39 @@
 #include "GUI.h"
 #include "mui.h"
 
-struct Settings {
-    struct RageBot {
-        struct General {
-            struct Aimbot {
+struct Settings
+{
+    struct RageBot
+    {
+        struct General
+        {
+            struct Aimbot
+            {
                 bool Enabled      = false;
                 bool RollResolver = false;
                 bool SilentAim    = false;
             } aimbot;
 
-            struct Exploits {
+            struct Exploits
+            {
                 bool DoubleTap = false;
                 bool HideShots = false;
             } exploits;
-
         } general;
 
-        struct AntiAim {
-            struct General {
-                bool Enabled       = false;
-                bool AntiKnife     = false;
-                bool AntiZeus      = false;
+        struct AntiAim
+        {
+            struct General
+            {
+                bool Enabled   = false;
+                bool AntiKnife = false;
+                bool AntiZeus  = false;
 
                 ImColor TestColor1 = ImColor(255, 255, 255);
                 ImColor TestColor2 = ImColor(255, 255, 255);
 
-                int testInt        = 0;
-                int testInt2       = 132;
-
+                int testInt  = 0;
+                int testInt2 = 132;
             } general;
 
             // struct Desync
@@ -36,15 +41,14 @@ struct Settings {
             //     bool Roll = false;
             //     bool HideShots = false;
             // } exploits;
-
         } antiaim;
-
     } ragebot;
 } settings;
 
-mui::Window window{};
+mui::Window window {};
 
-void GUI::Init() {
+void GUI::Init()
+{
     mui::fonts::Init();
 
     /*window.AddCategory("RageBot", "B")
@@ -145,7 +149,6 @@ void GUI::Init() {
                        fs.AddFeature("Numero uno", &settings.ragebot.antiaim.general.testInt2, -120, 300, "%d %%");
                    })
                 .AddFeatureSet("Exploits", [](mui::FeatureSet &fs) {
-
                 });
         });
 
@@ -158,7 +161,8 @@ void GUI::Init() {
         .AddSubCategory("User Info", [](mui::SubCategory &sub) {});*/
 }
 
-void GUI::Render() {
+void GUI::Render()
+{
     mui::Setup();
     window.Draw();
 }

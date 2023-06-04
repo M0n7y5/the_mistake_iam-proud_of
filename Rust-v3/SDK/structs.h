@@ -64,26 +64,41 @@ typedef struct Il2CppString
 
     static Il2CppString* newString(const char* text);
     std::string          str();
-
 } Il2CppString;
 
 using CString = Il2CppString;
 
 typedef struct Il2CppArray : public Il2CppObject
 {
-
     /* bounds is NULL for szarrays */
     Il2CppArrayBounds* bounds;
     /* total number of elements of the array */
     il2cpp_array_size_t max_length;
 } Il2CppArray;
 
-template <typename T>
-struct CArray : Il2CppArray
+// ugly hack for generic array
+//  i dont wanna polute this header by il2cpp_api
+//  so we use this hack instead
+struct CArrayBase
 {
-    T*                data[IL2CPP_ZERO_LEN_ARRAY];
-    static CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size);
-    static CArray<T>* New(const char* klass, il2cpp_array_size_t size, const char* namespaze = "");
+    static void* NewInternal(Il2CppClass* klass, il2cpp_array_size_t size);
+    static void* NewInternal(const char* klass, il2cpp_array_size_t size, const char* namespaze = "");
+};
+
+template <typename T>
+struct CArray : CArrayBase, Il2CppArray
+{
+    T* data[IL2CPP_ZERO_LEN_ARRAY];
+
+    static CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size)
+    {
+        return (CArray<T>*)NewInternal(klass, size);
+    }
+
+    static CArray<T>* New(const char* klass, il2cpp_array_size_t size, const char* namespaze = "")
+    {
+        return (CArray<T>*)NewInternal(klass, size, namespaze);
+    }
 };
 
 template <typename T>
@@ -163,7 +178,7 @@ struct OBB
     Vector3 ClosestPoint(Vector3 position);
 };
 
-struct CRect : UnityEngine_Rect_Fields // native
+struct CRect : public UnityEngine_Rect_Fields // native
 { };
 
 struct CVertexAttributeDescriptor : UnityEngine_Rendering_VertexAttributeDescriptor_Fields
@@ -200,8 +215,9 @@ struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
     void          SetSubMeshes(CSubMeshDescriptor* desc, uint32_t count, MeshUpdateFlags flags);
     void          UploadMeshData(bool markNoLongerReadable);
     void          SetSubmeshCount(uint32_t count);
-    void SetVertexBufferData(int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count,
-        int32_t elemSize, MeshUpdateFlags flags);
+    void          SetVertexBufferData(
+                 int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count, int32_t elemSize,
+                 MeshUpdateFlags flags);
     void SetIndexBufferData(
         void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count, int32_t elemSize, MeshUpdateFlags flags);
 };
@@ -245,8 +261,9 @@ struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
     void                   SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
     void                   EnableScissorRect(CRect* rect);
     void                   DisableScissorRect();
-    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, int32_t shaderPass,
-        CMaterialPropertyBlock* properties);
+    void                   DrawMesh(
+                          CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, int32_t shaderPass,
+                          CMaterialPropertyBlock* properties);
 };
 
 struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
@@ -379,4 +396,3 @@ struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
     bool IsWeaponReady(bool bow);
     bool IsMelee();
 };
-

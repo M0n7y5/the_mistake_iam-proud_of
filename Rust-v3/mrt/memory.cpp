@@ -9,7 +9,7 @@ PVOID RtlFreeHeap(PVOID HeapHandle, ULONG Flags, PVOID BaseAddress);
 
     #define MALLOC_MAGIC  'MGIC'
     #define M_GETPEB      __readgsqword(0x60)
-    #define M_PROCESSHEAP *reinterpret_cast<void **>(__readgsqword(0x60) + 0x30)
+    #define M_PROCESSHEAP *reinterpret_cast<void**>(__readgsqword(0x60) + 0x30)
 
 constexpr auto crtbaseModule = LI_MODULE("ucrtbase.dll");
 
@@ -20,11 +20,11 @@ typedef struct _MALLOC_HEADER
     ULONG_PTR Size;
 } MALLOC_HEADER, *PMALLOC_HEADER;
 
-C_ASSERT(sizeof(MALLOC_HEADER) % sizeof(void *) == 0);
+C_ASSERT(sizeof(MALLOC_HEADER) % sizeof(void*) == 0);
 
 PMALLOC_HEADER GET_MALLOC_HEADER(PVOID ptr)
 {
-    return (MALLOC_HEADER *)((PUCHAR)ptr - sizeof(MALLOC_HEADER));
+    return (MALLOC_HEADER*)((PUCHAR)ptr - sizeof(MALLOC_HEADER));
 }
 
 PVOID GET_MALLOC_ADDRESS(PMALLOC_HEADER header)
@@ -36,7 +36,7 @@ ULONG_PTR GET_MALLOC_SIZE(PVOID ptr)
 {
     static auto _RtlRaiseException = LI_FN(RtlRaiseException).safe();
 
-    PMALLOC_HEADER header          = GET_MALLOC_HEADER(ptr);
+    PMALLOC_HEADER header = GET_MALLOC_HEADER(ptr);
 
     if (header->Magic != MALLOC_MAGIC)
     {
@@ -47,9 +47,9 @@ ULONG_PTR GET_MALLOC_SIZE(PVOID ptr)
     return header->Size;
 }
 
-void *__cdecl memset(void *Dst, int Val, size_t Size)
+void* __cdecl memset(void* Dst, int Val, size_t Size)
 {
-    unsigned char *dst = reinterpret_cast<unsigned char *>(Dst);
+    unsigned char* dst = reinterpret_cast<unsigned char*>(Dst);
     while (Size > 0)
     {
         *dst = (unsigned char)Val;
@@ -59,10 +59,10 @@ void *__cdecl memset(void *Dst, int Val, size_t Size)
     return Dst;
 }
 
-int memcmp(const void *str1, const void *str2, size_t count)
+int memcmp(const void* str1, const void* str2, size_t count)
 {
-    const unsigned char *s1 = (const unsigned char *)str1;
-    const unsigned char *s2 = (const unsigned char *)str2;
+    const unsigned char* s1 = (const unsigned char*)str1;
+    const unsigned char* s2 = (const unsigned char*)str2;
 
     while (count-- > 0)
         if (*s1++ != *s2++)
@@ -71,10 +71,10 @@ int memcmp(const void *str1, const void *str2, size_t count)
     return 0;
 }
 
-void *memcpy(void *dst, const void *src, size_t n)
+void* memcpy(void* dst, const void* src, size_t n)
 {
-    char       *pszDest   = (char *)dst;
-    const char *pszSource = (const char *)src;
+    char*       pszDest   = (char*)dst;
+    const char* pszSource = (const char*)src;
     if ((pszDest != NULL) && (pszSource != NULL))
     {
         while (n) // till cnt
@@ -87,20 +87,20 @@ void *memcpy(void *dst, const void *src, size_t n)
     return dst;
 }
 
-void const *memchr(void const *s, int c_in, size_t n)
+void const* memchr(void const* s, int c_in, size_t n)
 {
-    using memchr_t = void const *(__cdecl *)(void const *s, int c_in, size_t n);
+    using memchr_t = void const*(__cdecl*)(void const* s, int c_in, size_t n);
     static auto fn = LI_FN2(memchr, memchr_t).in_safe(crtbaseModule.get());
     return fn(s, c_in, n);
 }
 
-void *memmove(void *dest, const void *src, size_t n)
+void* memmove(void* dest, const void* src, size_t n)
 {
     static auto fn = LI_FN(memmove).in_safe(crtbaseModule.get());
     return fn(dest, src, n);
 }
 
-void *__cdecl malloc(size_t size)
+void* __cdecl malloc(size_t size)
 {
     static auto fn = LI_FN(malloc).in_safe(crtbaseModule.get());
     return fn(size);
@@ -121,7 +121,7 @@ void *__cdecl malloc(size_t size)
     // return NULL;
 }
 
-void __cdecl free(void *ptr)
+void __cdecl free(void* ptr)
 {
     static auto fn = LI_FN(free).in_safe(crtbaseModule.get());
     return fn(ptr);
@@ -142,7 +142,7 @@ void __cdecl free(void *ptr)
     //}
 }
 
-void *__cdecl realloc(void *ptr, size_t new_size)
+void* __cdecl realloc(void* ptr, size_t new_size)
 {
     static auto fn = LI_FN(realloc).in_safe(crtbaseModule.get());
     return fn(ptr, new_size);
@@ -179,40 +179,39 @@ void *__cdecl realloc(void *ptr, size_t new_size)
     // return NULL;
 }
 
-void *__cdecl operator new(size_t size)
+void* __cdecl operator new(size_t size)
 {
     return malloc(size);
 }
 
-void *__cdecl operator new[](size_t size)
+void* __cdecl operator new[](size_t size)
 {
     return malloc(size);
 }
 
-void __cdecl operator delete(void *ptr)
+void __cdecl operator delete(void* ptr)
 {
     free(ptr);
 }
 
-void __cdecl operator delete(void *ptr, size_t)
+void __cdecl operator delete(void* ptr, size_t)
 {
     free(ptr);
 }
 
-void __cdecl operator delete[](void *ptr)
+void __cdecl operator delete[](void* ptr)
 {
     free(ptr);
 }
 
-void *operator new[](size_t size, const char *, int, unsigned, const char *, int)
+void* operator new[](size_t size, const char*, int, unsigned, const char*, int)
 {
     return malloc(size);
 }
 
-void *operator new[](size_t size, size_t, size_t, const char *, int, unsigned, const char *, int)
+void* operator new[](size_t size, size_t, size_t, const char*, int, unsigned, const char*, int)
 {
     return malloc(size);
 }
-
 
 #endif // MRT_ENABLED

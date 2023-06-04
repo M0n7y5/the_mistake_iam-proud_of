@@ -27,8 +27,8 @@ static void hk_LateUpdate(void* _this)
         return;
     }
 
-    //auto camera = CCamera::GetMainCamera();
-    //auto camera = CCamera::GetMainCamera();
+    // auto camera = CCamera::GetMainCamera();
+    // auto camera = CCamera::GetMainCamera();
 
     reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
 }
@@ -85,6 +85,6 @@ void Hooks::Client::Init()
 {
     auto klass   = il2cpp::InitClass(_("Client"));
     LateUpdate_o = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), (void*)&hk_LateUpdate);
-    //Awake_o      = il2cpp::HookVirtualFunction(klass, _("Awake"), (void*)&hk_Awake);
-    //OnDisable_o  = il2cpp::HookVirtualFunction(klass, _("OnDisable"), (void*)&hk_OnDisable);
+    // Awake_o      = il2cpp::HookVirtualFunction(klass, _("Awake"), (void*)&hk_Awake);
+    // OnDisable_o  = il2cpp::HookVirtualFunction(klass, _("OnDisable"), (void*)&hk_OnDisable);
 }

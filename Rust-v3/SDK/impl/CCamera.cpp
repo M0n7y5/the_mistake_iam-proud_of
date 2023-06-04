@@ -58,7 +58,8 @@ Vector3 CCamera::WorldToScreen(Vector3 position)
 
 void CCamera::AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::
-            AddCommandBuffer_UnityEngine_Rendering_CameraEvent_evt__UnityEngine_Rendering_CommandBuffer_buffer);
+    static auto addr =
+        OFF(Offsets::UnityEngine_Camera::Methods::
+                AddCommandBuffer_UnityEngine_Rendering_CameraEvent_evt__UnityEngine_Rendering_CommandBuffer_buffer);
     ((void(__thiscall*)(CCamera*, CameraEvent, CCommandBuffer*))(addr))(this, event, buffer);
 }

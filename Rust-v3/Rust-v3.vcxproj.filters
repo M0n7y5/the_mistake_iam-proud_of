@@ -152,9 +152,6 @@
     <ClInclude Include="SDK\SDK.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SDK\il2cpp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SDK\structs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -252,6 +249,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ui\imgui_backend\imgui_impl_unity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mrt\bitmask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

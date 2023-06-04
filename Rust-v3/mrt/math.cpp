@@ -11,7 +11,8 @@ extern "C" float __CRTDECL fmodf(float _X, float _Y)
     return fn(_X, _Y);
 }
 
-extern "C" void __cdecl qsort(void *_Base, size_t _NumOfElements, size_t _SizeOfElements,
+extern "C" void __cdecl qsort(
+    void* _Base, size_t _NumOfElements, size_t _SizeOfElements,
     _CoreCrtNonSecureSearchSortCompareFunction _CompareFunction)
 {
     static auto fn = LI_FN(qsort).in_safe(crtbaseModule.get());
@@ -85,4 +86,3 @@ extern "C" double __CRTDECL fabs(double _X)
 }
 
 #endif // MRT_ENABLED
-

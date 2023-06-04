@@ -6,13 +6,12 @@
     #define MinimumUserAddress (uint64_t)0xffffff
     #define MaximumUserAddress (uint64_t)0x00007FFFFFFFFFFF
 
-template <typename T> inline bool IsAddressValid(T address)
+template <typename T>
+inline bool IsAddressValid(T address)
 {
     return (
         (uint64_t)(address) >= (uint64_t)(MinimumUserAddress) && (uint64_t)(address) <= (uint64_t)(MaximumUserAddress));
 }
-
-
 
     #ifdef __cplusplus
 extern "C"
@@ -23,13 +22,13 @@ extern "C"
     void __cdecl _cexit(void);
     void __cdecl _cinitfs(void);
 
-    typedef void(__cdecl *_PVFV)(void);
-    typedef int(__cdecl *_PIFV)(void);
+    typedef void(__cdecl* _PVFV)(void);
+    typedef int(__cdecl* _PIFV)(void);
 
     int __cdecl atexit(_PVFV func);
 
-    void __cdecl free(void *ptr);
-    void *__cdecl malloc(size_t size); // PagedPool
+    void __cdecl free(void* ptr);
+    void* __cdecl malloc(size_t size); // PagedPool
 
     // int __cdecl rand();
 

@@ -60,7 +60,8 @@ namespace il2cpp
     MethodInfo* GetMethod(
         Il2CppClass* klass, const char* name, int argCount = -1, const char* argName = nullptr, int selectedArg = -1);
 
-    MethodInfo* GetMethod(const char* klassName, const char* name, int argCount = -1, const char* argName = "",
+    MethodInfo* GetMethod(
+        const char* klassName, const char* name, int argCount = -1, const char* argName = "",
         const char* nameSpace = "", int selectedArg = -1);
 
     uintptr_t HookVirtualFunction(Il2CppClass* klass, const char* methodName, void* hook, const char* name_space = "");
@@ -69,5 +70,4 @@ namespace il2cpp
         const char* classname, const char* function_to_hook, void* our_func, const char* name_space = "");
 
     uintptr_t HookVirtualFunction(uint64_t start, uint64_t search, void* our_func);
-
 } // namespace il2cpp

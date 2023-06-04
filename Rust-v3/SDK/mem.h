@@ -3,9 +3,10 @@
 
 namespace mem
 {
-    uintptr_t   GetModuleAddress(const wchar_t* moduleName);
-    void ScanPattern(const unsigned char* pattern, unsigned char wildcard, unsigned int patternLength,
-        uint64_t base, unsigned int size, uint64_t* found);
+    uintptr_t GetModuleAddress(const wchar_t* moduleName);
+    void      ScanPattern(
+             const unsigned char* pattern, unsigned char wildcard, unsigned int patternLength, uint64_t base,
+             unsigned int size, uint64_t* found);
 
     template <typename T = uint8_t*>
     inline T ResolveJmp(uint8_t* address)
@@ -24,5 +25,4 @@ namespace mem
     {
         return reinterpret_cast<T>(address + *reinterpret_cast<int32_t*>(address + 1) + 5);
     }
-
 } // namespace mem

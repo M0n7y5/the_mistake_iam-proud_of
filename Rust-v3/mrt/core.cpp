@@ -8,7 +8,7 @@
 
 #ifdef MRT_ENABLED
 
-extern "C" __declspec(selectany)  int _fltused = 1;
+extern "C" __declspec(selectany) int _fltused = 1;
 
 extern "C"
 {
@@ -51,14 +51,14 @@ typedef struct _ON_EXIT_ENTRY
 } ON_EXIT_ENTRY, *PON_EXIT_ENTRY;
 SLIST_HEADER __onexithead;
 
-const char *_get_cwd()
+const char* _get_cwd()
 {
     return _CRT_CWD;
 }
 
     #define __crt_countof(_Array) (sizeof(*__countof_helper(_Array)) + 0)
 
-void _set_cwd(const char *path)
+void _set_cwd(const char* path)
 {
     strncpy(_CRT_CWD, path, __crt_countof(_CRT_CWD));
 }
@@ -74,7 +74,7 @@ void __cdecl _cinitfs(void)
     _init_cwd();
 }
 
-void _initterm(_PVFV *pfbegin, _PVFV *pfend)
+void _initterm(_PVFV* pfbegin, _PVFV* pfend)
 {
     /*
      * walk the table of function pointers from the bottom up, until
@@ -118,7 +118,7 @@ _PVFV _onexit(_PVFV lpfn)
 {
     static auto _RtlInterlockedPushEntrySList = LI_FN(RtlInterlockedPushEntrySList).safe();
 
-    PON_EXIT_ENTRY _Entry                     = (PON_EXIT_ENTRY)malloc(sizeof(ON_EXIT_ENTRY));
+    PON_EXIT_ENTRY _Entry = (PON_EXIT_ENTRY)malloc(sizeof(ON_EXIT_ENTRY));
 
     if (!_Entry)
         return NULL;
@@ -158,8 +158,9 @@ void __cdecl _cexit(void)
     doexit(0, 0, 1); /* full term, return to caller */
 }
 
-extern "C" void __cdecl _invalid_parameter(wchar_t const *const expression, wchar_t const *const function_name,
-    wchar_t const *const file_name, unsigned int const line_number, uintptr_t const reserved)
+extern "C" void __cdecl _invalid_parameter(
+    wchar_t const* const expression, wchar_t const* const function_name, wchar_t const* const file_name,
+    unsigned int const line_number, uintptr_t const reserved)
 { }
 
 extern "C" void __cdecl _invalid_parameter_noinfo(void)
@@ -194,7 +195,7 @@ namespace std
     _Prhand _Raise_handler;
 }
 
-void __cdecl std::_Xlength_error(char const *)
+void __cdecl std::_Xlength_error(char const*)
 {
     __debugbreak();
 
@@ -209,7 +210,7 @@ void __cdecl std::_Xbad_function_call(void)
         ;
 }
 
-void __cdecl std::_Xout_of_range(char const *)
+void __cdecl std::_Xout_of_range(char const*)
 {
     __debugbreak();
     while (1)
@@ -217,8 +218,9 @@ void __cdecl std::_Xout_of_range(char const *)
 }
 
 EXTERN_C
-_ACRTIMP void __cdecl _invoke_watson(_In_opt_z_ wchar_t const *_Expression, _In_opt_z_ wchar_t const *_FunctionName,
-    _In_opt_z_ wchar_t const *_FileName, _In_ unsigned int _LineNo, _In_ uintptr_t _Reserved)
+_ACRTIMP void __cdecl _invoke_watson(
+    _In_opt_z_ wchar_t const* _Expression, _In_opt_z_ wchar_t const* _FunctionName, _In_opt_z_ wchar_t const* _FileName,
+    _In_ unsigned int _LineNo, _In_ uintptr_t _Reserved)
 {
     //
     //"The invalid parameter handler dispatch function calls the currently assigned invalid parameter handler. By "

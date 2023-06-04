@@ -37,7 +37,7 @@ void CCommandBuffer::setName(const char* name)
 void CCommandBuffer::SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj)
 {
     static auto addr = OFF(Offsets::UnityEngine_Rendering_CommandBuffer::Methods::
-            SetViewProjectionMatrices_UnityEngine_Matrix4x4_view__UnityEngine_Matrix4x4_proj);
+                               SetViewProjectionMatrices_UnityEngine_Matrix4x4_view__UnityEngine_Matrix4x4_proj);
     ((void(__thiscall*)(CCommandBuffer*, Matrix4x4*, Matrix4x4*))(addr))(this, view, proj);
 }
 
@@ -53,10 +53,12 @@ void CCommandBuffer::DisableScissorRect()
     ((void(__thiscall*)(CCommandBuffer*))(addr))(this);
 }
 
-void CCommandBuffer::DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex,
-    int32_t shaderPass, CMaterialPropertyBlock* properties)
+void CCommandBuffer::DrawMesh(
+    CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, int32_t shaderPass,
+    CMaterialPropertyBlock* properties)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Rendering_CommandBuffer::Methods::
+    static auto addr = OFF(
+        Offsets::UnityEngine_Rendering_CommandBuffer::Methods::
             DrawMesh_UnityEngine_Mesh_mesh__UnityEngine_Matrix4x4_matrix__UnityEngine_Material_material__System_Int32_submeshIndex__System_Int32_shaderPass__UnityEngine_MaterialPropertyBlock_properties);
     ((void(__thiscall*)(CCommandBuffer*, CMesh*, Matrix4x4*, CMaterial*, uint32_t, uint32_t, CMaterialPropertyBlock*))(
         addr))(this, mesh, matrix, material, submeshIndex, shaderPass, properties);
