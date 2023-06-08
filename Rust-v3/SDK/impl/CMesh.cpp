@@ -12,7 +12,7 @@ CMesh* CMesh::New()
     return (CMesh*)il2cpp_object_new(klass);
 }
 
-void CMesh::ctor(char* name)
+void CMesh::ctor()
 {
     static auto addr = OFF(Offsets::UnityEngine_Mesh::Methods::_ctor);
     ((void(__thiscall*)(CMesh*))(addr))(this);

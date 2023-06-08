@@ -61,7 +61,7 @@ Il2CppArray* il2cpp_array_new_specific(Il2CppClass* arrayTypeInfo, uintptr_t len
     return LI_FN(il2cpp_array_new_specific).in_safe_cached(mod.get())(arrayTypeInfo, length);
 }
 
-const Il2CppType* il2cpp_class_get_type(Il2CppClass* klass)
+Il2CppType* il2cpp_class_get_type(Il2CppClass* klass)
 {
     return LI_FN(il2cpp_class_get_type).in_safe_cached(mod.get())(klass);
 }

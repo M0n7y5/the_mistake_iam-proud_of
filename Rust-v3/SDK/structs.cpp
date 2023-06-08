@@ -43,8 +43,7 @@ Matrix4x4 Matrix4x4::Ortho(float left, float right, float bottom, float top, flo
 {
     static auto addr = OFF(Offsets::UnityEngine_Matrix4x4::StaticMethods::
             Ortho_System_Single_left__System_Single_right__System_Single_bottom__System_Single_top__System_Single_zNear__System_Single_zFar);
-    return ((Matrix4x4(__thiscall*)(float, float, float, float, float, float))(addr))(
-        left, right, bottom, top, zNear, zFar);
+    return ((Matrix4x4(*)(float, float, float, float, float, float))(addr))(left, right, bottom, top, zNear, zFar);
 }
 
 void CObject::setHideFlags(HideFlags flags)
@@ -53,19 +52,62 @@ void CObject::setHideFlags(HideFlags flags)
     return ((void(__thiscall*)(CObject*, HideFlags))(addr))(this, flags);
 }
 
-CAssetBundle* CAssetBundle::LoadFileFromMemory(WeakArray<uint8_t>* assetBundle, uint32_t CRC, uint64_t offset)
+CAssetBundle* CAssetBundle::LoadFileFromMemory(CArray<uint8_t>* assetBundle, uint32_t CRC, uint64_t offset)
 {
     static auto addr = il2cpp_resolve_icall(_("UnityEngine.AssetBundle::LoadFromMemory_Internal()"));
 
-    return reinterpret_cast<CAssetBundle*(__fastcall*)(WeakArray<uint8_t>*, uint32_t, uint64_t)>(addr)(
+    return reinterpret_cast<CAssetBundle*(__fastcall*)(CArray<uint8_t>*, uint32_t, uint64_t)>(addr)(
         assetBundle, CRC, offset);
 }
 
-template <typename T>
-inline T* CAssetBundle::LoadAsset(const char* name, Il2CppType* type)
+CAssetBundle* CAssetBundle::LoadFileFromFile(const char* path)
+{
+    static auto addr = OFF(Offsets::UnityEngine_AssetBundle::StaticMethods::LoadFromFile_System_String_path);
+
+    auto str = il2cpp_string_new(path);
+
+    return ((CAssetBundle * (*)(Il2CppString*))(addr))(str);
+}
+
+void* CAssetBundle::LoadAssetInternal(const char* name, CType* type)
 {
     auto str = il2cpp_string_new(name);
 
     static auto addr = OFF(Offsets::UnityEngine_AssetBundle::Methods::LoadAsset_System_String_name__System_Type_type);
-    return ((T * (__thiscall*)(CAssetBundle*, Il2CppString*, Il2CppType*))(addr))(this, str, type);
+    return ((void*(__thiscall*)(CAssetBundle*, Il2CppString*, CType*))(addr))(this, str, type);
+}
+
+void* CArrayBase::NewInternal(Il2CppClass* klass, il2cpp_array_size_t size)
+{
+    return il2cpp_array_new_specific(klass, size);
+}
+
+void* CArrayBase::NewInternal(const char* klass, il2cpp_array_size_t size, const char* namespaze)
+{
+    auto klassType = il2cpp::InitClass(klass, namespaze);
+
+    if (!klassType)
+        __debugbreak();
+
+    return il2cpp_array_new_specific(klassType, size);
+}
+
+CType* CType::FomClass(const char* name, const char* namespaze)
+{
+    auto klass = il2cpp::InitClass(name, namespaze);
+
+    if (!klass)
+        return nullptr;
+
+    auto type = il2cpp_class_get_type(klass);
+
+    if (!type)
+        return nullptr;
+
+    return (CType*)il2cpp_type_get_object(type);
+}
+
+void* CGameObject::AddComponentInternal(CType* type)
+{
+    return nullptr;
 }

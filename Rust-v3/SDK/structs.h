@@ -81,9 +81,17 @@ typedef struct Il2CppArray : public Il2CppObject
 template <typename T>
 struct CArray : Il2CppArray
 {
-    T*                data[IL2CPP_ZERO_LEN_ARRAY];
-    static CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size);
-    static CArray<T>* New(const char* klass, il2cpp_array_size_t size, const char* namespaze = "");
+    T data[IL2CPP_ZERO_LEN_ARRAY];
+
+    static CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size)
+    {
+        return (CArray<T>*)NewInternal(klass, size);
+    }
+
+    static CArray<T>* New(const char* klass, il2cpp_array_size_t size, const char* namespaze = "")
+    {
+        return (CArray<T>*)NewInternal(klass, size, namespaze);
+    }
 };
 
 template <typename T>
@@ -97,6 +105,11 @@ struct WeakArray
     };
 };
 
+struct CType : Il2CppObject
+{
+    static CType* FomClass(const char* name, const char* namespaze = "");
+};
+
 // template <typename T>
 // inline SystemArray<T>* ArrayNewSpecific(uintptr_t typeInfo, uint64_t size)
 //{
@@ -105,9 +118,29 @@ struct WeakArray
 
 struct CAssetBundle
 {
-    static CAssetBundle* LoadFileFromMemory(WeakArray<uint8_t>* assetBundle, uint32_t CRC, uint64_t offset);
+    static CAssetBundle* LoadFileFromMemory(CArray<uint8_t>* assetBundle, uint32_t CRC, uint64_t offset);
+
+    // Should be used only for debug
+    static CAssetBundle* LoadFileFromFile(const char* path);
+
+    void* LoadAssetInternal(const char* name, CType* type);
+
     template <typename T>
-    T* LoadAsset(const char* name, Il2CppType* type);
+    T* LoadAsset(const char* name, CType* type)
+    {
+        return (T*)LoadAssetInternal(name, type);
+    }
+};
+
+struct CGameObject
+{
+    void* AddComponentInternal(CType* type);
+
+    template <typename T>
+    T* AddComponent(CType* type)
+    {
+        return (T*)AddComponentInternal(type);
+    }
 };
 
 class CTime
@@ -192,7 +225,7 @@ struct CSubMeshDescriptor
 struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
 {
     static CMesh* New();
-    void          ctor(char* name);
+    void          ctor();
     void          MarkDynamic();
     void          Clear(bool keepVertexLayout);
     void          SetIndexBufferParams(uint32_t indexCount, IndexFormat format);
@@ -225,6 +258,9 @@ struct CTexture2D : ILObjectBase<UnityEngine_Texture2D_Fields>
     WeakArray<uint8_t> GetRawTextureData_byte();
     void               Apply();
 };
+
+struct CBootstrap : ILObjectBase<Bootstrap_Fields>
+{ };
 
 struct CSprite : ILObjectBase<UnityEngine_Sprite_Fields>
 { };

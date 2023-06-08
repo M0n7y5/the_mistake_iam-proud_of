@@ -4,6 +4,8 @@
 #include "../mrt/xorstr.hpp"
 #include "../mrt/logging.h"
 
+#include "../ui/imgui_backend/imgui_impl_unity.h"
+
 static uintptr_t LateUpdate_o = 0;
 static uintptr_t Awake_o      = 0;
 static uintptr_t OnDisable_o  = 0;
@@ -23,6 +25,9 @@ static void hk_LateUpdate(void* _this)
         L::Print("Client LateUpdate -> initMe");
         L::PopConsoleColor();
 #endif
+        auto camera = CCamera::GetMainCamera();
+
+        auto success = ImGui_Impl_Unity_Init(camera);
 
         return;
     }

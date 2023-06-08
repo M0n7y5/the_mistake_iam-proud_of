@@ -35,9 +35,13 @@ private int _prevSubMeshCount = 1;  // number of sub meshes used previously
 
 CCommandBuffer* _commandBuffer;
 
+
+
 bool ImGui_Impl_Unity_Init(CCamera* camera)
 {
     // setup camera and shit
+
+    ImGui::CreateContext();
 
     auto& io = ImGui::GetIO();
 
@@ -48,41 +52,52 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
         CArray<CVertexAttributeDescriptor>::New("VertexAttributeDescriptor", 3, "UnityEngine.Rendering");
 
     // Position
-    auto attr = _vertexAttributes->data[0];
+    auto& attr = _vertexAttributes->data[0];
 
-    attr->_attribute_k__BackingField = (int32_t)VertexAttribute::Position;
-    attr->_format_k__BackingField    = (int32_t)VertexAttributeFormat::Float32;
-    attr->_dimension_k__BackingField = 2;
-    attr->_stream_k__BackingField    = 0;
+    attr._attribute_k__BackingField = (int32_t)VertexAttribute::Position;
+    attr._format_k__BackingField    = (int32_t)VertexAttributeFormat::Float32;
+    attr._dimension_k__BackingField = 2;
+    attr._stream_k__BackingField    = 0;
 
     // UV
     attr = _vertexAttributes->data[1];
 
-    attr->_attribute_k__BackingField = (int32_t)VertexAttribute::TexCoord0;
-    attr->_format_k__BackingField    = (int32_t)VertexAttributeFormat::Float32;
-    attr->_dimension_k__BackingField = 2;
-    attr->_stream_k__BackingField    = 0;
+    attr._attribute_k__BackingField = (int32_t)VertexAttribute::TexCoord0;
+    attr._format_k__BackingField    = (int32_t)VertexAttributeFormat::Float32;
+    attr._dimension_k__BackingField = 2;
+    attr._stream_k__BackingField    = 0;
 
     // Color
     attr = _vertexAttributes->data[2];
 
-    attr->_attribute_k__BackingField = (int32_t)VertexAttribute::TexCoord1;
-    attr->_format_k__BackingField    = (int32_t)VertexAttributeFormat::UInt32;
-    attr->_dimension_k__BackingField = 1;
-    attr->_stream_k__BackingField    = 0;
+    attr._attribute_k__BackingField = (int32_t)VertexAttribute::TexCoord1;
+    attr._format_k__BackingField    = (int32_t)VertexAttributeFormat::UInt32;
+    attr._dimension_k__BackingField = 1;
+    attr._stream_k__BackingField    = 0;
 
     _textureID = CShader::PropertyToID("_texture");
 
     _materialProperties = CMaterialPropertyBlock::New();
     _materialProperties->ctor();
 
-    // LOAD SHADER !!! Needs assetbundler API
-    __debugbreak();
+    //!!!DEBUG
+    auto bundle = CAssetBundle::LoadFileFromFile("C:\\Users\\user\\RustAssests\\AssetBundles\\uishaders");
+
+    auto type_o = CType::FomClass(_("Shader"), _("UnityEngine"));
+
+    _shader = bundle->LoadAsset<CShader>(
+        _("Assets/AssetBundleData/DearImGui-Mesh.shader"), type_o); // LoadAsset(_("DearImGui-Mesh"), shaderType);
+
+
+    //auto bootstrap_c = (Bootstrap_c*)il2cpp::InitClass("Bootstrap");
+
+    //auto gameobject = bootstrap_c->static_fields->_menuUi;
 
     _material = CMaterial::New();
     _material->ctor(_shader);
-
+    //!! _material->setHideFlags(HideFlags::HideAndDontSave & ~HideFlags::DontUnloadUnusedAsset);
     _mesh = CMesh::New();
+    _mesh->ctor();
     _mesh->MarkDynamic();
 
     // manual Command buffer setup
@@ -91,7 +106,10 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     _commandBuffer->ctor();
     _commandBuffer->setName(_("System.GUI"));
 
-    camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
+    Text
+
+    // disable for now
+    // camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
 
     return true;
 }

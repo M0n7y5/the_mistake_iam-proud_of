@@ -49,7 +49,7 @@ void*                  il2cpp_resolve_icall(const char* name);
 void                   il2cpp_runtime_class_init(Il2CppClass* klass);
 Il2CppString*          il2cpp_string_new(const char* str);
 Il2CppArray*           il2cpp_array_new_specific(Il2CppClass* arrayTypeInfo, uintptr_t length);
-const Il2CppType*      il2cpp_class_get_type(Il2CppClass* klass);
+Il2CppType*      il2cpp_class_get_type(Il2CppClass* klass);
 Il2CppObject*          il2cpp_type_get_object(const Il2CppType* type);
 const char*            il2cpp_method_get_param_name(const MethodInfo* method, uint32_t index);
 
