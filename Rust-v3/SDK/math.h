@@ -193,7 +193,7 @@ class Vector3
     bool Invalid()
     {
         return ((x > -_flt(1.f) && x < _flt(1.f)) && (y > -_flt(1.f) && y < _flt(1.f)) &&
-                (z > -_flt(1.f) && z < _flt(1.f))) ||
+                   (z > -_flt(1.f) && z < _flt(1.f))) ||
                (x == _flt(0.f) && z == _flt(0.f));
     }
 
@@ -380,8 +380,7 @@ class Vector3
     Vector3 normalized() const
     {
         float len = length();
-        return {
-            x == _flt(0.f) ? _flt(0.f) : x / len, y == _flt(0.f) ? _flt(0.f) : y / len,
+        return {x == _flt(0.f) ? _flt(0.f) : x / len, y == _flt(0.f) ? _flt(0.f) : y / len,
             z == _flt(0.f) ? _flt(0.f) : z / len};
     }
 
@@ -539,8 +538,7 @@ class Vector4
 
     static Vector4 QuatMult(Vector4 lhs, Vector4 rhs)
     {
-        return Vector4 {
-            lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
+        return Vector4 {lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
             lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
             lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
             lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z};
@@ -766,21 +764,18 @@ class Matrix4x4
   public:
     inline Matrix4x4()
     {
-        Init(
-            _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
+        Init(_flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
             _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f));
     }
 
-    inline Matrix4x4(
-        float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20, float m21,
-        float m22, float m23, float m30, float m31, float m32, float m33)
+    inline Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
+        float m21, float m22, float m23, float m30, float m31, float m32, float m33)
     {
         Init(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
     }
 
-    inline void Init(
-        float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20, float m21,
-        float m22, float m23, float m30, float m31, float m32, float m33)
+    inline void Init(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
+        float m21, float m22, float m23, float m30, float m31, float m32, float m33)
     {
         m[0][0] = m00;
         m[0][1] = m01;
@@ -825,9 +820,8 @@ class Matrix4x4
 
     Matrix4x4 transpose() const
     {
-        return Matrix4x4(
-            m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2], m[2][2], m[3][2],
-            m[0][3], m[1][3], m[2][3], m[3][3]);
+        return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2],
+            m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
     }
 
     static Matrix4x4 Translate(Vector3 vector)

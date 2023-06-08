@@ -2,8 +2,6 @@
 #include <cstdint>
 #include <stdint.h>
 
-#include "../mrt/bitmask.h"
-
 //
 // Summary:
 //     Mesh data update flags.
@@ -35,8 +33,6 @@ enum class MeshUpdateFlags : int32_t
     //     using Mesh.SetSubMesh.
     DontRecalculateBounds = 0x8
 };
-
-SCOPED_ENUM_FLAG(MeshUpdateFlags);
 
 //
 // Summary:
@@ -202,8 +198,6 @@ enum class HideFlags : int32_t
     HideAndDontSave = 0x3D
 };
 
-SCOPED_ENUM_FLAG(HideFlags);
-
 enum class IndexFormat : int32_t
 {
     UInt16,
@@ -337,8 +331,6 @@ enum class MapLayer : int32_t
     Dungeons     = 0x0000000a,
 };
 
-SCOPED_ENUM_FLAG(MapLayer);
-
 enum class PlayerFlags : int32_t
 {
     Unused1             = 0x00000001,
@@ -364,8 +356,6 @@ enum class PlayerFlags : int32_t
     Workbench2          = 0x00200000,
     Workbench3          = 0x00400000,
 };
-
-SCOPED_ENUM_FLAG(PlayerFlags);
 
 // Todo: update
 enum class PlayerBones : int32_t
@@ -472,8 +462,6 @@ enum class ModelStateFlags : int32_t
     Mounted   = 512,
     Relaxed   = 1024
 };
-
-SCOPED_ENUM_FLAG(ModelStateFlags);
 
 //
 // Summary:

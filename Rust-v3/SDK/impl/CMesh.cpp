@@ -38,8 +38,7 @@ void CMesh::SetIndexBufferParams(uint32_t indexCount, IndexFormat format)
 
 void CMesh::SetVertexBufferParams(int32_t vertexCount, CArray<CVertexAttributeDescriptor>* attributes)
 {
-    static auto addr = OFF(
-        Offsets::UnityEngine_Mesh::Methods::
+    static auto addr = OFF(Offsets::UnityEngine_Mesh::Methods::
             SetVertexBufferParams_System_Int32_vertexCount__UnityEngine_Rendering_VertexAttributeDescriptor___attributes);
     ((void(__thiscall*)(CMesh*, int32_t, CArray<CVertexAttributeDescriptor>*))(addr))(this, vertexCount, attributes);
 }
@@ -64,9 +63,8 @@ void CMesh::SetSubmeshCount(uint32_t count)
     ((void(__thiscall*)(CMesh*, uint32_t))(addr))(this, count);
 }
 
-void CMesh::SetVertexBufferData(
-    int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count, int32_t elemSize,
-    MeshUpdateFlags flags)
+void CMesh::SetVertexBufferData(int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count,
+    int32_t elemSize, MeshUpdateFlags flags)
 {
     static auto addr = il2cpp_resolve_icall(_("UnityEngine.Mesh::InternalSetVertexBufferData"));
     ((void(__thiscall*)(CMesh*, int32_t, void*, int32_t, int32_t, int32_t, int32_t, MeshUpdateFlags))(addr))(

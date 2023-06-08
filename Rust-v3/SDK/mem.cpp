@@ -31,9 +31,8 @@ uintptr_t mem::GetModuleAddress(const wchar_t* moduleName)
     return 0;
 }
 
-void mem::ScanPattern(
-    const unsigned char* pattern, unsigned char wildcard, unsigned int patternLength, uint64_t base, unsigned int size,
-    uint64_t* found)
+void mem::ScanPattern(const unsigned char* pattern, unsigned char wildcard, unsigned int patternLength, uint64_t base,
+    unsigned int size, uint64_t* found)
 {
     unsigned long long i = 0;
 

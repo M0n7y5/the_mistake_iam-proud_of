@@ -5,25 +5,25 @@ namespace miniTween
 {
     class CubicBezierEase
     {
-        static constexpr int   NEWTON_ITERATIONS          = 4;
-        static constexpr float NEWTON_MIN_SLOPE           = 0.001f;
-        static constexpr float SUBDIVISION_PRECISION      = 0.0000001f;
-        static constexpr int   SUBDIVISION_MAX_ITERATIONS = 10;
+        static constexpr int NEWTON_ITERATIONS = 4;
+        static constexpr float NEWTON_MIN_SLOPE = 0.001f;
+        static constexpr float SUBDIVISION_PRECISION = 0.0000001f;
+        static constexpr int SUBDIVISION_MAX_ITERATIONS = 10;
 
-        static constexpr int   kSplineTableSize = 11;
-        static constexpr float kSampleStepSize  = 1.0f / (kSplineTableSize - 1.0f);
+        static constexpr int kSplineTableSize = 11;
+        static constexpr float kSampleStepSize = 1.0f / (kSplineTableSize - 1.0f);
 
-        float sampleValues[kSplineTableSize] {};
+        float sampleValues[kSplineTableSize]{};
 
         float mX1, mY1, mX2, mY2;
 
-        template <typename T>
+        template<typename T>
         static bool AreEqual(T f1, T f2)
         {
             return (std::fabs(f1 - f2) <= std::numeric_limits<T>::epsilon() * std::fmax(std::fabs(f1), std::fabs(f2)));
         }
 
-      public:
+    public:
         explicit CubicBezierEase(const float pX1, const float pY1, const float pX2, const float pY2)
         {
             this->mX1 = pX1;
@@ -52,7 +52,7 @@ namespace miniTween
             return calcBezier(getTForX(percent), mY1, mY2);
         }
 
-      private:
+    private:
         float A(float aA1, float aA2)
         {
             return 1.0f - 3.0f * aA2 + 3.0f * aA1;
@@ -95,8 +95,7 @@ namespace miniTween
                 {
                     aA = currentT;
                 }
-            }
-            while (std::abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS);
+            } while (std::abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS);
             return currentT;
         }
 
@@ -110,7 +109,7 @@ namespace miniTween
                     return aGuessT;
                 }
                 const auto currentX = calcBezier(aGuessT, mX1, mX2) - aX;
-                aGuessT             -= currentX / currentSlope;
+                aGuessT -= currentX / currentSlope;
             }
             return aGuessT;
         }
@@ -122,9 +121,9 @@ namespace miniTween
 
         float getTForX(float aX)
         {
-            float           intervalStart = 0.0f;
-            int             currentSample = 1;
-            constexpr float lastSample    = kSplineTableSize - 1;
+            float intervalStart = 0.0f;
+            int currentSample = 1;
+            constexpr float lastSample = kSplineTableSize - 1;
 
             for (; currentSample != lastSample && sampleValues[currentSample] <= aX; ++currentSample)
             {
@@ -133,8 +132,7 @@ namespace miniTween
             --currentSample;
 
             // Interpolate to provide an initial guess for t
-            const auto dist =
-                (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
+            const auto dist = (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
             const auto guessForT = intervalStart + dist * kSampleStepSize;
 
             const auto initialSlope = getSlope(guessForT, mX1, mX2);
@@ -150,4 +148,6 @@ namespace miniTween
             return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
         }
     };
-} // namespace miniTween
+
+}
+

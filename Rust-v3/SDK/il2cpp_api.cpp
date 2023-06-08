@@ -213,8 +213,7 @@ uintptr_t il2cpp::HookVirtualFunction(Il2CppClass* klass, const char* methodName
 
 #ifdef _DEBUG
     L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-    L::Print(
-        "Method not found in VTable Attempting to hook methodpointer directly! Orignal 0x{:X}, Hook 0x{:X}",
+    L::Print("Method not found in VTable Attempting to hook methodpointer directly! Orignal 0x{:X}, Hook 0x{:X}",
         (uintptr_t)m->methodPointer, (uintptr_t)hook);
     L::PopConsoleColor();
 #endif

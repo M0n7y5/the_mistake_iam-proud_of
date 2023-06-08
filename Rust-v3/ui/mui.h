@@ -11,35 +11,32 @@
 #include "fonts/grlogofont.hpp"
 
 #include "imgui/imgui_internal.h"
-// #include "postprocessing/PostProccessing.h"
+//#include "postprocessing/PostProccessing.h"
 #include <iostream>
 
-namespace mui
-{
-    namespace colors
-    {
+
+namespace mui {
+    namespace colors {
         inline auto accent1 = ImColor(0, 115, 255, 255);
         inline auto accent2 = ImColor(0, 80, 178, 255);
     } // namespace colors
 
-    namespace fonts
-    {
+    namespace fonts {
         inline ImFont* logo;
         inline ImFont* defaultFont;
         inline ImFont* boldFont;
         inline ImFont* categoryFont;
 
-        inline float defaultFontSize {};
+        inline float defaultFontSize{};
 
-        inline void Init()
-        {
+        inline void Init() {
             ImFontConfig cfg;
             // cfg.OversampleH = 1;
             // cfg.OversampleV = 1;
 
-            // cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
+            //cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
 
-            const auto& io = ImGui::GetIO();
+            const auto& io       = ImGui::GetIO();
 
             static ImVector<ImWchar> ranges;
             ImFontGlyphRangesBuilder builder;
@@ -68,6 +65,7 @@ namespace mui
 
             io.Fonts->Build();
         }
+
     } // namespace fonts
 
     void Setup();
@@ -78,8 +76,7 @@ namespace mui
 
     static bool KeyBindActivePopup = false;
 
-    inline void BeginGroupPanel(const char* name, const ImVec2& size = ImVec2(0.0f, 0.0f))
-    {
+    inline void BeginGroupPanel(const char* name, const ImVec2& size = ImVec2(0.0f, 0.0f)) {
         ImGui::BeginGroup();
 
         auto cursorPos   = ImGui::GetCursorScreenPos();
@@ -124,14 +121,13 @@ namespace mui
 #endif
         ImGui::GetCurrentWindow()->Size.x -= frameHeight;
 
-        auto itemWidth = ImGui::CalcItemWidth();
+        auto itemWidth                    = ImGui::CalcItemWidth();
         ImGui::PushItemWidth(ImMax(0.0f, itemWidth - frameHeight));
 
         s_GroupPanelLabelStack.push_back(ImRect(labelMin, labelMax));
     }
 
-    inline void EndGroupPanel()
-    {
+    inline void EndGroupPanel() {
         ImGui::PopItemWidth();
 
         auto itemSpacing = ImGui::GetStyle().ItemSpacing;
@@ -165,28 +161,24 @@ namespace mui
         ImRect frameRect = ImRect(itemMin + halfFrame, itemMax - ImVec2(halfFrame.x, 0.0f));
         labelRect.Min.x  -= itemSpacing.x;
         labelRect.Max.x  += itemSpacing.x;
-        for (int i = 0; i < 4; ++i)
-        {
-            switch (i)
-            {
-                    // left half-plane
-                case 0:
-                    ImGui::PushClipRect(ImVec2(-FLT_MAX, -FLT_MAX), ImVec2(labelRect.Min.x, FLT_MAX), true);
-                    break;
-                    // right half-plane
-                case 1:
-                    ImGui::PushClipRect(ImVec2(labelRect.Max.x, -FLT_MAX), ImVec2(FLT_MAX, FLT_MAX), true);
-                    break;
-                    // top
-                case 2:
-                    ImGui::PushClipRect(
-                        ImVec2(labelRect.Min.x, -FLT_MAX), ImVec2(labelRect.Max.x, labelRect.Min.y), true);
-                    break;
-                    // bottom
-                case 3:
-                    ImGui::PushClipRect(
-                        ImVec2(labelRect.Min.x, labelRect.Max.y), ImVec2(labelRect.Max.x, FLT_MAX), true);
-                    break;
+        for (int i = 0; i < 4; ++i) {
+            switch (i) {
+                // left half-plane
+            case 0:
+                ImGui::PushClipRect(ImVec2(-FLT_MAX, -FLT_MAX), ImVec2(labelRect.Min.x, FLT_MAX), true);
+                break;
+                // right half-plane
+            case 1:
+                ImGui::PushClipRect(ImVec2(labelRect.Max.x, -FLT_MAX), ImVec2(FLT_MAX, FLT_MAX), true);
+                break;
+                // top
+            case 2:
+                ImGui::PushClipRect(ImVec2(labelRect.Min.x, -FLT_MAX), ImVec2(labelRect.Max.x, labelRect.Min.y), true);
+                break;
+                // bottom
+            case 3:
+                ImGui::PushClipRect(ImVec2(labelRect.Min.x, labelRect.Max.y), ImVec2(labelRect.Max.x, FLT_MAX), true);
+                break;
             }
 
             auto& style = ImGui::GetStyle();
@@ -213,23 +205,22 @@ namespace mui
         ImGui::EndGroup();
     }
 
-    inline void ToggleButton(const char* str_id, bool* v)
-    {
-        ImVec2      p         = ImGui::GetCursorScreenPos();
+    inline void ToggleButton(const char* str_id, bool* v) {
+        ImVec2 p              = ImGui::GetCursorScreenPos();
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-        float height = 22.f;
-        float width  = height * 1.55f;
-        float radius = height * 0.50f;
+        float height          = 22.f;
+        float width           = height * 1.55f;
+        float radius          = height * 0.50f;
 
         ImGui::InvisibleButton(str_id, ImVec2(width, height));
         if (ImGui::IsItemClicked())
             *v = !*v;
 
-        float t = *v ? 1.0f : 0.0f;
+        float t          = *v ? 1.0f : 0.0f;
 
-        ImGuiContext& g          = *GImGui;
-        float         ANIM_SPEED = 0.20f;
+        ImGuiContext& g  = *GImGui;
+        float ANIM_SPEED = 0.20f;
         if (g.LastActiveId == g.CurrentWindow->GetID(str_id)) // && g.LastActiveIdTimer < ANIM_SPEED)
         {
             float t_anim = ImSaturate(g.LastActiveIdTimer / ANIM_SPEED);
@@ -265,8 +256,7 @@ namespace mui
             ImDrawFlags_ShadowCutOutShapeBackground);
     }
 
-    inline void ToggleFeature(const char* name, bool* v, float width)
-    {
+    inline void ToggleFeature(const char* name, bool* v, float width) {
         const auto curX = ImGui::GetCursorPosX();
         ImGui::TextUnformatted(name, ImGui::FindRenderedTextEnd(name));
         ImGui::SameLine();
@@ -274,8 +264,7 @@ namespace mui
         ToggleButton(name, v);
     }
 
-    inline void BeginFeatureSet(const char* title, float width = 0)
-    {
+    inline void BeginFeatureSet(const char* title, float width = 0) {
         ImGui::BeginGroup();
         ImGui::Indent(7);
         ImGui::PushFont(fonts::boldFont);
@@ -292,8 +281,7 @@ namespace mui
         ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + width);
     }
 
-    inline void EndFeatureSet()
-    {
+    inline void EndFeatureSet() {
         ImGui::PopTextWrapPos();
         ImGui::Unindent(7);
         ImGui::Dummy({0, 3});
@@ -314,8 +302,7 @@ namespace mui
         ImGui::Dummy({0, 5});
     }
 
-    inline float Remap(float value, float inputStart, float inputEnd, float outputStart, float outputEnd)
-    {
+    inline float Remap(float value, float inputStart, float inputEnd, float outputStart, float outputEnd) {
         float result = (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
 
         return result;
@@ -323,16 +310,15 @@ namespace mui
 
     inline bool SliderScalar2(
         const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max,
-        const char* format, ImGuiSliderFlags flags = 0)
-    {
+        const char* format, ImGuiSliderFlags flags = 0) {
         ImGuiWindow* window = ImGui::GetCurrentWindow();
         if (window->SkipItems)
             return false;
 
-        ImGuiContext&     g     = *GImGui;
+        ImGuiContext& g         = *GImGui;
         const ImGuiStyle& style = g.Style;
-        const ImGuiID     id    = window->GetID(label);
-        const float       w     = ImGui::CalcItemWidth();
+        const ImGuiID id        = window->GetID(label);
+        const float w           = ImGui::CalcItemWidth();
 
         // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
 
@@ -358,8 +344,7 @@ namespace mui
         const bool input_requested_by_tabbing =
             temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
         const bool clicked = (hovered && g.IO.MouseClicked[0]);
-        if (input_requested_by_tabbing || clicked || g.NavActivateId == id)
-        {
+        if (input_requested_by_tabbing || clicked || g.NavActivateId == id ) {
             ImGui::SetActiveID(id, window);
             ImGui::SetFocusID(id, window);
             ImGui::FocusWindow(window);
@@ -375,8 +360,7 @@ namespace mui
         //     value_buf + ImGui::DataTypeFormatString(value_buf, IM_ARRAYSIZE(value_buf), data_type, p_data, format);
 
         float t_anim = 0.0f;
-        if (hovered)
-        {
+        if (hovered) {
             t_anim = ImSaturate(g.HoveredIdTimer / 0.2);
             // ImGui::SetTooltip(value_buf, value_buf_end);
         }
@@ -397,15 +381,14 @@ namespace mui
             style.FrameRounding);
 
         // Slider behavior
-        ImRect     grab_bb;
+        ImRect grab_bb;
         const bool value_changed =
             ImGui::SliderBehavior(frame_bb, id, data_type, p_data, p_min, p_max, format, flags, &grab_bb);
         if (value_changed)
             ImGui::MarkItemEdited(id);
 
         // Render grab
-        if (grab_bb.Max.x > grab_bb.Min.x)
-        {
+        if (grab_bb.Max.x > grab_bb.Min.x) {
             // window->DrawList->AddLine(ImVec2(frame_bb.Min.x, grab_bb.GetCenter().y), ImVec2(grab_bb.Max.x - 10,
             // grab_bb.GetCenter().y), GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive :
             // ImGuiCol_SliderGrab), 2.f);
@@ -416,9 +399,9 @@ namespace mui
                 GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive2 : ImGuiCol_SliderGrab2),
                 GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive2 : ImGuiCol_SliderGrab2),
                 GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab));*/
-            ImVec2 Min   = ImVec2(frame_bb.Min.x, frame_bb.Min.y + 6.f);
-            ImVec2 Max   = ImVec2(grab_bb.Max.x, grab_bb.Max.y - 6.f);
-            auto   col_1 = ImGui::GetColorU32(ImGuiCol_SliderGrab);
+            ImVec2 Min       = ImVec2(frame_bb.Min.x, frame_bb.Min.y + 6.f);
+            ImVec2 Max       = ImVec2(grab_bb.Max.x, grab_bb.Max.y - 6.f);
+            auto col_1       = ImGui::GetColorU32(ImGuiCol_SliderGrab);
             // auto col_2 = GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive2 : ImGuiCol_SliderGrab2);
 
             float h_increase = (active || hovered) ? 0.2f : 0.02f;
@@ -429,7 +412,7 @@ namespace mui
             col_2_vec.z = ImMin(col_2_vec.z + h_increase, 1.0f);
             col_2_vec.z = ImMin(col_2_vec.z + v_increase, 1.0f);
             ImGui::ColorConvertHSVtoRGB(col_2_vec.x, col_2_vec.y, col_2_vec.z, col_2_vec.x, col_2_vec.y, col_2_vec.z);
-            auto col_2 = ImGui::GetColorU32(col_2_vec);
+            auto col_2         = ImGui::GetColorU32(col_2_vec);
 
             int vert_start_idx = window->DrawList->VtxBuffer.Size;
             window->DrawList->AddRectFilled(Min, Max, col_1, style.FrameRounding);
@@ -460,69 +443,55 @@ namespace mui
 
     inline bool SliderF(
         const char* label, float* v, float v_min, float v_max, const char* format, float min_width,
-        ImGuiSliderFlags flags = 0)
-    {
+        ImGuiSliderFlags flags = 0) {
         ImGui::LabelText("##nolabel", "%s", label);
         ImGui::SameLine(min_width ? min_width : ImGui::CalcTextSize(label).x);
         ImGui::SetNextItemWidth(-1);
         return SliderScalar2(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags);
     }
 
-    template <class T>
-    class SimpleAnimation
-    {
-        T                 val;
+    template <class T> class SimpleAnimation {
+        T val;
         STween::STween<T> genAnim = STween::STween<T>();
-        std::string       dbgName;
+        std::string dbgName;
 
-        T enterVal {}, leaveVal {};
+        T enterVal{}, leaveVal{};
 
-        bool entered {}, left {};
+        bool entered{}, left{};
 
       public:
-        SimpleAnimation(T fromVal, T to, float timeSec, STween::EasingFunction easing, std::string testName = "")
-        {
+        SimpleAnimation(T fromVal, T to, float timeSec, STween::EasingFunction easing, std::string testName = "") {
             val = fromVal;
 
             genAnim.From(fromVal)
                 .To(to) // default closed
                 .Easing(easing)
                 .Time(timeSec)
-                .OnStep(
-                    [this](T step)
-                    {
-                        this->val = step;
-                    });
+                .OnStep([this](T step) { this->val = step; });
 
             dbgName = std::move(testName);
         }
 
-        SimpleAnimation<T>& SetEnterValue(T val)
-        {
+        SimpleAnimation<T>& SetEnterValue(T val) {
             this->enterVal = val;
             return *this;
         }
 
-        SimpleAnimation<T>& SetLeaveValue(T val)
-        {
+        SimpleAnimation<T>& SetLeaveValue(T val) {
             this->leaveVal = val;
             return *this;
         }
 
-        void Update(float delta)
-        {
+        void Update(float delta) {
             this->genAnim.Update(delta);
         }
 
-        explicit operator T()
-        {
+        explicit operator T() {
             return this->val;
         }
 
-        void Enter()
-        {
-            if (!this->entered)
-            {
+        void Enter() {
+            if (!this->entered) {
                 this->genAnim.FromEx(this->val);
                 this->genAnim.To(this->enterVal);
                 this->genAnim.Reset();
@@ -532,10 +501,8 @@ namespace mui
             }
         }
 
-        void Leave()
-        {
-            if (!this->left)
-            {
+        void Leave() {
+            if (!this->left) {
                 this->genAnim.FromEx(this->val);
                 this->genAnim.To(this->leaveVal);
                 this->genAnim.Reset();
@@ -546,74 +513,64 @@ namespace mui
         }
     };
 
-    class FeatureKeyBind
-    {
-        enum TriggerType
-        {
+    class FeatureKeyBind {
+        enum TriggerType {
             None,
             Hold,
             Toggle
         };
 
-        ImGuiKey    _key     = ImGuiMod_None;
+        ImGuiKey _key        = ImGuiMod_None;
         TriggerType _trigger = None;
 
       public:
-        bool IsActive()
-        {
+        bool IsActive() {
             if (_key == ImGuiMod_None)
                 return false;
 
-            switch (_trigger)
-            {
-                case None:
-                    return false;
-                case Hold:
-                    return ImGui::IsKeyDown(_key);
-                case Toggle:
-                    return ImGui::IsKeyPressed(_key, false);
+            switch (_trigger) {
+            case None:
+                return false;
+            case Hold:
+                return ImGui::IsKeyDown(_key);
+            case Toggle:
+                return ImGui::IsKeyPressed(_key, false);
             }
         }
     };
 
     // this is really bad, make separate keybind manager and integrate it with MUI
-    class RenderableFeature
-    {
+    class RenderableFeature {
       public:
-        virtual void Draw(ImVec2 size)
-        { }
-        virtual void Init()
-        { }
+        virtual void Draw(ImVec2 size) {
+        }
+        virtual void Init() {
+        }
     };
 
-    template <typename T>
-    class Feature : public RenderableFeature
-    {
+    template <typename T> class Feature : public RenderableFeature {
         static inline int UID = 37;
 
       public:
         std::string _name;
-        T*          _data = nullptr;
+        T* _data = nullptr;
 
-        explicit Feature(std::string name, T* variable) : _name(std::move(name)), _data(variable)
-        {
+        explicit Feature(std::string name, T* variable) : _name(std::move(name)), _data(variable) {
             _name.append("##");
             _name.append(std::to_string(UID));
             UID += 37;
         }
     };
 
-    class BoolFeature : public Feature<bool>
-    {
+    class BoolFeature : public Feature<bool> {
       public:
-        explicit BoolFeature(std::string name, bool* var) : Feature(name, var)
-        { }
+        explicit BoolFeature(std::string name, bool* var) : Feature(name, var) {
+        }
 
-        void Init() override
-        { }
+        void Init() override {
+        }
 
-        void Draw(ImVec2 size) override
-        {
+        void Draw(ImVec2 size) override {
             static bool opppen = false;
             ToggleFeature(_name.c_str(), static_cast<bool*>(_data), size.x);
 
@@ -632,8 +589,7 @@ namespace mui
                 ImGui::Separator();
                 // if (ImGui::Button("Disabled")) {}
                 // if (ImGui::Selectable("Hold")) {}
-                if (ImGui::Button("Add Bind"))
-                {
+                if (ImGui::Button("Add Bind")) {
                     KeyBindActivePopup = true;
                 }
 
@@ -642,19 +598,18 @@ namespace mui
         }
     };
 
-    class ColorFeature : public Feature<ImColor>
-    {
+    class ColorFeature : public Feature<ImColor> {
+
         std::string colorButton;
         std::string colorButtonCurrent;
         std::string colorButtonPrev;
         std::string popupName;
         std::string popupPicker;
         std::string popupPalette;
-        ImVec4      backup_color;
+        ImVec4 backup_color;
 
       public:
-        explicit ColorFeature(std::string name, ImColor* var) : Feature(name, var)
-        {
+        explicit ColorFeature(std::string name, ImColor* var) : Feature(name, var) {
             colorButton        = _name + "_" + "colorButton";
             colorButtonCurrent = _name + "_" + "colorButton_current";
             colorButtonPrev    = _name + "_" + "colorButton_prev";
@@ -663,17 +618,14 @@ namespace mui
             popupPalette       = _name + "_" + "pallete";
         }
 
-        void Init() override
-        { }
+        void Init() override {
+        }
 
-        void Draw(ImVec2 size) override
-        {
-            static bool   saved_palette_init = true;
-            static ImVec4 saved_palette[88]  = {};
-            if (saved_palette_init)
-            {
-                for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
-                {
+        void Draw(ImVec2 size) override {
+            static bool saved_palette_init  = true;
+            static ImVec4 saved_palette[88] = {};
+            if (saved_palette_init) {
+                for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
                     ImGui::ColorConvertHSVtoRGB(
                         n / 87.0f, 0.8f, 0.8f, saved_palette[n].x, saved_palette[n].y, saved_palette[n].z);
                     saved_palette[n].w = 1.0f; // Alpha
@@ -688,7 +640,7 @@ namespace mui
 
             auto& color = ((ImColor*)_data)->Value;
 
-            auto hh = ImGui::GetTextLineHeight();
+            auto hh     = ImGui::GetTextLineHeight();
 
             bool open_popup =
                 ImGui::ColorButton(colorButton.c_str(), color, ImGuiColorEditFlags_AlphaPreview, {30, hh});
@@ -703,13 +655,11 @@ namespace mui
 
             ImGui::Dummy({});
 
-            if (open_popup)
-            {
+            if (open_popup) {
                 ImGui::OpenPopup(popupName.c_str());
                 backup_color = color;
             }
-            if (ImGui::BeginPopup(popupName.c_str(), ImGuiWindowFlags_NoMove))
-            {
+            if (ImGui::BeginPopup(popupName.c_str(), ImGuiWindowFlags_NoMove)) {
                 ImGui::TextUnformatted(_name.c_str(), ImGui::FindRenderedTextEnd(_name.c_str()));
                 ImGui::Separator();
 
@@ -743,8 +693,7 @@ namespace mui
 
                 ImGui::Separator();
                 ImGui::Text("Palette");
-                for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
-                {
+                for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
                     ImGui::PushID(n);
                     if ((n % 8) != 0)
                         ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
@@ -757,8 +706,7 @@ namespace mui
 
                     // Allow user to drop colors into each palette entry. Note that ColorButton() is already a
                     // drag source by default, unless specifying the ImGuiColorEditFlags_NoDragDrop flag.
-                    if (ImGui::BeginDragDropTarget())
-                    {
+                    if (ImGui::BeginDragDropTarget()) {
                         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
                             memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3);
                         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
@@ -774,27 +722,26 @@ namespace mui
         }
     };
 
-    class IntFeature : public Feature<int>
-    {
-        int         min {}, max {};
+    class IntFeature : public Feature<int> {
+
+        int min{}, max{};
         const char* format;
 
       public:
         explicit IntFeature(std::string name, int* var, int min, int max, const char* format)
-            : Feature(name, var), min(min), max(max), format(format)
-        { }
+            : Feature(name, var), min(min), max(max), format(format) {
+        }
 
-        void Init() override
-        { }
+        void Init() override {
+        }
 
-        void Draw(ImVec2 size) override
-        {
+        void Draw(ImVec2 size) override {
             // const auto curX = ImGui::GetCursorPosX();
             ImGui::TextUnformatted(_name.c_str(), ImGui::FindRenderedTextEnd(_name.c_str()));
             // ImGui::SameLine();
             // ImGui::SetCursorPosX(size.x - 37.f + curX);
 
-            char buf[32] {};
+            char buf[32]{};
             sprintf(buf, (const char*)format, *_data);
 
             auto txtSize = ImGui::CalcTextSize(buf);
@@ -809,67 +756,60 @@ namespace mui
         }
     };
 
-    class FloatFeature : public Feature<float>
-    {
+    class FloatFeature : public Feature<float> {
       public:
-        explicit FloatFeature(std::string name, float* var) : Feature(name, var)
-        { }
+        explicit FloatFeature(std::string name, float* var) : Feature(name, var) {
+        }
 
-        void Init() override
-        { }
+        void Init() override {
+        }
 
-        void Draw(ImVec2 size) override
-        { }
+        void Draw(ImVec2 size) override {
+        }
     };
 
-    class ConfigFeature : public RenderableFeature
-    {
+    class ConfigFeature : public RenderableFeature {
       public:
-        explicit ConfigFeature(std::string name)
-        { }
+        explicit ConfigFeature(std::string name) {
+        }
 
-        void Init() override
-        { }
+        void Init() override {
+        }
 
-        void Draw(ImVec2 size) override
-        { }
+        void Draw(ImVec2 size) override {
+        }
     };
 
-    class FeatureSet
-    {
-        std::string                     _name;
+    class FeatureSet {
+        std::string _name;
         std::vector<RenderableFeature*> _features;
 
-        ImVec2 min {}, max {};
-        bool   gotSize = false;
+        ImVec2 min{}, max{};
+        bool gotSize = false;
 
       public:
-        explicit FeatureSet(std::string name) : _name(std::move(name))
-        { }
+        explicit FeatureSet(std::string name) : _name(std::move(name)) {
+        }
 
-        FeatureSet& AddFeature(std::string name, ImColor* variable)
-        {
+        FeatureSet& AddFeature(std::string name, ImColor* variable) {
             const auto f = new ColorFeature(name, variable);
             _features.emplace_back(f);
             return *this;
         }
 
-        FeatureSet& AddFeature(std::string name, bool* variable)
-        {
+        FeatureSet& AddFeature(std::string name, bool* variable) {
             const auto f = new BoolFeature(name, variable);
             _features.emplace_back(f);
             return *this;
         }
 
-        FeatureSet& AddFeature(std::string name, int* variable, int min, int max, const char* format)
-        {
+        FeatureSet& AddFeature(std::string name, int* variable, int min, int max, const char* format) {
             const auto f = new IntFeature(name, variable, min, max, format);
             _features.emplace_back(f);
             return *this;
         }
 
-        void Draw(ImVec2 s)
-        {
+        void Draw(ImVec2 s) {
             const auto style = ImGui::GetStyle();
             const auto color = style.Colors[ImGuiCol_WindowBg];
 
@@ -898,8 +838,8 @@ namespace mui
 
                 {
                     s.x -= 7;
-                    for (const auto feature : _features)
-                    {
+                    for (const auto feature : _features) {
+
                         feature->Draw(s);
                     }
                 }
@@ -917,79 +857,70 @@ namespace mui
         }
     };
 
-    class SubCategory
-    {
-        static inline int                  UID = 37;
-        std::string                        _name;
-        std::vector<FeatureSet*>           _featureSets;
+    class SubCategory {
+        static inline int UID = 37;
+        std::string _name;
+        std::vector<FeatureSet*> _featureSets;
         std::shared_ptr<RenderableFeature> singleFeature;
-        bool                               singleMode = false;
+        bool singleMode  = false;
 
         bool _isSelected = false;
 
       public:
-        SubCategory(std::string name) : _name(std::move(name))
-        {
+        SubCategory(std::string name) : _name(std::move(name)) {
             _name.append("##__SubCategory");
             _name.append(std::to_string(UID));
             UID += 37;
         }
 
-        SubCategory& AddFeatureSet(std::string name, std::function<void(FeatureSet&)> cb)
-        {
+        SubCategory& AddFeatureSet(std::string name, std::function<void(FeatureSet&)> cb) {
             const auto fs = new FeatureSet(std::move(name));
             _featureSets.emplace_back(fs);
             cb(*fs);
             return *this;
         }
 
-        SubCategory& AddConfigSection()
-        {
+        SubCategory& AddConfigSection() {
             singleFeature = std::make_shared<ConfigFeature>(_name);
             singleMode    = true;
             return *this;
         }
 
-        const std::string& GetName()
-        {
+        const std::string& GetName() {
             return _name;
         }
 
-        bool* GetIsSelected()
-        {
+        bool* GetIsSelected() {
             return &_isSelected;
         }
 
-        const std::vector<FeatureSet*>& GetFeatureSets()
-        {
+        const std::vector<FeatureSet*>& GetFeatureSets() {
             return _featureSets;
         }
 
-        void Draw(ImVec2 s)
-        { }
+        void Draw(ImVec2 s) {
+        }
     };
 
-    class Category
-    {
+    class Category {
         std::string _name;
         std::string _icon;
         std::string _uiName;
         std::string _invButtonName;
 
-        bool                      isSelected {};
-        bool                      isProfile {};
+        bool isSelected{};
+        bool isProfile{};
         std::vector<SubCategory*> _subcategories;
 
-        SimpleAnimation<int>   selectedAnim {0, 255, 0.5f, STween::QuintOut};
-        SimpleAnimation<float> hoverAnim {0, 8, 1.5f, STween::QuintOut};
+        SimpleAnimation<int> selectedAnim{0, 255, 0.5f, STween::QuintOut};
+        SimpleAnimation<float> hoverAnim{0, 8, 1.5f, STween::QuintOut};
 
         std::function<void()> _draw;
 
       public:
         Category(std::string name, std::string icon, bool profile = false)
-            : _name(std::move(name)), _icon(std::move(icon))
-        {
-            this->_uiName = _name + "##__categoryMain";
+            : _name(std::move(name)), _icon(std::move(icon)) {
+            this->_uiName        = _name + "##__categoryMain";
 
             this->_invButtonName = _name + "##__InvBtn__categoryMain";
 
@@ -1000,43 +931,35 @@ namespace mui
             this->isProfile = profile;
         }
 
-        const std::vector<SubCategory*>& GetSubCategories()
-        {
+        const std::vector<SubCategory*>& GetSubCategories() {
             return _subcategories;
         }
 
-        [[nodiscard]] std::string GetUiName() const
-        {
+        [[nodiscard]] std::string GetUiName() const {
             return _uiName;
         }
 
-        [[nodiscard]] std::string GetName() const
-        {
+        [[nodiscard]] std::string GetName() const {
             return _name;
         }
 
-        [[nodiscard]] std::string GetUiIcon() const
-        {
+        [[nodiscard]] std::string GetUiIcon() const {
             return _icon;
         }
 
-        [[nodiscard]] bool IsProfileTab() const
-        {
+        [[nodiscard]] bool IsProfileTab() const {
             return isProfile;
         }
 
-        [[nodiscard]] bool IsSelected() const
-        {
+        [[nodiscard]] bool IsSelected() const {
             return isSelected;
         }
 
-        void SetSelected(bool sel)
-        {
+        void SetSelected(bool sel) {
             isSelected = sel;
         }
 
-        Category& AddSubCategory(std::string name, const std::function<void(SubCategory&)>& cb)
-        {
+        Category& AddSubCategory(std::string name, const std::function<void(SubCategory&)>& cb) {
             const auto sub = new SubCategory(std::move(name));
 
             _subcategories.emplace_back(sub);
@@ -1046,8 +969,7 @@ namespace mui
             return *this;
         }
 
-        void Draw(ImVec2 size, float minWidth, float maxWidth)
-        {
+        void Draw(ImVec2 size, float minWidth, float maxWidth) {
             const auto io = ImGui::GetIO();
             this->hoverAnim.Update(io.DeltaTime);
             this->selectedAnim.Update(io.DeltaTime);
@@ -1072,9 +994,9 @@ namespace mui
 
             const auto iconSize = ImGui::CalcTextSize(this->_icon.c_str());
 
-            auto centerIcon = bMin;
-            centerIcon.x    += minWidth / 2.f - iconSize.x / 2.f;
-            centerIcon.y    += size.y / 2.f - iconSize.y / 2.f;
+            auto centerIcon     = bMin;
+            centerIcon.x        += minWidth / 2.f - iconSize.x / 2.f;
+            centerIcon.y        += size.y / 2.f - iconSize.y / 2.f;
 
             if (this->isSelected)
                 selectedAnim.Enter();
@@ -1089,9 +1011,9 @@ namespace mui
             g->AddText(centerIcon, colors::accent1, this->_icon.c_str());
             ImGui::PopFont();
 
-            auto textPos = bMin;
-            textPos.x    += minWidth;
-            textPos.y    += size.y / 2.f - fonts::defaultFontSize / 2.f;
+            auto textPos   = bMin;
+            textPos.x      += minWidth;
+            textPos.y      += size.y / 2.f - fonts::defaultFontSize / 2.f;
 
             int txtOpacity = Remap(size.x, minWidth, maxWidth, 0, 255);
 
@@ -1099,38 +1021,35 @@ namespace mui
         }
     };
 
-    class Window
-    {
-        std::string searchText {};
+    class Window {
+
+        std::string searchText{};
 
         std::vector<Category*> categories;
 
-        SimpleAnimation<float> categoryMenuWidthAnim {180.f, 70.f, 0.5f, STween::QuintOut};
-        SimpleAnimation<int>   searchBarGlow {0, 0, 0.5f, STween::QuintOut};
+        SimpleAnimation<float> categoryMenuWidthAnim{180.f, 70.f, 0.5f, STween::QuintOut};
+        SimpleAnimation<int> searchBarGlow{0, 0, 0.5f, STween::QuintOut};
 
-        std::string currentSelectedCatName {};
-        ImVec2      categoryShadowStart, categoryShadowEnd;
+        std::string currentSelectedCatName{};
+        ImVec2 categoryShadowStart, categoryShadowEnd;
 
       public:
         bool IsOpen = true;
 
-        Window()
-        {
+        Window() {
             searchText.reserve(129);
             categoryMenuWidthAnim.SetEnterValue(180.f).SetLeaveValue(70.f);
             searchBarGlow.SetEnterValue(180).SetLeaveValue(0);
         }
 
-        Category& AddCategory(std::string name, std::string icon, bool profile = false)
-        {
+        Category& AddCategory(std::string name, std::string icon, bool profile = false) {
             auto cat = new Category(std::move(name), std::move(icon), profile);
             categories.emplace_back(cat);
 
             return *cat;
         }
 
-        void SelectCategory(int index)
-        {
+        void SelectCategory(int index) {
             for (auto&& category : categories)
                 category->SetSelected(false);
 
@@ -1140,10 +1059,9 @@ namespace mui
             currentSelectedCatName = cat->GetName();
         }
 
-        void Draw()
-        {
-            const ImGuiIO& io            = ImGui::GetIO();
-            const ImVec2   vecScreenSize = io.DisplaySize;
+        void Draw() {
+            const ImGuiIO& io          = ImGui::GetIO();
+            const ImVec2 vecScreenSize = io.DisplaySize;
 
             ImGui::SetNextWindowPos(
                 ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_Once, ImVec2(0.5f, 0.5f));
@@ -1157,8 +1075,7 @@ namespace mui
 
             static bool init = false;
 
-            if (!init)
-            {
+            if (!init) {
                 fonts::defaultFontSize = ImGui::CalcTextSize("A").y;
             }
 
@@ -1167,7 +1084,7 @@ namespace mui
                 "___MainWindows", &this->IsOpen,
                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
             {
-                // PostProcessing::performFullscreenBlur(ImGui::GetWindowDrawList(), 1.f);
+                //PostProcessing::performFullscreenBlur(ImGui::GetWindowDrawList(), 1.f);
 
                 ImGui::PopStyleVar();
 
@@ -1176,9 +1093,7 @@ namespace mui
 
                 // reserved space for category pick
                 ImGui::BeginGroup();
-                {
-                    ImGui::Dummy({70.f, 0});
-                }
+                { ImGui::Dummy({70.f, 0}); }
                 ImGui::EndGroup();
 
                 ImGui::SameLine();
@@ -1209,23 +1124,19 @@ namespace mui
                     ImGui::EndGroup();
 
                     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-                    if (ImGui::BeginTabBar("__MyTabBar", tab_bar_flags))
-                    {
-                        for (const auto category : this->categories)
-                        {
+                    if (ImGui::BeginTabBar("__MyTabBar", tab_bar_flags)) {
+                        for (const auto category : this->categories) {
                             if (!category->IsSelected())
                                 continue;
 
                             const auto subs = category->GetSubCategories();
 
-                            auto rx = ImGui::GetContentRegionAvail().x / subs.size();
-                            rx      -= 4;
+                            auto rx         = ImGui::GetContentRegionAvail().x / subs.size();
+                            rx              -= 4;
 
-                            for (const auto sub : subs)
-                            {
+                            for (const auto sub : subs) {
                                 ImGui::SetNextItemWidth(rx);
-                                if (ImGui::BeginTabItem(sub->GetName().c_str(), 0, ImGuiTabItemFlags_Trailing))
-                                {
+                                if (ImGui::BeginTabItem(sub->GetName().c_str(), 0, ImGuiTabItemFlags_Trailing)) {
                                     ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(0, 0, 0, 0));
                                     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
 
@@ -1243,8 +1154,7 @@ namespace mui
                                         ImGui::BeginGroup();
                                         {
                                             int i = 0;
-                                            for (const auto sets : sub->GetFeatureSets())
-                                            {
+                                            for (const auto sets : sub->GetFeatureSets()) {
                                                 const bool firstColumn = !(i++ % 2);
 
                                                 if (!firstColumn)
@@ -1260,8 +1170,7 @@ namespace mui
                                         ImGui::BeginGroup();
                                         {
                                             int i = 0;
-                                            for (const auto sets : sub->GetFeatureSets())
-                                            {
+                                            for (const auto sets : sub->GetFeatureSets()) {
                                                 const bool secondColumn = i++ % 2;
 
                                                 if (!secondColumn)
@@ -1290,24 +1199,25 @@ namespace mui
 
                 ImGui::BeginGroup();
                 {
-                    auto shadowStart = startScreenPos;
-                    shadowStart.x    += 5.f;
-                    shadowStart.y    += 5.f;
 
-                    auto shadowEnd = ImVec2 {};
-                    shadowEnd.x    += startScreenPos.x + static_cast<float>(categoryMenuWidthAnim) - 2.f;
-                    shadowEnd.y    += startScreenPos.y + avail.y - 10.f;
+                    auto shadowStart    = startScreenPos;
+                    shadowStart.x       += 5.f;
+                    shadowStart.y       += 5.f;
 
-                    auto bgStart = startScreenPos;
-                    auto bgEnd   = ImVec2 {};
-                    bgEnd.x      = startScreenPos.x + static_cast<float>(categoryMenuWidthAnim);
-                    bgEnd.y      = startScreenPos.y + avail.y;
+                    auto shadowEnd      = ImVec2{};
+                    shadowEnd.x         += startScreenPos.x + static_cast<float>(categoryMenuWidthAnim) - 2.f;
+                    shadowEnd.y         += startScreenPos.y + avail.y - 10.f;
+
+                    auto bgStart        = startScreenPos;
+                    auto bgEnd          = ImVec2{};
+                    bgEnd.x             = startScreenPos.x + static_cast<float>(categoryMenuWidthAnim);
+                    bgEnd.y             = startScreenPos.y + avail.y;
 
                     categoryShadowStart = shadowStart;
                     categoryShadowEnd   = shadowEnd;
 
                     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.f);
-                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2 {0, 0});
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
                     // ImGui::SetCursorPos({0, 0});
 
                     const auto& style = ImGui::GetStyle();
@@ -1337,37 +1247,37 @@ namespace mui
                         auto availReg      = ImGui::GetContentRegionAvail();
                         auto availableRegX = ImGui::GetContentRegionAvail().x - 15;
 
-                        auto txtOpacity = (int)Remap((float)categoryMenuWidthAnim, 70.f, 180.f, 0.f, 255.f);
+                        auto txtOpacity    = (int)Remap((float)categoryMenuWidthAnim, 70.f, 180.f, 0.f, 255.f);
 
-                        auto __startPos = ImGui::GetCursorPosX();
+                        auto __startPos    = ImGui::GetCursorPosX();
 
                         { // LOGO
                             ImGui::PushFont(fonts::logo);
 
-                            auto curX = __startPos;
+                            auto curX         = __startPos;
 
-                            auto txtSize = ImGui::CalcTextSize("A");
+                            auto txtSize      = ImGui::CalcTextSize("A");
 
                             auto txtMidAnchor = (txtSize.x / 2.f);
 
-                            curX += availableRegX / 2.f;
-                            curX -= txtMidAnchor;
+                            curX              += availableRegX / 2.f;
+                            curX              -= txtMidAnchor;
 
                             ImGui::SetCursorPosX(curX);
 
                             ImGui::TextColored(ImColor(0, 115, 255), "A");
                             ImGui::PopFont();
 
-                            curX = ImGui::GetCursorPosX();
+                            curX         = ImGui::GetCursorPosX();
 
-                            auto txt = "GETREKT.IO";
+                            auto txt     = "GETREKT.IO";
 
-                            txtSize = ImGui::CalcTextSize(txt);
+                            txtSize      = ImGui::CalcTextSize(txt);
 
                             txtMidAnchor = (txtSize.x / 2.f);
 
-                            curX += availableRegX / 2.f;
-                            curX -= txtMidAnchor;
+                            curX         += availableRegX / 2.f;
+                            curX         -= txtMidAnchor;
 
                             ImGui::SetCursorPosX(curX);
 
@@ -1381,15 +1291,13 @@ namespace mui
                         auto g                = ImGui::GetWindowDrawList();
                         auto deafultFontSizeY = ImGui::CalcTextSize("A").y;
 
-                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2 {});
+                        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{});
 
                         int i = 0;
-                        for (auto& category : this->categories)
-                        {
+                        for (auto& category : this->categories) {
                             auto index = i++;
 
-                            if (category->IsProfileTab())
-                            {
+                            if (category->IsProfileTab()) {
                                 auto profilePos = startPos;
                                 profilePos.y    += availReg.y - 51.f;
                                 ImGui::SetCursorPos(profilePos);
@@ -1397,8 +1305,7 @@ namespace mui
 
                             category->Draw({availableRegX, 60.f}, 70.f, 180.f);
 
-                            if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-                            {
+                            if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                                 SelectCategory(index);
                             }
                         }
@@ -1413,13 +1320,10 @@ namespace mui
 
                     categoryMenuWidthAnim.Update(io.DeltaTime);
 
-                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly))
-                    {
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly)) {
                         categoryMenuWidthAnim.Enter();
                         // categoryMenuWidthAnimUgly.Enter();
-                    }
-                    else
-                    {
+                    } else {
                         categoryMenuWidthAnim.Leave();
                         // categoryMenuWidthAnimUgly.Leave();
                     }
@@ -1431,29 +1335,27 @@ namespace mui
                 ImGui::End();
             }
 
-            static bool jjj    = true;
-            ImVec2      center = ImGui::GetMainViewport()->GetCenter();
+            static bool jjj = true;
+            ImVec2 center   = ImGui::GetMainViewport()->GetCenter();
             ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-            if (KeyBindActivePopup)
-            {
+            if (KeyBindActivePopup) {
                 ImGui::OpenPopup("Delete?");
                 KeyBindActivePopup = false;
             }
 
-            // PostProcessing::performFullscreenBlur(ImGui::GetBackgroundDrawList(), 1.f);
+            //PostProcessing::performFullscreenBlur(ImGui::GetBackgroundDrawList(), 1.f);
 
             // ImGui::GetBackgroundDrawList()->AddText(ImVec2{100, 100}, IM_COL32(255, 255, 255, 255), "Ahoj Jak Se
             // máš!");
 
             if (ImGui::BeginPopupModal(
-                    "Delete?", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
-            {
-                // PostProcessing::performFullscreenBlur(ImGui::GetBackgroundDrawList(), 1.f);
+                    "Delete?", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar)) {
+                //PostProcessing::performFullscreenBlur(ImGui::GetBackgroundDrawList(), 1.f);
 
                 ImGui::PushFont(fonts::boldFont);
 
-                auto       w                   = ImGui::GetWindowContentRegionWidth();
+                auto w                         = ImGui::GetWindowContentRegionWidth();
                 const auto txtWidth            = ImGui::CalcTextSize((char*)u8"Ahoj jak se máš?").x;
                 const auto textCenterPosOffset = (w / 2) - (txtWidth / 2) + 7;
 
@@ -1480,14 +1382,12 @@ namespace mui
                 ImGui::Checkbox("Don't ask me next time", &dont_ask_me_next_time);
                 ImGui::PopStyleVar();
 
-                if (ImGui::Button("OK", ImVec2(120, 0)))
-                {
+                if (ImGui::Button("OK", ImVec2(120, 0))) {
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();
-                if (ImGui::Button("Cancel", ImVec2(120, 0)))
-                {
+                if (ImGui::Button("Cancel", ImVec2(120, 0))) {
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -1495,11 +1395,9 @@ namespace mui
 
             ImGui::PopFont();
 
-            if (searchActive)
-            {
+            if (searchActive) {
                 searchBarGlow.Enter();
-            }
-            else
+            } else
                 searchBarGlow.Leave();
 
             searchBarGlow.Update(io.DeltaTime);
@@ -1511,4 +1409,5 @@ namespace mui
             // static_cast<int>(searchBarGlow)), 100, {}, ImDrawFlags_ShadowCutOutShapeBackground, 10);
         }
     };
+
 } // namespace mui

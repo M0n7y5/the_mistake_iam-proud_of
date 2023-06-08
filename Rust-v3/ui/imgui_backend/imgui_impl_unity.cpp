@@ -19,9 +19,10 @@ static int                     _prevSubMeshCount   = 1;
 
 static CArray<CVertexAttributeDescriptor>* _vertexAttributes = nullptr;
 
+// C++ is full of shit like this, why do scoped enums even exist if i need to cast it every ducking time into integer???
 static constexpr MeshUpdateFlags NoMeshChecks =
-    MeshUpdateFlags::DontNotifyMeshUsers | MeshUpdateFlags::DontRecalculateBounds |
-    MeshUpdateFlags::DontResetBoneBounds | MeshUpdateFlags::DontValidateIndices;
+    (MeshUpdateFlags)((int32_t)MeshUpdateFlags::DontNotifyMeshUsers | (int32_t)MeshUpdateFlags::DontRecalculateBounds |
+                      (int32_t)MeshUpdateFlags::DontResetBoneBounds | (int32_t)MeshUpdateFlags::DontValidateIndices);
 /*
 
 private readonly int _textureID;
@@ -70,7 +71,7 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     attr->_dimension_k__BackingField = 1;
     attr->_stream_k__BackingField    = 0;
 
-    _textureID = CShader::PropertyToID(_("_Texture"));
+    _textureID = CShader::PropertyToID("_texture");
 
     _materialProperties = CMaterialPropertyBlock::New();
     _materialProperties->ctor();
@@ -80,7 +81,7 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
 
     _material = CMaterial::New();
     _material->ctor(_shader);
-    _material->setHideFlags(HideFlags::HideAndDontSave | HideFlags::DontUnloadUnusedAsset);
+
     _mesh = CMesh::New();
     _mesh->MarkDynamic();
 
@@ -134,12 +135,10 @@ static void UpdateMesh(ImDrawData* draw_data)
         {
             auto cmd = drawList->CmdBuffer[i];
 
-            CSubMeshDescriptor descriptor {
-                .topology   = MeshTopology::Triangles,
-                .indexStart = idxOf + (int)cmd.IdxOffset,
-                .indexCount = (int)cmd.ElemCount,
-                .baseVertex = vtxOf + (int)cmd.VtxOffset,
-            };
+            CSubMeshDescriptor descriptor {.topology = MeshTopology::Triangles,
+                .indexStart                          = idxOf + (int)cmd.IdxOffset,
+                .indexCount                          = (int)cmd.ElemCount,
+                .baseVertex                          = vtxOf + (int)cmd.VtxOffset};
 
             descriptors.emplace_back(descriptor);
         }
@@ -158,9 +157,8 @@ static void CreateDrawCommands(CCommandBuffer* commandBuffer, ImDrawData* draw_d
     Vector4   clipOffset =
         Vector4(draw_data->DisplayPos.x, draw_data->DisplayPos.y, draw_data->DisplayPos.x, draw_data->DisplayPos.y);
 
-    Vector4 clipScale = Vector4(
-        draw_data->FramebufferScale.x, draw_data->FramebufferScale.y, draw_data->FramebufferScale.x,
-        draw_data->FramebufferScale.y);
+    Vector4 clipScale = Vector4(draw_data->FramebufferScale.x, draw_data->FramebufferScale.y,
+        draw_data->FramebufferScale.x, draw_data->FramebufferScale.y);
 
     auto rect = CRect {0.f, 0.f, fbSize.x, fbSize.y};
     commandBuffer->SetViewport(&rect);
@@ -191,9 +189,7 @@ static void CreateDrawCommands(CCommandBuffer* commandBuffer, ImDrawData* draw_d
             // set shader property for texture
             _materialProperties->SetTexture(_textureID, (CTexture*)drawCmd.TextureId);
 
-            auto clipRect = CRect {
-                {clip.x, fbSize.y - clip.w, clip.z - clip.x, clip.w - clip.y}
-            };
+            auto clipRect = CRect(clip.x, fbSize.y - clip.w, clip.z - clip.x, clip.w - clip.y);
             commandBuffer->EnableScissorRect(&clipRect); // Invert y.
             commandBuffer->DrawMesh(_mesh, (Matrix4x4*)&identityMatrix, _material, subOf, -1, _materialProperties);
         }
@@ -218,7 +214,7 @@ void ImGui_Impl_Unity_RenderDrawData(ImDrawData* draw_data)
 
     UpdateMesh(draw_data);
 
-    CreateDrawCommands(_commandBuffer, draw_data, fbOSize);
+    CreateDrawCommands(commandBuffer, drawData, fbOSize);
 }
 
 static CTexture2D* _atlasTexture = nullptr;

@@ -94,6 +94,8 @@ void hk_TeleportTo(CPlayerWalkMovement* _this, Vector3 position, CBasePlayer* pl
 
 void Hooks::PlayerWalkMovement::Init()
 {
+
+
     auto klass = il2cpp::InitClass(_("PlayerWalkMovement"));
 
     DoFixedUpdate_o = il2cpp::HookVirtualFunction(klass, _("DoFixedUpdate"), &hk_DoFixedUpdate);

@@ -10,7 +10,7 @@ namespace miniState
         std::function<void()> Action;
     };
 
-    template <typename TState, typename TTrigger>
+    template<typename TState, typename TTrigger>
     class State
     {
         std::function<void()> onEnter;
@@ -27,8 +27,10 @@ namespace miniState
 
         std::unordered_map<int, std::function<void()>> events;
 
-      public:
+    public:
+
         State<TState, TTrigger>* Parent = nullptr;
+
 
         void ChangeState(TState state)
         {
@@ -57,6 +59,7 @@ namespace miniState
             if (onExit)
                 onExit();
 
+
             while (activeChildren.size())
             {
                 activeChildren.top()->Exit();
@@ -73,6 +76,7 @@ namespace miniState
             }
             else
                 static_assert(true, "PopState called on state with no active children to pop.");
+
         }
 
         void PushState(TState state)
@@ -146,4 +150,4 @@ namespace miniState
                 f->second();
         }
     };
-} // namespace miniState
+}

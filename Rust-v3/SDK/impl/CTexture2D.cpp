@@ -6,8 +6,7 @@
 
 void CTexture2D::ctor(uint32_t width, uint32_t height, TextureFormat textureFormat, bool mipChain, bool linear)
 {
-    static auto addr = OFF(
-        Offsets::UnityEngine_Texture2D::Methods::
+    static auto addr = OFF(Offsets::UnityEngine_Texture2D::Methods::
             _ctor_System_Int32_width__System_Int32_height__UnityEngine_TextureFormat_textureFormat__System_Boolean_mipChain__System_Boolean_linear);
     ((void(__thiscall*)(void*, uint32_t, uint32_t, TextureFormat, bool, bool))(addr))(
         this, width, height, textureFormat, mipChain, linear);

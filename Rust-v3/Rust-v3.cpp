@@ -58,7 +58,7 @@ bool __stdcall Initialize(uint64_t imageBase)
 
     LI_FN(CreateThread)
     ((LPSECURITY_ATTRIBUTES)NULL, NULL, reinterpret_cast<LPTHREAD_START_ROUTINE>(Start), (void*)imageBase, 0,
-     (LPDWORD)0);
+        (LPDWORD)0);
 
     return true;
 }
@@ -70,10 +70,9 @@ bool __stdcall InitializeEAC(uint64_t hModule, DWORD ul_reason_for_call, uint64_
     return true;
 }
 
-BOOL WINAPI DllMain(
-    HINSTANCE hinstDLL,  // handle to DLL module
-    DWORD     fdwReason, // reason for calling function
-    LPVOID    lpvReserved)  // reserved
+BOOL WINAPI DllMain(HINSTANCE hinstDLL,  // handle to DLL module
+    DWORD                     fdwReason, // reason for calling function
+    LPVOID                    lpvReserved)                  // reserved
 {
     // Perform actions based on the reason for calling.
     switch (fdwReason)

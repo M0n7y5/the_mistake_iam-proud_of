@@ -32,15 +32,14 @@ SOFTWARE.
 #include <vector>     //std::vector
 #include <functional> //std::function
 
-namespace STween
-{
+namespace STween {
+
     // Available Easing functions built-in
     // *Custom easing function not supported yet
     // Function format for custom easing:
     // template<typename T>
     // T YourEasingFunction(float position, T start, T end)
-    enum EasingFunction
-    {
+    enum EasingFunction {
         Linear,
         QuadranticIn,
         QuadranticOut,
@@ -59,40 +58,31 @@ namespace STween
     // Stores tweening data
     // *Mostly used internally
     // Can be created individually to later be added into STween if needed
-    template <class T>
-    class TweenData
-    {
+    template <class T> class TweenData {
       public:
         TweenData(int tID)
-            : tweenID(tID),
-              fromReady(false),
-              byPointer(false),
-              reversed(false),
-              initialValue(nullptr),
-              duration(0),
-              easing(Linear),
-              timeCounter(0)
-        { }
+            : tweenID(tID), fromReady(false), byPointer(false), reversed(false), initialValue(nullptr), duration(0),
+              easing(Linear), timeCounter(0) {
+        }
 
-        inline bool operator==(const TweenData& td)
-        {
+        inline bool operator==(const TweenData& td) {
             return this->tweenID == td.tweenID && this->initialValue == td.initialValue &&
                    this->finalValue == td.finalValue && this->timeCounter == td.timeCounter &&
                    this->reversed == td.reversed && this->easing == td.easing;
         }
 
-        int                       tweenID;
-        bool                      fromReady;
-        bool                      byPointer;
-        bool                      reversed;
-        T*                        initialValue;
-        T                         initialCpy;
-        T                         finalValue;
-        float                     duration;
-        EasingFunction            easing;
-        float                     timeCounter;
-        std::function<void()>     finishCallback;
-        std::function<void(T&)>   stepCallback;
+        int tweenID;
+        bool fromReady;
+        bool byPointer;
+        bool reversed;
+        T* initialValue;
+        T initialCpy;
+        T finalValue;
+        float duration;
+        EasingFunction easing;
+        float timeCounter;
+        std::function<void()> finishCallback;
+        std::function<void(T&)> stepCallback;
         std::vector<TweenData<T>> endTween;
     };
 
@@ -100,14 +90,12 @@ namespace STween
     // Creates and processes TweenData
     // Can be used as many times for a specific type 'T'
     // *Must-to-call functions to create a tween: From, To, Time
-    template <class T>
-    class STween
-    {
+    template <class T> class STween {
         TweenData<T> data;
 
       public:
-        STween() : data({})
-        { }
+        STween() : data({}) {
+        }
         // Creates a Tween starting from the initial value given
         // Also sets the value each frame to the variable it points to
         // *Only use when the object pointing to is guaranteed to be alive
@@ -162,9 +150,7 @@ namespace STween
 
     // template<class T>STween<T>::STween() {}
 
-    template <class T>
-    STween<T>& STween<T>::From(T* initVal)
-    {
+    template <class T> STween<T>& STween<T>::From(T* initVal) {
         data.fromReady    = true;
         data.byPointer    = true;
         data.initialValue = initVal;
@@ -176,9 +162,7 @@ namespace STween
         return *this;
     }
 
-    template <class T>
-    STween<T>& STween<T>::From(T initVal)
-    {
+    template <class T> STween<T>& STween<T>::From(T initVal) {
         data.fromReady    = true;
         data.byPointer    = false;
         data.initialValue = nullptr;
@@ -190,123 +174,107 @@ namespace STween
         return *this;
     }
 
-    template <class T>
-    STween<T>& STween<T>::FromEx(T initVal)
-    {
+    template <class T> STween<T>& STween<T>::FromEx(T initVal) {
         data.initialCpy = initVal;
 
         return *this;
     }
 
-    template <class T>
-    STween<T>& STween<T>::To(T finalVal)
-    {
+    template <class T> STween<T>& STween<T>::To(T finalVal) {
         data.finalValue = finalVal;
 
         return *this;
     }
 
-    template <class T>
-    STween<T>& STween<T>::Time(float sec)
-    {
+    template <class T> STween<T>& STween<T>::Time(float sec) {
         data.duration = sec;
 
         return *this;
     }
 
-    template <class T>
-    void STween<T>::Update(float deltaTime)
-    {
+    template <class T> void STween<T>::Update(float deltaTime) {
+
         auto& tween = data;
-        if (tween.fromReady)
-        {
+        if (tween.fromReady) {
             const float timePos = tween.timeCounter / tween.duration;
 
             T value, start, end;
 
-            if (tween.reversed)
-            {
+            if (tween.reversed) {
                 start = tween.finalValue;
                 end   = tween.initialCpy;
-            }
-            else
-            {
+            } else {
                 start = tween.initialCpy;
                 end   = tween.finalValue;
             }
 
-            switch (tween.easing)
-            {
-                case EasingFunction::Linear:
-                    value = Linear(timePos, start, end);
-                    break;
-                case EasingFunction::QuadranticIn:
-                    value = QuadIn(timePos, start, end);
-                    break;
+            switch (tween.easing) {
+            case EasingFunction::Linear:
+                value = Linear(timePos, start, end);
+                break;
+            case EasingFunction::QuadranticIn:
+                value = QuadIn(timePos, start, end);
+                break;
 
-                case EasingFunction::QuadranticOut:
-                    value = QuadOut(timePos, start, end);
-                    break;
+            case EasingFunction::QuadranticOut:
+                value = QuadOut(timePos, start, end);
+                break;
 
-                case EasingFunction::QuadranticInOut:
-                    value = QuadInOut(timePos, start, end);
-                    break;
+            case EasingFunction::QuadranticInOut:
+                value = QuadInOut(timePos, start, end);
+                break;
 
-                case EasingFunction::CubicIn:
-                    value = CubicIn(timePos, start, end);
-                    break;
+            case EasingFunction::CubicIn:
+                value = CubicIn(timePos, start, end);
+                break;
 
-                case EasingFunction::CubicOut:
-                    value = CubicOut(timePos, start, end);
-                    break;
+            case EasingFunction::CubicOut:
+                value = CubicOut(timePos, start, end);
+                break;
 
-                case EasingFunction::CubicInOut:
-                    value = CubicInOut(timePos, start, end);
-                    break;
+            case EasingFunction::CubicInOut:
+                value = CubicInOut(timePos, start, end);
+                break;
 
-                case EasingFunction::QuintIn:
-                    value = QuintIn(timePos, start, end);
-                    break;
+            case EasingFunction::QuintIn:
+                value = QuintIn(timePos, start, end);
+                break;
 
-                case EasingFunction::QuintOut:
-                    value = QuintOut(timePos, start, end);
-                    break;
+            case EasingFunction::QuintOut:
+                value = QuintOut(timePos, start, end);
+                break;
 
-                case EasingFunction::QuintInOut:
-                    value = QuintInOut(timePos, start, end);
-                    break;
+            case EasingFunction::QuintInOut:
+                value = QuintInOut(timePos, start, end);
+                break;
 
-                case EasingFunction::BackIn:
-                    value = BackIn(timePos, start, end);
-                    break;
+            case EasingFunction::BackIn:
+                value = BackIn(timePos, start, end);
+                break;
 
-                case EasingFunction::BackOut:
-                    value = BackOut(timePos, start, end);
-                    break;
+            case EasingFunction::BackOut:
+                value = BackOut(timePos, start, end);
+                break;
 
-                case EasingFunction::BackInOut:
-                    value = BackInOut(timePos, start, end);
-                    break;
+            case EasingFunction::BackInOut:
+                value = BackInOut(timePos, start, end);
+                break;
 
-                default:
-                    value = Linear(timePos, start, end);
-                    break;
+            default:
+                value = Linear(timePos, start, end);
+                break;
             }
 
-            if (tween.byPointer)
-            {
+            if (tween.byPointer) {
                 *tween.initialValue = value;
             }
 
-            if (tween.stepCallback)
-            {
+            if (tween.stepCallback) {
                 tween.stepCallback(value);
             }
 
-            if (tween.timeCounter >= tween.duration)
-            {
-                if (tween.byPointer)
-                {
+            if (tween.timeCounter >= tween.duration) {
+                if (tween.byPointer) {
                     *tween.initialValue = tween.reversed ? tween.initialCpy : tween.finalValue;
                 }
 
@@ -331,9 +299,7 @@ namespace STween
         // fromReady == false (left overs)
     }
 
-    template <class T>
-    void STween<T>::Reset()
-    {
+    template <class T> void STween<T>::Reset() {
         data.timeCounter = 0.f;
         data.fromReady   = true;
         if (data.byPointer)
@@ -341,51 +307,38 @@ namespace STween
         // return *this;
     }
 
-    template <class T>
-    STween<T>& STween<T>::OnFinish(std::function<void()> endCallback)
-    {
+    template <class T> STween<T>& STween<T>::OnFinish(std::function<void()> endCallback) {
         data.finishCallback = endCallback;
 
         return *this;
     }
 
-    template <class T>
-    STween<T>& STween<T>::OnStep(std::function<void(T&)> callback)
-    {
+    template <class T> STween<T>& STween<T>::OnStep(std::function<void(T&)> callback) {
+
         data.stepCallback = callback;
 
         return *this;
     }
 
-    template <class T>
-    STween<T>& STween<T>::Easing(EasingFunction easingType)
-    {
+    template <class T> STween<T>& STween<T>::Easing(EasingFunction easingType) {
         data.easing = easingType;
 
         return *this;
     }
 
-    template <class T>
-    T STween<T>::Linear(float position, T start, T end)
-    {
+    template <class T> T STween<T>::Linear(float position, T start, T end) {
         return static_cast<T>((end - start) * position + start);
     }
 
-    template <class T>
-    T STween<T>::QuadIn(float position, T start, T end)
-    {
+    template <class T> T STween<T>::QuadIn(float position, T start, T end) {
         return static_cast<T>((end - start) * position * position + start);
     }
 
-    template <class T>
-    T STween<T>::QuadOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::QuadOut(float position, T start, T end) {
         return static_cast<T>(((end - start) * -1) * position * (position - 2) + start);
     }
 
-    template <class T>
-    T STween<T>::QuadInOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::QuadInOut(float position, T start, T end) {
         position *= 2;
         if (position < 1)
             return static_cast<T>(((end - start) / 2) * position * position + start);
@@ -394,22 +347,16 @@ namespace STween
         return static_cast<T>((((end - start) * 1) / 2) * (position * (position - 2) - 1) + start);
     }
 
-    template <class T>
-    T STween<T>::CubicIn(float position, T start, T end)
-    {
+    template <class T> T STween<T>::CubicIn(float position, T start, T end) {
         return static_cast<T>((end - start) * position * position * position + start);
     }
 
-    template <class T>
-    T STween<T>::CubicOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::CubicOut(float position, T start, T end) {
         --position;
         return static_cast<T>((end - start) * (position * position * position + 1) + start);
     }
 
-    template <class T>
-    T STween<T>::CubicInOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::CubicInOut(float position, T start, T end) {
         position *= 2;
         if (position < 1)
             return static_cast<T>(((end - start) / 2) * position * position * position + start);
@@ -418,22 +365,16 @@ namespace STween
         return static_cast<T>(((end - start) / 2) * (position * position * position + 2) + start);
     }
 
-    template <class T>
-    T STween<T>::QuintIn(float position, T start, T end)
-    {
+    template <class T> T STween<T>::QuintIn(float position, T start, T end) {
         return static_cast<T>((end - start) * position * position * position * position * position + start);
     }
 
-    template <class T>
-    T STween<T>::QuintOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::QuintOut(float position, T start, T end) {
         --position;
         return static_cast<T>((end - start) * (position * position * position * position * position + 1) + start);
     }
 
-    template <class T>
-    T STween<T>::QuintInOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::QuintInOut(float position, T start, T end) {
         position *= 2;
         if (position < 1)
             return static_cast<T>(((end - start) / 2) * (position * position * position * position * position) + start);
@@ -442,29 +383,23 @@ namespace STween
         return static_cast<T>(((end - start) / 2) * (position * position * position * position * position + 2) + start);
     }
 
-    template <class T>
-    T STween<T>::BackIn(float position, T start, T end)
-    {
+    template <class T> T STween<T>::BackIn(float position, T start, T end) {
         float s       = 1.70158f;
         float postFix = position;
         return static_cast<T>((end - start) * postFix * position * ((s + 1) * position - s) + start);
     }
 
-    template <class T>
-    T STween<T>::BackOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::BackOut(float position, T start, T end) {
         float s = 1.70158f;
         position--;
         return static_cast<T>((end - start) * (position * position * ((s + 1) * position + s) + 1) + start);
     }
 
-    template <class T>
-    T STween<T>::BackInOut(float position, T start, T end)
-    {
+    template <class T> T STween<T>::BackInOut(float position, T start, T end) {
         float s = 1.70158f;
         float t = position;
-        T     b = start;
-        T     c = end - start;
+        T b     = start;
+        T c     = end - start;
         float d = 1;
         s       *= 1.525f;
         if ((t /= d / 2) < 1)

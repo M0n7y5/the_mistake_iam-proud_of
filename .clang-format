@@ -1,6 +1,6 @@
 ---
 BasedOnStyle: Microsoft
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: DontAlign
 AlignArrayOfStructures: Right
 AlignConsecutiveAssignments:
   Enabled: true

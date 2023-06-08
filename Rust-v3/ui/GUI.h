@@ -1,6 +1,5 @@
 #pragma once
-namespace GUI
-{
+namespace GUI {
     void Init();
     void Render();
 }; // namespace GUI
