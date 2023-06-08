@@ -26,6 +26,12 @@ Matrix4x4 CCamera::GetViewMatrix()
     return ((Matrix4x4(__thiscall*)(CCamera*))(addr))(this);
 }
 
+CRect CCamera::GetPixelRect()
+{
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::get_pixelRect);
+    return ((CRect(__thiscall*)(CCamera*))(addr))(this);
+}
+
 bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition)
 {
     auto view_matrix = this->GetViewMatrix();

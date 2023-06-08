@@ -39,7 +39,7 @@ void CMesh::SetIndexBufferParams(uint32_t indexCount, IndexFormat format)
 void CMesh::SetVertexBufferParams(int32_t vertexCount, CArray<CVertexAttributeDescriptor>* attributes)
 {
     static auto addr = OFF(Offsets::UnityEngine_Mesh::Methods::
-            SetVertexBufferParams_System_Int32_vertexCount__UnityEngine_Rendering_VertexAttributeDescriptor___attributes);
+            SetVertexBufferParamsFromArray_System_Int32_vertexCount__UnityEngine_Rendering_VertexAttributeDescriptor___attributes);
     ((void(__thiscall*)(CMesh*, int32_t, CArray<CVertexAttributeDescriptor>*))(addr))(this, vertexCount, attributes);
 }
 

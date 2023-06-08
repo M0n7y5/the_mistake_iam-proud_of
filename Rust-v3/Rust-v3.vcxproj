@@ -154,6 +154,7 @@
     <ClCompile Include="Hooks\ItemIcon.cpp" />
     <ClCompile Include="Hooks\MainCamera.cpp" />
     <ClCompile Include="Hooks\PerformanceText.cpp" />
+    <ClCompile Include="SDK\impl\CInput.cpp" />
     <ClCompile Include="ui\imgui_backend\imgui_impl_unity.cpp" />
     <ClCompile Include="mrt\logging.cpp" />
     <ClCompile Include="SDK\impl\Bounds.cpp" />

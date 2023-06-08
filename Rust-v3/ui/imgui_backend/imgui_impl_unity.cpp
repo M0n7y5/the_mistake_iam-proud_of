@@ -35,7 +35,19 @@ private int _prevSubMeshCount = 1;  // number of sub meshes used previously
 
 CCommandBuffer* _commandBuffer;
 
+static CTexture2D* _atlasTexture = nullptr;
 
+static CCamera* _camera = nullptr;
+
+static ImVec2 ScreenToImgui(Vector2 point)
+{
+    return {point.x, ImGui::GetIO().DisplaySize.y - point.y};
+}
+
+// static Vector2 ScreenToImgui(ImVec2 point)
+//{
+//     return {point.x, ImGui::GetIO().DisplaySize.y - point.y};
+// }
 
 bool ImGui_Impl_Unity_Init(CCamera* camera)
 {
@@ -47,6 +59,12 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
 
     io.BackendRendererName = "Unity Imgui";
     io.BackendFlags        |= ImGuiBackendFlags_RendererHasVtxOffset;
+
+    // imgui setup
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values (optional)
+    io.BackendFlags |=
+        ImGuiBackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos requests (optional, rarely used)
+    io.ClipboardUserData == nullptr;
 
     _vertexAttributes =
         CArray<CVertexAttributeDescriptor>::New("VertexAttributeDescriptor", 3, "UnityEngine.Rendering");
@@ -88,10 +106,9 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     _shader = bundle->LoadAsset<CShader>(
         _("Assets/AssetBundleData/DearImGui-Mesh.shader"), type_o); // LoadAsset(_("DearImGui-Mesh"), shaderType);
 
+    // auto bootstrap_c = (Bootstrap_c*)il2cpp::InitClass("Bootstrap");
 
-    //auto bootstrap_c = (Bootstrap_c*)il2cpp::InitClass("Bootstrap");
-
-    //auto gameobject = bootstrap_c->static_fields->_menuUi;
+    // auto gameobject = bootstrap_c->static_fields->_menuUi;
 
     _material = CMaterial::New();
     _material->ctor(_shader);
@@ -106,10 +123,13 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     _commandBuffer->ctor();
     _commandBuffer->setName(_("System.GUI"));
 
-    Text
+    TextureManager::BuildFontAtlas(io);
+    TextureManager::Initialize(io);
 
     // disable for now
-    // camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
+    camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
+
+    _camera = camera;
 
     return true;
 }
@@ -153,10 +173,12 @@ static void UpdateMesh(ImDrawData* draw_data)
         {
             auto cmd = drawList->CmdBuffer[i];
 
-            CSubMeshDescriptor descriptor {.topology = MeshTopology::Triangles,
-                .indexStart                          = idxOf + (int)cmd.IdxOffset,
-                .indexCount                          = (int)cmd.ElemCount,
-                .baseVertex                          = vtxOf + (int)cmd.VtxOffset};
+            CSubMeshDescriptor descriptor {
+                .topology   = MeshTopology::Triangles,
+                .indexStart = idxOf + (int)cmd.IdxOffset,
+                .indexCount = (int)cmd.ElemCount,
+                .baseVertex = vtxOf + (int)cmd.VtxOffset,
+            };
 
             descriptors.emplace_back(descriptor);
         }
@@ -207,7 +229,9 @@ static void CreateDrawCommands(CCommandBuffer* commandBuffer, ImDrawData* draw_d
             // set shader property for texture
             _materialProperties->SetTexture(_textureID, (CTexture*)drawCmd.TextureId);
 
-            auto clipRect = CRect(clip.x, fbSize.y - clip.w, clip.z - clip.x, clip.w - clip.y);
+            auto clipRect = CRect {
+                {clip.x, fbSize.y - clip.w, clip.z - clip.x, clip.w - clip.y}
+            };
             commandBuffer->EnableScissorRect(&clipRect); // Invert y.
             commandBuffer->DrawMesh(_mesh, (Matrix4x4*)&identityMatrix, _material, subOf, -1, _materialProperties);
         }
@@ -216,13 +240,32 @@ static void CreateDrawCommands(CCommandBuffer* commandBuffer, ImDrawData* draw_d
 }
 
 // input update and shit
-void ImGui_Impl_Unity_NewFrame()
+void ImGui_Impl_Unity_NewFrame(ImGuiIO& io)
 {
     // prepare frame
+
+    io.DeltaTime = CTime::GetUnscaledDeltaTime();
+
+    auto rect      = _camera->GetPixelRect();
+    io.DisplaySize = ImVec2 {rect.m_Width, rect.m_Height};
+
+    auto mousePos = CInput::GetMousePosition();
+
+    io.MousePos = ScreenToImgui({mousePos.x, mousePos.y});
+
+    auto mouseWheel = CInput::GetMouseScrollDelta();
+
+    io.MouseWheel = mouseWheel.y;
+
+    io.MouseDown[0] = CInput::GetMouseButton(0);
+    io.MouseDown[1] = CInput::GetMouseButton(1);
+    io.MouseDown[2] = CInput::GetMouseButton(2);
 }
 
 void ImGui_Impl_Unity_RenderDrawData(ImDrawData* draw_data)
 {
+    _commandBuffer->Clear();
+
     auto    scall = (draw_data->DisplaySize * draw_data->FramebufferScale);
     Vector2 fbOSize(scall.x, scall.y);
 
@@ -232,15 +275,11 @@ void ImGui_Impl_Unity_RenderDrawData(ImDrawData* draw_data)
 
     UpdateMesh(draw_data);
 
-    CreateDrawCommands(commandBuffer, drawData, fbOSize);
+    CreateDrawCommands(_commandBuffer, draw_data, fbOSize);
 }
 
-static CTexture2D* _atlasTexture = nullptr;
-
-void TextureManager::Initialize()
+void TextureManager::Initialize(ImGuiIO const& io)
 {
-    auto& io = ImGui::GetIO();
-
     auto atlasPtr = io.Fonts;
 
     unsigned char* out_pixels;
@@ -270,10 +309,18 @@ void TextureManager::Initialize()
         // UnsafeUtility.MemCpy((byte*)dst.m_Buffer + dstIndex * UnsafeUtility.SizeOf<T>(), (byte*)src.m_Buffer +
         // srcIndex * UnsafeUtility.SizeOf<T>(), length * UnsafeUtility.SizeOf<T>());
 
-        memcpy(srcData.data[y * stride], dstData.data[(out_height - y - 1) * stride], stride);
+        auto  srcIndex = y * stride;
+        void* src      = (void*)(srcData.ptr + srcIndex);
+
+        auto  dstIndex = (out_height - y - 1) * stride;
+        void* dst      = (void*)(dstData.ptr + dstIndex);
+
+        memcpy(src, dst, stride);
     }
 
     _atlasTexture->Apply();
+
+    io.Fonts->SetTexID(_atlasTexture);
 
     /*
             ImFontAtlasPtr atlasPtr = io.Fonts;
@@ -299,4 +346,10 @@ void TextureManager::Initialize()
 
             _atlasTexture.Apply();
     */
+}
+
+void TextureManager::BuildFontAtlas(ImGuiIO const& io)
+{
+    // io.Fonts->AddFontDefault();
+    io.Fonts->Build();
 }

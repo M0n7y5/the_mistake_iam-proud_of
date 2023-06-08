@@ -23,6 +23,12 @@ float CTime::GetDeltaTime()
     return ((float (*)())(off))();
 }
 
+float CTime::GetUnscaledDeltaTime()
+{
+    static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_unscaledDeltaTime);
+    return ((float (*)())(off))();
+}
+
 float CTime::GetFixedDeltaTime()
 {
     static auto off = OFF(Offsets::UnityEngine_Time::StaticMethods::get_fixedDeltaTime);

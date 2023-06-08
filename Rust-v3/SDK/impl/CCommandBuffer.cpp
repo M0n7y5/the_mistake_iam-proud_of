@@ -53,6 +53,12 @@ void CCommandBuffer::DisableScissorRect()
     ((void(__thiscall*)(CCommandBuffer*))(addr))(this);
 }
 
+void CCommandBuffer::Clear()
+{
+    static auto addr = OFF(Offsets::UnityEngine_Rendering_CommandBuffer::Methods::Clear);
+    ((void(__thiscall*)(CCommandBuffer*))(addr))(this);
+}
+
 void CCommandBuffer::DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex,
     int32_t shaderPass, CMaterialPropertyBlock* properties)
 {

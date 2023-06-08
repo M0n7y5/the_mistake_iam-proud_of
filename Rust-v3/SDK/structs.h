@@ -78,8 +78,17 @@ typedef struct Il2CppArray : public Il2CppObject
     il2cpp_array_size_t max_length;
 } Il2CppArray;
 
+// ugly hack for generic array
+//  i dont wanna polute this header by il2cpp_api
+//  so we use this hack instead
+struct CArrayBase
+{
+    static void* NewInternal(Il2CppClass* klass, il2cpp_array_size_t size);
+    static void* NewInternal(const char* klass, il2cpp_array_size_t size, const char* namespaze = "");
+};
+
 template <typename T>
-struct CArray : Il2CppArray
+struct CArray : Il2CppArray, CArrayBase
 {
     T data[IL2CPP_ZERO_LEN_ARRAY];
 
@@ -100,7 +109,7 @@ struct WeakArray
     uint64_t lenght;
     union
     {
-        T*        data[IL2CPP_ZERO_LEN_ARRAY];
+        T         data[IL2CPP_ZERO_LEN_ARRAY];
         uintptr_t ptr;
     };
 };
@@ -149,6 +158,7 @@ class CTime
     static float GetTime();
     static float GetRealTime();
     static float GetDeltaTime();
+    static float GetUnscaledDeltaTime();
     static float GetFixedDeltaTime();
     static float GetSmoothDeltaTime();
     static float GetFixedTime();
@@ -281,8 +291,16 @@ struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
     void                   SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
     void                   EnableScissorRect(CRect* rect);
     void                   DisableScissorRect();
+    void                   Clear();
     void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, int32_t shaderPass,
         CMaterialPropertyBlock* properties);
+};
+
+struct CInput : ILObjectBase<UnityEngine_Input_Fields>
+{
+    static Vector3 GetMousePosition();
+    static Vector2 GetMouseScrollDelta();
+    static bool    GetMouseButton(int32_t button);
 };
 
 struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
@@ -291,6 +309,7 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
     static CCamera* GetMainCamera();
     Vector3         GetPosition();
     Matrix4x4       GetViewMatrix();
+    CRect           GetPixelRect();
     bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
     Vector3         WorldToScreen(Vector3 elementPosition);
     void            AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer);
@@ -415,4 +434,3 @@ struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
     bool IsWeaponReady(bool bow);
     bool IsMelee();
 };
-
