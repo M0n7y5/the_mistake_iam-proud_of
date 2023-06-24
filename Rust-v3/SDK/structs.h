@@ -90,7 +90,15 @@ struct CArrayBase
 template <typename T>
 struct CArray : Il2CppArray, CArrayBase
 {
-    T data[IL2CPP_ZERO_LEN_ARRAY];
+    union
+    {
+        T  data[IL2CPP_ZERO_LEN_ARRAY];
+        T* dataPtr[IL2CPP_ZERO_LEN_ARRAY];
+
+        // for debugger
+        T  dataDummy[8];
+        T* dataPtrDummy[8];
+    };
 
     static CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size)
     {
@@ -145,11 +153,32 @@ struct CGameObject
 {
     void* AddComponentInternal(CType* type);
 
+    void* GetComponentInternal(CType* type);
+    
+    void* InstantiateInternal(Il2CppObject* type);
+
     template <typename T>
     T* AddComponent(CType* type)
     {
         return (T*)AddComponentInternal(type);
     }
+
+    template <typename T>
+    T* GetComponent(CType* type)
+    {
+        return (T*)GetComponentInternal(type);
+    }
+
+    template <typename T>
+    T* Instantiate(Il2CppObject* object)
+    {
+        return (T*)InstantiateInternal(object);
+    }
+};
+
+struct CUnsafeUtility
+{
+    static void* PinGCObjectAndGetAddress(Il2CppObject* object, uintptr_t* gcHandle);
 };
 
 class CTime
@@ -239,7 +268,7 @@ struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
     void          MarkDynamic();
     void          Clear(bool keepVertexLayout);
     void          SetIndexBufferParams(uint32_t indexCount, IndexFormat format);
-    void          SetVertexBufferParams(int32_t vertexCount, CArray<CVertexAttributeDescriptor>* attributes);
+    void          SetVertexBufferParams(int32_t vertexCount, const std::vector<CVertexAttributeDescriptor>& attributes);
     void          SetSubMeshes(CSubMeshDescriptor* desc, uint32_t count, MeshUpdateFlags flags);
     void          UploadMeshData(bool markNoLongerReadable);
     void          SetSubmeshCount(uint32_t count);
@@ -258,7 +287,7 @@ struct CMaterial : ILObjectBase<UnityEngine_Material_Fields>
 struct CTexture : ILObjectBase<UnityEngine_Texture_Fields>
 {
     uintptr_t GetNativeTexturePtr();
-    void      set_fiĺterMode(FilterMode mode);
+    void      set_filterMode(FilterMode mode);
 };
 
 struct CTexture2D : ILObjectBase<UnityEngine_Texture2D_Fields>
@@ -313,6 +342,17 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
     bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
     Vector3         WorldToScreen(Vector3 elementPosition);
     void            AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer);
+    bool            GetOrtoGraphic();
+    void            SetOrtoGraphic(bool isOrto);
+    void            SetDepth(float depth);
+    void            SetCullingMask(Layer layer);
+    void            SetClearFlags(CameraClearFlags flags);
+};
+
+struct CCanvas : ILObjectBase<UnityEngine_Canvas_Fields>
+{
+    void SetRenderMode(RenderMode mode);
+    void SetWorldCamera(CCamera* camera);
 };
 
 struct CMainCamera : ILObjectBase<MainCamera_Fields>

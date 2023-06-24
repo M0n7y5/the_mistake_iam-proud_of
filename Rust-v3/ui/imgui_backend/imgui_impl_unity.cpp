@@ -8,6 +8,7 @@
 #include "../../SDK/structs.h"
 #include "../../SDK/il2cpp_api.h"
 #include "../../mrt/xorstr.hpp"
+#include "../GUI.h"
 
 static CMaterial* _material = nullptr;
 static CMesh*     _mesh     = nullptr;
@@ -17,7 +18,7 @@ static int                     _textureID          = 0;
 static CMaterialPropertyBlock* _materialProperties = nullptr;
 static int                     _prevSubMeshCount   = 1;
 
-static CArray<CVertexAttributeDescriptor>* _vertexAttributes = nullptr;
+static std::vector<CVertexAttributeDescriptor> _vertexAttributes {};
 
 // C++ is full of shit like this, why do scoped enums even exist if i need to cast it every ducking time into integer???
 static constexpr MeshUpdateFlags NoMeshChecks =
@@ -64,39 +65,47 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values (optional)
     io.BackendFlags |=
         ImGuiBackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos requests (optional, rarely used)
-    io.ClipboardUserData == nullptr;
-
-    _vertexAttributes =
-        CArray<CVertexAttributeDescriptor>::New("VertexAttributeDescriptor", 3, "UnityEngine.Rendering");
+    io.ClipboardUserData = nullptr;
 
     // Position
-    auto& attr = _vertexAttributes->data[0];
 
-    attr._attribute_k__BackingField = (int32_t)VertexAttribute::Position;
-    attr._format_k__BackingField    = (int32_t)VertexAttributeFormat::Float32;
-    attr._dimension_k__BackingField = 2;
-    attr._stream_k__BackingField    = 0;
+    CVertexAttributeDescriptor attr = {
+        {
+         ._attribute_k__BackingField = (int32_t)VertexAttribute::Position,
+         ._format_k__BackingField    = (int32_t)VertexAttributeFormat::Float32,
+         ._dimension_k__BackingField = 2,
+         ._stream_k__BackingField    = 0,
+         }
+    };
+
+    _vertexAttributes.emplace_back(attr);
 
     // UV
-    attr = _vertexAttributes->data[1];
 
     attr._attribute_k__BackingField = (int32_t)VertexAttribute::TexCoord0;
     attr._format_k__BackingField    = (int32_t)VertexAttributeFormat::Float32;
     attr._dimension_k__BackingField = 2;
     attr._stream_k__BackingField    = 0;
 
+    _vertexAttributes.emplace_back(attr);
+
     // Color
-    attr = _vertexAttributes->data[2];
 
     attr._attribute_k__BackingField = (int32_t)VertexAttribute::TexCoord1;
     attr._format_k__BackingField    = (int32_t)VertexAttributeFormat::UInt32;
     attr._dimension_k__BackingField = 1;
     attr._stream_k__BackingField    = 0;
 
-    _textureID = CShader::PropertyToID("_texture");
+    _vertexAttributes.emplace_back(attr);
+
+    _textureID = CShader::PropertyToID("_Texture");
 
     _materialProperties = CMaterialPropertyBlock::New();
     _materialProperties->ctor();
+
+    static uintptr_t materialPropertiesGCHandle = 0;
+    _materialProperties                         = (CMaterialPropertyBlock*)CUnsafeUtility::PinGCObjectAndGetAddress(
+        _materialProperties, &materialPropertiesGCHandle);
 
     //!!!DEBUG
     auto bundle = CAssetBundle::LoadFileFromFile("C:\\Users\\user\\RustAssests\\AssetBundles\\uishaders");
@@ -106,30 +115,82 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     _shader = bundle->LoadAsset<CShader>(
         _("Assets/AssetBundleData/DearImGui-Mesh.shader"), type_o); // LoadAsset(_("DearImGui-Mesh"), shaderType);
 
-    // auto bootstrap_c = (Bootstrap_c*)il2cpp::InitClass("Bootstrap");
-
-    // auto gameobject = bootstrap_c->static_fields->_menuUi;
-
     _material = CMaterial::New();
     _material->ctor(_shader);
+
+    static uintptr_t materialGCHandle = 0;
+    _material = (CMaterial*)CUnsafeUtility::PinGCObjectAndGetAddress(_material, &materialGCHandle);
+
     //!! _material->setHideFlags(HideFlags::HideAndDontSave & ~HideFlags::DontUnloadUnusedAsset);
     _mesh = CMesh::New();
     _mesh->ctor();
+
+    static uintptr_t meshGCHandle = 0;
+    _mesh                         = (CMesh*)CUnsafeUtility::PinGCObjectAndGetAddress(_mesh, &meshGCHandle);
+
     _mesh->MarkDynamic();
 
     // manual Command buffer setup
 
     _commandBuffer = CCommandBuffer::New();
     _commandBuffer->ctor();
+
+    static uintptr_t commandBufferGCHandle = 0;
+    _commandBuffer = (CCommandBuffer*)CUnsafeUtility::PinGCObjectAndGetAddress(_commandBuffer, &commandBufferGCHandle);
+
     _commandBuffer->setName(_("System.GUI"));
 
-    TextureManager::BuildFontAtlas(io);
+    GUI::Init();
+
+    // TextureManager::BuildFontAtlas(io);
     TextureManager::Initialize(io);
 
-    // disable for now
-    camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
+    auto bootstrap_c = (Bootstrap_c*)il2cpp::InitClass("Bootstrap");
 
-    _camera = camera;
+    auto cameraType = CType::FomClass("Camera", "UnityEngine");
+
+    // UI CAM
+    auto gameobject = (CGameObject*)bootstrap_c->static_fields->_engineUi;
+
+    _camera = gameobject->AddComponent<CCamera>(cameraType);
+
+    _camera->SetClearFlags(CameraClearFlags::Depth);
+
+    _camera->SetCullingMask(Layer::Default);
+
+    _camera->SetOrtoGraphic(true);
+
+    _camera->SetDepth(100);
+
+    // Canvas CAM
+    auto gameMenu = (CGameObject*)bootstrap_c->static_fields->_gameUi;
+
+    auto canvasCam = gameMenu->AddComponent<CCamera>(cameraType);
+
+    canvasCam->SetClearFlags(CameraClearFlags::Depth);
+
+    canvasCam->SetCullingMask(Layer::UI);
+
+    canvasCam->SetOrtoGraphic(true);
+
+    canvasCam->SetDepth(1);
+
+    // changing canvas to use our camera
+    auto gameobjectMenuUI = (CGameObject*)bootstrap_c->static_fields->_menuUi;
+
+    auto canvasType = CType::FomClass("Canvas", "UnityEngine");
+
+    auto canvas = gameobjectMenuUI->GetComponent<CCanvas>(canvasType);
+
+    canvas->SetRenderMode(RenderMode::ScreenSpaceCamera);
+
+    canvas->SetWorldCamera(canvasCam);
+
+    // disable for now
+
+    //_camera = camera;
+
+    _camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
 
     return true;
 }
@@ -296,60 +357,34 @@ void TextureManager::Initialize(ImGuiIO const& io)
     auto textureKlass = il2cpp::InitClass("Texture2D", "UnityEngine");
     _atlasTexture     = (CTexture2D*)il2cpp_object_new(textureKlass);
     _atlasTexture->ctor(out_width, out_height, TextureFormat::RGBA32, false, false);
-    _atlasTexture->As<CTexture>()->set_fiĺterMode(FilterMode::Point);
+
+    static uintptr_t texGCHandle = 0;
+    _atlasTexture                = (CTexture2D*)CUnsafeUtility::PinGCObjectAndGetAddress(_atlasTexture, &texGCHandle);
+
+    _atlasTexture->As<CTexture>()->set_filterMode(FilterMode::Point);
 
     auto dstData = _atlasTexture->GetRawTextureData_byte();
 
     int stride = out_width * out_bytes_per_pixel;
-
+    // flip y
     for (size_t y = 0; y < out_height; y++)
     {
-        // Copy(NativeArray<T> src, int srcIndex, NativeArray<T> dst, int dstIndex, int length)
-        // NativeArray<byte>.Copy(srcData, y * stride, dstData, (height - y - 1) * stride, stride);
-        // UnsafeUtility.MemCpy((byte*)dst.m_Buffer + dstIndex * UnsafeUtility.SizeOf<T>(), (byte*)src.m_Buffer +
-        // srcIndex * UnsafeUtility.SizeOf<T>(), length * UnsafeUtility.SizeOf<T>());
-
         auto  srcIndex = y * stride;
         void* src      = (void*)(srcData.ptr + srcIndex);
 
         auto  dstIndex = (out_height - y - 1) * stride;
         void* dst      = (void*)(dstData.ptr + dstIndex);
 
-        memcpy(src, dst, stride);
+        memcpy(dst, src, stride);
     }
 
     _atlasTexture->Apply();
 
     io.Fonts->SetTexID(_atlasTexture);
-
-    /*
-            ImFontAtlasPtr atlasPtr = io.Fonts;
-            atlasPtr.GetTexDataAsRGBA32(out byte* pixels, out int width, out int height, out int bytesPerPixel);
-
-            _atlasTexture = new Texture2D(width, height, TextureFormat.RGBA32, false, false)
-            {
-                filterMode = FilterMode.Point
-            };
-
-            // TODO: Remove collections and make native array manually.
-            NativeArray<byte> srcData = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<byte>(pixels, width *
-    height * bytesPerPixel, Allocator.None); #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref srcData, AtomicSafetyHandle.GetTempMemoryHandle());
-    #endif
-            // Invert y while copying the atlas texture.
-            NativeArray<byte> dstData = _atlasTexture.GetRawTextureData<byte>();
-            int stride = width * bytesPerPixel;
-            for (int y = 0; y < height; ++y)
-            {
-                NativeArray<byte>.Copy(srcData, y * stride, dstData, (height - y - 1) * stride, stride);
-            }
-
-            _atlasTexture.Apply();
-    */
 }
 
 void TextureManager::BuildFontAtlas(ImGuiIO const& io)
 {
-    // io.Fonts->AddFontDefault();
+    io.Fonts->AddFontDefault();
     io.Fonts->Build();
 }

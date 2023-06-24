@@ -316,6 +316,30 @@ enum class Layer : int32_t
     Unused2                = 0x0000001f,
 };
 
+//
+// Summary:
+//     Values for Camera.clearFlags, determining what to clear when rendering a Camera.
+enum class CameraClearFlags
+{
+    //
+    // Summary:
+    //     Clear with the skybox.
+    Skybox = 1,
+    Color  = 2,
+    //
+    // Summary:
+    //     Clear with a background color.
+    SolidColor = 2,
+    //
+    // Summary:
+    //     Clear only the depth buffer.
+    Depth = 3,
+    //
+    // Summary:
+    //     Don't clear anything.
+    Nothing = 4
+};
+
 enum class MapLayer : int32_t
 {
     Overworld    = -1,
@@ -569,4 +593,22 @@ enum class CameraEvent
     // Summary:
     //     After halo and lens flares.
     AfterHaloAndLensFlares
+};
+
+// Summary:
+//     RenderMode for the Canvas.
+enum class RenderMode
+{
+    //
+    // Summary:
+    //     Render at the end of the Scene using a 2D Canvas.
+    ScreenSpaceOverlay,
+    //
+    // Summary:
+    //     Render using the Camera configured on the Canvas.
+    ScreenSpaceCamera,
+    //
+    // Summary:
+    //     Render using any Camera in the Scene that can render the layer.
+    WorldSpace
 };

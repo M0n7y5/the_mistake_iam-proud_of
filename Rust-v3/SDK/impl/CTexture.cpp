@@ -9,7 +9,7 @@ uintptr_t CTexture::GetNativeTexturePtr()
     return ((uintptr_t(__thiscall*)(CTexture*))(addr))(this);
 }
 
-void CTexture::set_fiĺterMode(FilterMode mode)
+void CTexture::set_filterMode(FilterMode mode)
 {
     static auto addr = OFF(Offsets::UnityEngine_Texture::Methods::set_filterMode_UnityEngine_FilterMode_value);
     ((void(__thiscall*)(CTexture*, FilterMode))(addr))(this, mode);

@@ -92,5 +92,33 @@ CType* CType::FomClass(const char* name, const char* namespaze)
 
 void* CGameObject::AddComponentInternal(CType* type)
 {
-    return nullptr;
+    static auto addr = OFF(Offsets::UnityEngine_GameObject::Methods::AddComponent_System_Type_componentType);
+    return ((void*(__thiscall*)(CGameObject*, CType*))(addr))(this, type);
+}
+
+void* CGameObject::GetComponentInternal(CType* type)
+{
+    static auto addr = OFF(Offsets::UnityEngine_GameObject::Methods::GetComponent_System_Type_type);
+    return ((void*(__thiscall*)(CGameObject*, CType*))(addr))(this, type);
+}
+
+void* CUnsafeUtility::PinGCObjectAndGetAddress(Il2CppObject* object, uintptr_t* gcHandle)
+{
+    static auto addr =
+        il2cpp_resolve_icall(_("Unity.Collections.LowLevel.Unsafe.UnsafeUtility::PinSystemObjectAndGetAddress"));
+
+    return ((void* (*)(Il2CppObject*, uintptr_t*))(addr))(object, gcHandle);
+}
+
+void CCanvas::SetRenderMode(RenderMode mode)
+{
+    //UnityEngine.Canvas::set_renderMode
+    static auto addr = il2cpp_resolve_icall(_("UnityEngine.Canvas::set_renderMode"));
+    ((void(__thiscall*)(CCanvas*, RenderMode))(addr))(this, mode);
+}
+
+void CCanvas::SetWorldCamera(CCamera* camera)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Canvas::Methods::set_worldCamera_UnityEngine_Camera_value);
+    ((void(__thiscall*)(CCanvas*, CCamera*))(addr))(this, camera);
 }

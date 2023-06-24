@@ -959,7 +959,7 @@ namespace mui {
             isSelected = sel;
         }
 
-        Category& AddSubCategory(std::string name, const std::function<void(SubCategory&)>& cb) {
+        Category& AddSubCategory(std::string name, std::function<void(SubCategory& sub)> cb) {
             const auto sub = new SubCategory(std::move(name));
 
             _subcategories.emplace_back(sub);

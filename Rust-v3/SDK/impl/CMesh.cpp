@@ -36,11 +36,12 @@ void CMesh::SetIndexBufferParams(uint32_t indexCount, IndexFormat format)
     ((void(__thiscall*)(CMesh*, uint32_t, IndexFormat))(addr))(this, indexCount, format);
 }
 
-void CMesh::SetVertexBufferParams(int32_t vertexCount, CArray<CVertexAttributeDescriptor>* attributes)
+void CMesh::SetVertexBufferParams(int32_t vertexCount, const std::vector<CVertexAttributeDescriptor>& attributes)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Mesh::Methods::
-            SetVertexBufferParamsFromArray_System_Int32_vertexCount__UnityEngine_Rendering_VertexAttributeDescriptor___attributes);
-    ((void(__thiscall*)(CMesh*, int32_t, CArray<CVertexAttributeDescriptor>*))(addr))(this, vertexCount, attributes);
+    static auto addr = il2cpp_resolve_icall(_("UnityEngine.Mesh::SetVertexBufferParamsFromPtr"));
+
+    ((void(__thiscall*)(CMesh*, int32_t, const CVertexAttributeDescriptor*, int32_t))(addr))(
+        this, vertexCount, attributes.data(), attributes.size());
 }
 
 void CMesh::SetSubMeshes(CSubMeshDescriptor* desc, uint32_t count, MeshUpdateFlags flags)

@@ -2,6 +2,8 @@
 #include "../Offsets.h"
 #include "../globals.h"
 #include "../../Kotlar/Kotlar.h"
+#include "../il2cpp_api.h"
+#include "../../mrt/xorstr.hpp"
 
 CCamera* CCamera::GetCurrentCamera()
 {
@@ -67,4 +69,34 @@ void CCamera::AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer)
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::
             AddCommandBuffer_UnityEngine_Rendering_CameraEvent_evt__UnityEngine_Rendering_CommandBuffer_buffer);
     ((void(__thiscall*)(CCamera*, CameraEvent, CCommandBuffer*))(addr))(this, event, buffer);
+}
+
+bool CCamera::GetOrtoGraphic()
+{
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::get_orthographic);
+    return ((bool(__thiscall*)(CCamera*))(addr))(this);
+}
+
+void CCamera::SetOrtoGraphic(bool isOrto)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_orthographic_System_Boolean_value);
+    ((void(__thiscall*)(CCamera*, bool))(addr))(this, isOrto);
+}
+
+void CCamera::SetDepth(float depth)
+{
+    static auto addr = il2cpp_resolve_icall(_("UnityEngine.Camera::set_depth"));
+    ((void(__thiscall*)(CCamera*, float))(addr))(this, depth);
+}
+
+void CCamera::SetCullingMask(Layer layer)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_cullingMask_System_Int32_value);
+    ((void(__thiscall*)(CCamera*, Layer))(addr))(this, layer);
+}
+
+void CCamera::SetClearFlags(CameraClearFlags flags)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_clearFlags_UnityEngine_CameraClearFlags_value);
+    ((void(__thiscall*)(CCamera*, CameraClearFlags))(addr))(this, flags);
 }
