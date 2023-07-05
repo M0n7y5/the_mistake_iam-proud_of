@@ -30,10 +30,15 @@
 #include "il2cpp.h"
 #include <vector>
 
+struct CType;
 // Unity base object, only contain methods
 struct CObject
 {
     void setHideFlags(HideFlags flags);
+
+    static Il2CppObject* Instantiate(Il2CppObject* type);
+
+    static void DontDestroyOnLoad(Il2CppObject* object);
 };
 
 template <typename T> // CObject is part of this cuz no fields
@@ -133,6 +138,11 @@ struct CType : Il2CppObject
 //     return (SystemArray<T>*)methods::array_new_specific(typeInfo, size);
 // }
 
+// struct CPrefabUtility
+//{
+//     Il2CppObject* InstantiatePrefab(Il2CppObject* object);
+// };
+
 struct CAssetBundle
 {
     static CAssetBundle* LoadFileFromMemory(CArray<uint8_t>* assetBundle, uint32_t CRC, uint64_t offset);
@@ -149,13 +159,23 @@ struct CAssetBundle
     }
 };
 
-struct CGameObject
+struct CGameObject : ILObjectBase<UnityEngine_GameObject_Fields>
 {
     void* AddComponentInternal(CType* type);
 
     void* GetComponentInternal(CType* type);
-    
-    void* InstantiateInternal(Il2CppObject* type);
+
+    static void* FindInternal(const char* name);
+
+    static void* FindObjectsByTypeInternal(
+        CType* type, FindObjectsInactive findObjectsInactive, FindObjectsSortMode sortMode);
+
+    template <typename T>
+    static CArray<T>* FindObjectsByType(
+        CType* type, FindObjectsInactive findObjectsInactive, FindObjectsSortMode sortMode)
+    {
+        return (CArray<T>*)FindObjectsByTypeInternal(type, findObjectsInactive, sortMode);
+    }
 
     template <typename T>
     T* AddComponent(CType* type)
@@ -170,9 +190,15 @@ struct CGameObject
     }
 
     template <typename T>
-    T* Instantiate(Il2CppObject* object)
+    static T* Instantiate(Il2CppObject* object)
     {
-        return (T*)InstantiateInternal(object);
+        return (T*)CObject::Instantiate(object);
+    }
+
+    template <typename T>
+    static T* Find(const char* name)
+    {
+        return (T*)FindInternal(name);
     }
 };
 
@@ -246,6 +272,8 @@ struct CShader : ILObjectBase<UnityEngine_Shader_Fields>
     static uint32_t PropertyToID(const char* name);
 };
 
+struct CPostProcessLayer : ILObjectBase<UnityEngine_Rendering_PostProcessing_PostProcessLayer_Fields>
+{ };
 //
 // Summary:
 //     Contains information about a single sub-mesh of a Mesh.
@@ -353,6 +381,7 @@ struct CCanvas : ILObjectBase<UnityEngine_Canvas_Fields>
 {
     void SetRenderMode(RenderMode mode);
     void SetWorldCamera(CCamera* camera);
+    bool IsRootCanvas();
 };
 
 struct CMainCamera : ILObjectBase<MainCamera_Fields>
@@ -371,6 +400,9 @@ struct CModel : ILObjectBase<Model_Fields>
     Vector3     GetBonePosition(PlayerBones bone);
     CTransform* GetBoneTransform(PlayerBones bone);
 };
+
+struct CProtobuf_Entity : ILObjectBase<ProtoBuf_Entity_Fields>
+{ };
 
 struct CBaseNetworkable : ILObjectBase<BaseNetworkable_Fields>
 {

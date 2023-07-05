@@ -251,9 +251,9 @@ namespace mui {
         draw_list->AddShadowCircle(
             ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f, col_bg, 35, {},
             ImDrawFlags_ShadowCutOutShapeBackground);
-        draw_list->AddShadowCircle(
-            ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f, col_bg, 35, {},
-            ImDrawFlags_ShadowCutOutShapeBackground);
+        //draw_list->AddShadowCircle(
+        //    ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f, col_bg, 35, {},
+        //    ImDrawFlags_ShadowCutOutShapeBackground);
     }
 
     inline void ToggleFeature(const char* name, bool* v, float width) {
@@ -913,7 +913,7 @@ namespace mui {
         std::vector<SubCategory*> _subcategories;
 
         SimpleAnimation<int> selectedAnim{0, 255, 0.5f, STween::QuintOut};
-        SimpleAnimation<float> hoverAnim{0, 8, 1.5f, STween::QuintOut};
+        SimpleAnimation<float> hoverAnim{0, 5, 1.5f, STween::QuintOut};
 
         std::function<void()> _draw;
 
@@ -985,7 +985,7 @@ namespace mui {
             else
                 this->hoverAnim.Leave();
 
-            const auto opacity = (float)(this->hoverAnim);
+            const auto opacity = (int)(float)(this->hoverAnim);
             g->AddRectFilled(
                 bMin, bMax, IM_COL32(255, 255, 255, opacity), this->isProfile ? 10.f : 0.f,
                 ImDrawFlags_RoundCornersBottom);
@@ -1039,7 +1039,7 @@ namespace mui {
         Window() {
             searchText.reserve(129);
             categoryMenuWidthAnim.SetEnterValue(180.f).SetLeaveValue(70.f);
-            searchBarGlow.SetEnterValue(180).SetLeaveValue(0);
+            searchBarGlow.SetEnterValue(100).SetLeaveValue(0);
         }
 
         Category& AddCategory(std::string name, std::string icon, bool profile = false) {

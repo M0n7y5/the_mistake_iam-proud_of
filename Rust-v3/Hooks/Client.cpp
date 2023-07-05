@@ -28,9 +28,7 @@ static void hk_LateUpdate(void* _this)
         L::Print("Client LateUpdate -> initMe");
         L::PopConsoleColor();
 #endif
-        auto camera = CCamera::GetMainCamera();
-
-        auto success = ImGui_Impl_Unity_Init(camera);
+        auto success = ImGui_Impl_Unity_Init();
 
         return;
     }
@@ -42,30 +40,6 @@ static void hk_LateUpdate(void* _this)
 
     ImGui_Impl_Unity_NewFrame(io);
     ImGui::NewFrame();
-
-    //// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-    //{
-    //    static float f       = 0.0f;
-    //    static int   counter = 0;
-
-    //    ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-    //    ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
-    //    // ImGui::Checkbox("Demo Window", &show_demo_window); // Edit bools storing our window open/close state
-    //    // ImGui::Checkbox("Another Window", &show_another_window);
-
-    //    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-    //    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-    //    if (ImGui::Button(
-    //            "Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-    //        counter++;
-    //    ImGui::SameLine();
-    //    ImGui::Text("counter = %d", counter);
-
-    //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-    //    ImGui::End();
-    //}
 
     GUI::Render();
 
@@ -96,7 +70,7 @@ static void hk_Awake(void* _this)
         return;
     }
 
-    L::Print("Client Awake -> Called");
+    //L::Print("Client Awake -> Called");
 
     reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
 }
@@ -120,7 +94,7 @@ static void hk_OnDisable(void* _this)
         return;
     }
 
-    L::Print("Client OnDisable -> Called");
+    //L::Print("Client OnDisable -> Called");
 
     reinterpret_cast<decltype(&hk_OnDisable)>(OnDisable_o)(_this);
 }

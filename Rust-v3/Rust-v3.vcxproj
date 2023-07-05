@@ -149,6 +149,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Features\EntityManager.cpp" />
+    <ClCompile Include="Hooks\EntityList.cpp" />
     <ClCompile Include="Hooks\BasePlayer.cpp" />
     <ClCompile Include="Hooks\Client.cpp" />
     <ClCompile Include="Hooks\ItemIcon.cpp" />
@@ -194,6 +196,8 @@
     <ClCompile Include="ui\mui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Features\EntityManager.h" />
+    <ClInclude Include="Hooks\EntityList.h" />
     <ClInclude Include="Hooks\BasePlayer.h" />
     <ClInclude Include="Hooks\Client.h" />
     <ClInclude Include="Hooks\Hooks.h" />

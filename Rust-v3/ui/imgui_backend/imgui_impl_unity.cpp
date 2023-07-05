@@ -38,7 +38,10 @@ CCommandBuffer* _commandBuffer;
 
 static CTexture2D* _atlasTexture = nullptr;
 
-static CCamera* _camera = nullptr;
+static CCamera* _cameraUI     = nullptr;
+static CCamera* _cameraCanvas = nullptr;
+
+static CAssetBundle* _bundle = nullptr;
 
 static ImVec2 ScreenToImgui(Vector2 point)
 {
@@ -50,7 +53,72 @@ static ImVec2 ScreenToImgui(Vector2 point)
 //     return {point.x, ImGui::GetIO().DisplaySize.y - point.y};
 // }
 
-bool ImGui_Impl_Unity_Init(CCamera* camera)
+void FixPostprocessingUnityBug()
+{
+    auto postProcessLayer_type = CType::FomClass("PostProcessLayer", "UnityEngine.Rendering.PostProcessing");
+
+    auto layers = CGameObject::FindObjectsByType<CPostProcessLayer*>(
+        postProcessLayer_type, FindObjectsInactive::Include, FindObjectsSortMode::None);
+
+    for (size_t i = 0; i < layers->max_length; i++)
+    {
+        auto layer = layers->data[i];
+
+        layer->finalBlitToCameraTarget = false;
+    }
+}
+
+// Get all Root canvases in the game and set the to render to canvas camera
+void SetAllRootCanvasesToCameras()
+{
+    auto canvasType = CType::FomClass("Canvas", "UnityEngine");
+
+    auto allCanvases =
+        CGameObject::FindObjectsByType<CCanvas*>(canvasType, FindObjectsInactive::Include, FindObjectsSortMode::None);
+
+    for (size_t i = 0; i < allCanvases->max_length; i++)
+    {
+        auto canvas = allCanvases->data[i];
+
+        if (canvas->IsRootCanvas())
+        {
+            canvas->SetRenderMode(RenderMode::ScreenSpaceCamera);
+
+            canvas->SetWorldCamera(_cameraCanvas);
+        }
+    }
+}
+
+void InitializeRenderResources()
+{
+    auto type_o = CType::FomClass(_("Shader"), _("UnityEngine"));
+
+    _shader = _bundle->LoadAsset<CShader>(
+        _("Assets/AssetBundleData/DearImGui-Mesh.shader"), type_o); // LoadAsset(_("DearImGui-Mesh"), shaderType);
+
+    _material = CMaterial::New();
+    _material->ctor(_shader);
+
+    _material = CGameObject::Instantiate<CMaterial>(_material);
+
+    static uintptr_t materialGCHandle = 0;
+    _material = (CMaterial*)CUnsafeUtility::PinGCObjectAndGetAddress(_material, &materialGCHandle);
+
+    //!! _material->setHideFlags(HideFlags::HideAndDontSave & ~HideFlags::DontUnloadUnusedAsset);
+    _mesh = CMesh::New();
+    _mesh->ctor();
+
+    _mesh = CGameObject::Instantiate<CMesh>(_mesh);
+
+    static uintptr_t meshGCHandle = 0;
+    _mesh                         = (CMesh*)CUnsafeUtility::PinGCObjectAndGetAddress(_mesh, &meshGCHandle);
+
+    _mesh->MarkDynamic();
+
+    TextureManager::Initialize(ImGui::GetIO());
+}
+
+bool ImGui_Impl_Unity_Init()
 {
     // setup camera and shit
 
@@ -107,29 +175,6 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     _materialProperties                         = (CMaterialPropertyBlock*)CUnsafeUtility::PinGCObjectAndGetAddress(
         _materialProperties, &materialPropertiesGCHandle);
 
-    //!!!DEBUG
-    auto bundle = CAssetBundle::LoadFileFromFile("C:\\Users\\user\\RustAssests\\AssetBundles\\uishaders");
-
-    auto type_o = CType::FomClass(_("Shader"), _("UnityEngine"));
-
-    _shader = bundle->LoadAsset<CShader>(
-        _("Assets/AssetBundleData/DearImGui-Mesh.shader"), type_o); // LoadAsset(_("DearImGui-Mesh"), shaderType);
-
-    _material = CMaterial::New();
-    _material->ctor(_shader);
-
-    static uintptr_t materialGCHandle = 0;
-    _material = (CMaterial*)CUnsafeUtility::PinGCObjectAndGetAddress(_material, &materialGCHandle);
-
-    //!! _material->setHideFlags(HideFlags::HideAndDontSave & ~HideFlags::DontUnloadUnusedAsset);
-    _mesh = CMesh::New();
-    _mesh->ctor();
-
-    static uintptr_t meshGCHandle = 0;
-    _mesh                         = (CMesh*)CUnsafeUtility::PinGCObjectAndGetAddress(_mesh, &meshGCHandle);
-
-    _mesh->MarkDynamic();
-
     // manual Command buffer setup
 
     _commandBuffer = CCommandBuffer::New();
@@ -143,54 +188,36 @@ bool ImGui_Impl_Unity_Init(CCamera* camera)
     GUI::Init();
 
     // TextureManager::BuildFontAtlas(io);
-    TextureManager::Initialize(io);
 
-    auto bootstrap_c = (Bootstrap_c*)il2cpp::InitClass("Bootstrap");
+    // Assets/AssetBundleData/UIOBJ.prefab
+    //  - UICamera - for imgui
+    //  - CanvasCamera - for canvases
+    //
+
+    //!!!DEBUG
+    _bundle = CAssetBundle::LoadFileFromFile("C:\\Users\\user\\RustAssests\\AssetBundles\\uishaders");
+
+    InitializeRenderResources();
+
+    auto gameobject_type = CType::FomClass(_("GameObject"), _("UnityEngine"));
+
+    auto gmo      = _bundle->LoadAsset<CGameObject>(_("Assets/AssetBundleData/UIOBJ.prefab"), gameobject_type);
+    auto instance = CGameObject::Instantiate<CGameObject>(gmo);
+
+    auto uiCamObj     = CGameObject::Find<CGameObject>("UICamera");
+    auto canvasCamObj = CGameObject::Find<CGameObject>("CanvasCamera");
 
     auto cameraType = CType::FomClass("Camera", "UnityEngine");
 
-    // UI CAM
-    auto gameobject = (CGameObject*)bootstrap_c->static_fields->_engineUi;
-
-    _camera = gameobject->AddComponent<CCamera>(cameraType);
-
-    _camera->SetClearFlags(CameraClearFlags::Depth);
-
-    _camera->SetCullingMask(Layer::Default);
-
-    _camera->SetOrtoGraphic(true);
-
-    _camera->SetDepth(100);
-
     // Canvas CAM
-    auto gameMenu = (CGameObject*)bootstrap_c->static_fields->_gameUi;
+    _cameraCanvas = canvasCamObj->GetComponent<CCamera>(cameraType);
 
-    auto canvasCam = gameMenu->AddComponent<CCamera>(cameraType);
+    _cameraUI = uiCamObj->GetComponent<CCamera>(cameraType);
+    _cameraUI->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
 
-    canvasCam->SetClearFlags(CameraClearFlags::Depth);
+    CObject::DontDestroyOnLoad(instance);
 
-    canvasCam->SetCullingMask(Layer::UI);
-
-    canvasCam->SetOrtoGraphic(true);
-
-    canvasCam->SetDepth(1);
-
-    // changing canvas to use our camera
-    auto gameobjectMenuUI = (CGameObject*)bootstrap_c->static_fields->_menuUi;
-
-    auto canvasType = CType::FomClass("Canvas", "UnityEngine");
-
-    auto canvas = gameobjectMenuUI->GetComponent<CCanvas>(canvasType);
-
-    canvas->SetRenderMode(RenderMode::ScreenSpaceCamera);
-
-    canvas->SetWorldCamera(canvasCam);
-
-    // disable for now
-
-    //_camera = camera;
-
-    _camera->AddCommandBuffer(CameraEvent::AfterEverything, _commandBuffer);
+    SetAllRootCanvasesToCameras();
 
     return true;
 }
@@ -307,7 +334,7 @@ void ImGui_Impl_Unity_NewFrame(ImGuiIO& io)
 
     io.DeltaTime = CTime::GetUnscaledDeltaTime();
 
-    auto rect      = _camera->GetPixelRect();
+    auto rect      = _cameraUI->GetPixelRect();
     io.DisplaySize = ImVec2 {rect.m_Width, rect.m_Height};
 
     auto mousePos = CInput::GetMousePosition();
@@ -326,6 +353,28 @@ void ImGui_Impl_Unity_NewFrame(ImGuiIO& io)
 void ImGui_Impl_Unity_RenderDrawData(ImDrawData* draw_data)
 {
     _commandBuffer->Clear();
+
+    if (_mesh->m_CachedPtr == 0)
+    {
+        // cigan ukradl renderer
+        // delay nez se znova nahodi kvuli bramboram
+        static float timer = 0.f;
+
+        if (timer > 3.f)
+        {
+            InitializeRenderResources();
+            SetAllRootCanvasesToCameras();
+            FixPostprocessingUnityBug();
+
+            timer = 0.f;
+        }
+        else
+        {
+            timer += CTime::GetDeltaTime();
+        }
+
+        return;
+    }
 
     auto    scall = (draw_data->DisplaySize * draw_data->FramebufferScale);
     Vector2 fbOSize(scall.x, scall.y);

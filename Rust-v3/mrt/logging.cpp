@@ -1,5 +1,7 @@
 #include "logging.h"
 
+#ifdef _DEBUG
+
 bool L::Attach(const char* szConsoleTitle)
 {
     // allocate memory for console
@@ -36,3 +38,5 @@ void L::Detach()
         // close console window
         PostMessageW(hConsoleWnd, WM_CLOSE, 0U, 0L);
 }
+#endif // DEBUG
+

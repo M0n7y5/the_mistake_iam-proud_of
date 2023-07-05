@@ -491,7 +491,7 @@ enum class ModelStateFlags : int32_t
 // Summary:
 //     Defines a place in camera's rendering to attach Rendering.CommandBuffer objects
 //     to.
-enum class CameraEvent
+enum class CameraEvent : int32_t
 {
     //
     // Summary:
@@ -597,7 +597,7 @@ enum class CameraEvent
 
 // Summary:
 //     RenderMode for the Canvas.
-enum class RenderMode
+enum class RenderMode : int32_t
 {
     //
     // Summary:
@@ -611,4 +611,32 @@ enum class RenderMode
     // Summary:
     //     Render using any Camera in the Scene that can render the layer.
     WorldSpace
+};
+
+// Summary:
+//     Options to control whether object find functions return inactive objects.
+enum class FindObjectsInactive : int32_t
+{
+    //
+    // Summary:
+    //     Don't include inactive objects in the array of objects that the function returns.
+    Exclude,
+    //
+    // Summary:
+    //     Include inactive objects in the array of objects that the function returns.
+    Include
+};
+
+// Summary:
+//     Options to specify if and how to sort objects returned by a function.
+enum class FindObjectsSortMode : int32_t
+{
+    //
+    // Summary:
+    //     Don't sort the objects.
+    None,
+    //
+    // Summary:
+    //     Sort the objects by InstanceID in ascending order.
+    InstanceID
 };

@@ -6,6 +6,7 @@
 #include "PerformanceText.h"
 #include "MainCamera.h"
 #include "Client.h"
+#include "EntityList.h"
 
 inline void InitHooks()
 {
@@ -17,4 +18,5 @@ inline void InitHooks()
     PerformanceText::Init();
     MainCamera::Init();
     Client::Init();
+    EntityList::Init();
 }

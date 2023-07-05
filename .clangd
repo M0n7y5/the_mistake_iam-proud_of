@@ -8,3 +8,7 @@ CompileFlags:
     - "-std=c++20"
     - "-D"
     - "JM_XORSTR_DISABLE_AVX_INTRINSICS"
+    - "-D"
+    - "_DEBUG"
+    - "-D"
+    - "DEBUG_CONSOLE"

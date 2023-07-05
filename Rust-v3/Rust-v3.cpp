@@ -26,7 +26,7 @@ int Start(uint64_t imageBase)
     L::Print("");
 #endif // _DEBUG
 
-    LI_FN(Sleep)(10000);
+    LI_FN(Sleep)(3000);
 
     // char buf[32] {0};
 

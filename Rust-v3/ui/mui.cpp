@@ -59,7 +59,7 @@ void mui::Setup() {
     style.Colors[ImGuiCol_TextSelectedBg]       = colors::accent2;             // accent 1
 
     style.Colors[ImGuiCol_WindowShadow]         = ImColor(0, 0, 0, 255);
-    style.Colors[ImGuiCol_WindowBg]             = ImColor(20, 25, 31, 235); // primtv 3
+    style.Colors[ImGuiCol_WindowBg]             = ImColor(20, 25, 31, 255); // primtv 3
     style.Colors[ImGuiCol_ChildBg]              = ImColor(17, 21, 26, 255); // primtv 1
     style.Colors[ImGuiCol_PopupBg]              = ImColor(20, 25, 31, 240); // primtv 1
 

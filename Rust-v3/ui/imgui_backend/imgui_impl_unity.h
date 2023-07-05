@@ -3,7 +3,7 @@
 
 struct CCamera;
 
-bool ImGui_Impl_Unity_Init(CCamera* camera);
+bool ImGui_Impl_Unity_Init();
 void ImGui_Impl_Unity_NewFrame(ImGuiIO& io);
 void ImGui_Impl_Unity_RenderDrawData(ImDrawData* draw_data);
 
