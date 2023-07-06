@@ -343,7 +343,7 @@ void ImGui_Impl_Unity_NewFrame(ImGuiIO& io)
 
     auto mouseWheel = CInput::GetMouseScrollDelta();
 
-    io.MouseWheel = mouseWheel.y;
+    io.AddMouseWheelEvent(0.f, mouseWheel.y);
 
     io.MouseDown[0] = CInput::GetMouseButton(0);
     io.MouseDown[1] = CInput::GetMouseButton(1);
