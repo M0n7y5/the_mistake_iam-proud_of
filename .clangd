@@ -12,3 +12,4 @@ CompileFlags:
     - "_DEBUG"
     - "-D"
     - "DEBUG_CONSOLE"
+    - "-Wno-microsoft-cast"

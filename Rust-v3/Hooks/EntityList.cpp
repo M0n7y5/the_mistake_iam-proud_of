@@ -17,6 +17,9 @@ void ClientInit(CBaseNetworkable* _this, CProtobuf_Entity* info, void* method)
 
 void DoClientDestroy(CBaseNetworkable* _this, void* method)
 {
+    if (_this->net == nullptr)
+        return; // what now?
+
     auto id = _this->net->fields.ID.fields.Value;
 
 #ifdef _DEBUG
@@ -48,8 +51,8 @@ void DoClientDestroy(CBaseNetworkable* _this, void* method)
     uintptr_t name##_DoClientDestroy_o;                                                                  \
     void      hk_DoClientDestroy_##name(CBaseNetworkable* _this, void* method)                           \
     {                                                                                                    \
-        reinterpret_cast<decltype(&hk_DoClientDestroy_##name)>(name##_DoClientDestroy_o)(_this, method); \
         DoClientDestroy(_this, method);                                                                  \
+        reinterpret_cast<decltype(&hk_DoClientDestroy_##name)>(name##_DoClientDestroy_o)(_this, method); \
     }
 
 #define DoClientDestroyHook(name)                                    \
@@ -62,24 +65,41 @@ ClientInitHookMethodCustom(OreResourceEntity)
     CallOriginal(OreResourceEntity);
     using namespace EntityManager;
 
-    // auto prefabName = ((CString*)_this->_prefabNameWithoutExtension)->str();
-    auto id = _this->net->fields.ID.fields.Value;
-
+    auto id  = _this->net->fields.ID.fields.Value;
     auto pos = ((CBaseEntity*)_this)->GetOriginPosition();
 
 #ifdef _DEBUG
     L::Print("Ore -> ID: {}, pos: {} {} {}", _this->prefabID, pos.x, pos.y, pos.z);
 #endif
 
-    OreResource ore {
-        .entity    = _this,
-        .type      = _this->prefabID,
-        .postition = pos,
-    };
+    OreResource ore {};
+
+    ore.entity    = _this;
+    ore.prefabId  = _this->prefabID;
+    ore.postition = pos;
 
     EntityManager::DB::ores.insert_or_assign(id, ore);
 }
 
+ClientInitHookMethodCustom(BasePlayer)
+{
+    CallOriginal(BasePlayer);
+    using namespace EntityManager;
+}
+
+ClientInitHookMethodCustom(BaseEntity)
+{
+    CallOriginal(BaseEntity);
+    using namespace EntityManager;
+}
+
+ClientInitHookMethodCustom(BaseNpc)
+{
+    CallOriginal(BaseNpc);
+    using namespace EntityManager;
+}
+
+// DoClientDestroy
 DoClientDestroyMethod(AutoTurret);
 DoClientDestroyMethod(BaseEntity);
 DoClientDestroyMethod(BaseCorpse);
@@ -87,11 +107,18 @@ DoClientDestroyMethod(BaseHelicopter);
 DoClientDestroyMethod(BaseNetworkable);
 DoClientDestroyMethod(BaseNpc);
 DoClientDestroyMethod(BasePlayer);
+DoClientDestroyMethod(BradleyAPC);
+DoClientDestroyMethod(DecayEntity);
+DoClientDestroyMethod(GrowableEntity);
+DoClientDestroyMethod(Recycler);
+DoClientDestroyMethod(SamSite);
+DoClientDestroyMethod(WorldItem);
 
 void Hooks::EntityList::Init()
 {
     ClientInitHook(OreResourceEntity);
 
+    // DoClientDestroy
     DoClientDestroyHook(AutoTurret);
     DoClientDestroyHook(BaseEntity);
     DoClientDestroyHook(BaseCorpse);
@@ -99,4 +126,10 @@ void Hooks::EntityList::Init()
     DoClientDestroyHook(BaseNetworkable);
     DoClientDestroyHook(BaseNpc);
     DoClientDestroyHook(BasePlayer);
+    DoClientDestroyHook(BradleyAPC);
+    DoClientDestroyHook(DecayEntity);
+    DoClientDestroyHook(GrowableEntity);
+    DoClientDestroyHook(Recycler);
+    DoClientDestroyHook(SamSite);
+    DoClientDestroyHook(WorldItem);
 }

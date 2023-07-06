@@ -13,7 +13,7 @@ static uintptr_t OnDisable_o  = 0;
 
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-static void hk_LateUpdate(void* _this)
+static void hk_LateUpdate(CClient* _this)
 {
     static bool initMe = true;
 
@@ -35,6 +35,8 @@ static void hk_LateUpdate(void* _this)
 
     // auto camera = CCamera::GetMainCamera();
     // auto camera = CCamera::GetMainCamera();
+
+    auto joj = _this;
 
     auto& io = ImGui::GetIO();
 
@@ -70,7 +72,7 @@ static void hk_Awake(void* _this)
         return;
     }
 
-    //L::Print("Client Awake -> Called");
+    // L::Print("Client Awake -> Called");
 
     reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
 }
@@ -94,7 +96,7 @@ static void hk_OnDisable(void* _this)
         return;
     }
 
-    //L::Print("Client OnDisable -> Called");
+    // L::Print("Client OnDisable -> Called");
 
     reinterpret_cast<decltype(&hk_OnDisable)>(OnDisable_o)(_this);
 }

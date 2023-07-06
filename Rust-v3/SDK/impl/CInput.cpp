@@ -16,7 +16,7 @@ Vector2 CInput::GetMouseScrollDelta()
     static auto addr =
         OFF(Offsets::UnityEngine_Input::StaticMethods::get_mouseScrollDelta_Injected_out_UnityEngine_Vector2_ret);
     Vector2 vec {};
-    ((Vector2(*)(Vector2*))(addr))(&vec);
+    ((void(*)(Vector2*))(addr))(&vec);
     return vec;
 }
 

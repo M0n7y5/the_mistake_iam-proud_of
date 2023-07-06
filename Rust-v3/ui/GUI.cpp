@@ -48,6 +48,67 @@ struct Settings
         } antiaim;
 
     } ragebot;
+
+    struct Visuals
+    {
+        struct General
+        {
+            bool  Enabled             = true;
+            bool  Sleepers            = false;
+            bool  TeamAsFriends       = true;
+            bool  ForceSkeletonUpdate = false;
+            float SkeletonDistance    = (100.f);
+
+            // key add friend
+        } general;
+
+        struct Misc
+        {
+            ImColor colSleepers = ImColor(252, 169, 3);
+            ImColor colTeammate = ImColor(0, 255, 0);
+        } misc;
+
+        struct Chams
+        {
+            ImColor colChamsVis      = ImColor(255, 30, 30, 255);
+            ImColor colChamsInvis    = ImColor(30, 255, 30, 255);
+            ImColor colChamsAdditive = ImColor(30, 30, 255, 255);
+
+            float ChamsGlowTime         = (1.f);
+            float ChamsGlowIntensity    = (2.f);
+            float ChamsOutlineThickness = (0.0035f);
+        };
+
+        struct Player
+        {
+            bool Enabled     = true;
+            bool Box         = false;
+            bool Skeleton    = true;
+            bool Name        = true;
+            bool Dist        = true;
+            bool ActiveItem  = true;
+            bool Hotbar      = true;
+            bool Health      = true;
+            bool TeamID      = true;
+            bool PlayerFlags = true;
+            bool Wounded     = true;
+
+            ImColor colName       = ImColor(255, 255, 255, 255);
+            ImColor colSkeleton   = ImColor(255, 255, 255, 255);
+            ImColor colBox        = ImColor(255, 255, 255, 255);
+            ImColor colDist       = ImColor(255, 255, 255, 255);
+            ImColor colActiveItem = ImColor(8, 255, 190, 255);
+            ImColor colWounded    = ImColor(252, 148, 3);
+
+            Chams chams {};
+        };
+
+        Player friends {};
+        Player enemies {};
+        Player npc {};
+
+    } visuals;
+
 } settings;
 
 mui::Window window {};
@@ -161,7 +222,104 @@ void GUI::Init()
             });
 
     window.AddCategory("Legit", "A");
-    window.AddCategory("Visual", "C");
+    window.AddCategory("Visual", "C")
+        .AddSubCategory("General",
+            [](mui::SubCategory& sub)
+            {
+                sub.AddFeatureSet("General",
+                       [](mui::FeatureSet& fs)
+                       {
+                           fs.AddFeature("Enabled", &settings.visuals.general.Enabled);
+                           fs.AddFeature("Sleepers", &settings.visuals.general.Sleepers);
+                           fs.AddFeature("Team As Friends", &settings.visuals.general.TeamAsFriends);
+                           fs.AddFeature("Force Skeleton Update", &settings.visuals.general.ForceSkeletonUpdate);
+                           fs.AddFeature(
+                               "Skeleton Distance", &settings.visuals.general.SkeletonDistance, 50.f, 300.f, "%f");
+                       })
+                    .AddFeatureSet("Misc.",
+                        [](mui::FeatureSet& fs)
+                        {
+                            fs.AddFeature("Sleepers", &settings.visuals.misc.colSleepers);
+                            fs.AddFeature("Teammates", &settings.visuals.misc.colTeammate);
+                        });
+
+                auto addPlayerOptions = [&](Settings::Visuals::Player& player, std::string name) -> void
+                {
+                    sub.AddFeatureSet(name,
+                        [&](mui::FeatureSet& fs)
+                        {
+                            auto& p = player;
+
+                            fs.AddFeature("Enabled", &p.Enabled);
+                            fs.AddFeature("Box", &p.Box);
+                            fs.AddFeature("Box Color", &p.colBox);
+                            fs.AddFeature("Name", &p.Name);
+                            fs.AddFeature("Name Color", &p.colName);
+                            fs.AddFeature("Skeleton", &p.Skeleton);
+                            fs.AddFeature("Skeleton Color", &p.colSkeleton);
+                            fs.AddFeature("Distance", &p.Dist);
+                            fs.AddFeature("Distance Color", &p.colDist);
+                            fs.AddFeature("Active Item", &p.ActiveItem);
+                            fs.AddFeature("Active Item Color", &p.colActiveItem);
+                            fs.AddFeature("Wounded", &p.Wounded);
+                            fs.AddFeature("Wounded Color", &p.colWounded);
+                            fs.AddFeature("Hotbar", &p.Hotbar);
+                            fs.AddFeature("Health", &p.Health);
+                            fs.AddFeature("TeamID", &p.TeamID);
+                            fs.AddFeature("Player Flags", &p.PlayerFlags);
+                        });
+                };
+
+                addPlayerOptions(settings.visuals.friends, "Friends");
+                addPlayerOptions(settings.visuals.enemies, "Enemies");
+                addPlayerOptions(settings.visuals.npc, "NPC");
+            })
+        .AddSubCategory("Chams",
+            [](mui::SubCategory& sub)
+            {
+                sub.AddFeatureSet("Local",
+                       [](mui::FeatureSet& fs)
+                       {
+                           fs.AddFeature("Enabled", &settings.ragebot.antiaim.general.Enabled);
+                       })
+                    .AddFeatureSet("Friendly",
+                        [](mui::FeatureSet& fs) {
+
+                        })
+                    .AddFeatureSet("Enemies",
+                        [](mui::FeatureSet& fs) {
+
+                        });
+            })
+        .AddSubCategory("Collectibles",
+            [](mui::SubCategory& sub) {
+
+            })
+        .AddSubCategory("Radtown",
+            [](mui::SubCategory& sub) {
+
+            })
+        .AddSubCategory("Ores",
+            [](mui::SubCategory& sub) {
+
+            })
+        .AddSubCategory("Animals",
+            [](mui::SubCategory& sub) {
+
+            })
+        .AddSubCategory("Vehicles",
+            [](mui::SubCategory& sub) {
+
+            })
+        .AddSubCategory("Traps",
+            [](mui::SubCategory& sub) {
+
+            })
+        .AddSubCategory("Raid",
+            [](mui::SubCategory& sub) {
+
+            });
+
     window.AddCategory("Player List", "D");
     window.AddCategory("Misc.", "E");
     window.AddCategory("User", "", true)

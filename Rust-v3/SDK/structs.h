@@ -506,3 +506,6 @@ struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
     bool IsWeaponReady(bool bow);
     bool IsMelee();
 };
+
+struct CClient : ILObjectBase<Client_Fields>
+{ };
