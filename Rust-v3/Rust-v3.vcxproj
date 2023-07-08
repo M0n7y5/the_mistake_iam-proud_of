@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ui\ESP.cpp" />
     <ClCompile Include="Features\EntityManager.cpp" />
     <ClCompile Include="Hooks\EntityList.cpp" />
     <ClCompile Include="Hooks\BasePlayer.cpp" />
@@ -198,6 +199,7 @@
     <ClCompile Include="ui\mui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ui\ESP.h" />
     <ClInclude Include="Features\EntityManager.h" />
     <ClInclude Include="Hooks\EntityList.h" />
     <ClInclude Include="Hooks\BasePlayer.h" />

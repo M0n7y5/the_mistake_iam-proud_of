@@ -125,15 +125,15 @@ class Vector2
 
     static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, float angle, bool angleInRadians = false)
     {
-        float rad       = DEG2RAD(normalize_angle(angle));
-        float s         = (float)-std::sin(rad);
-        float c         = (float)std::cos(rad);
+        float rad        = DEG2RAD(normalize_angle(angle));
+        float s          = (float)-std::sin(rad);
+        float c          = (float)std::cos(rad);
         pointToRotate.x -= centerPoint.x;
         pointToRotate.y -= centerPoint.y;
-        float xnew      = pointToRotate.x * c - pointToRotate.y * s;
-        float znew      = pointToRotate.x * s + pointToRotate.y * c;
-        pointToRotate.x = xnew + centerPoint.x;
-        pointToRotate.y = znew + centerPoint.y;
+        float xnew       = pointToRotate.x * c - pointToRotate.y * s;
+        float znew       = pointToRotate.x * s + pointToRotate.y * c;
+        pointToRotate.x  = xnew + centerPoint.x;
+        pointToRotate.y  = znew + centerPoint.y;
         return pointToRotate;
     }
 
@@ -908,3 +908,9 @@ inline Vector3 quatmult(const Vector3* point, Vector4* quat)
 inline Vector3 vecright   = {_flt(1.f), _flt(0.f), _flt(0.f)};
 inline Vector3 vecforward = {_flt(0.f), _flt(0.f), _flt(1.f)};
 inline Vector3 vecup      = {_flt(0.f), _flt(1.f), _flt(0.f)};
+
+inline float Remap(float value, float inputStart, float inputEnd, float outputStart, float outputEnd)
+{
+    float result = (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
+    return result;
+}

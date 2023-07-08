@@ -693,14 +693,14 @@ namespace mui
             bool open_popup =
                 ImGui::ColorButton(colorButton.c_str(), color, ImGuiColorEditFlags_AlphaPreview, {30, hh});
 
-            {
-                auto   min  = ImGui::GetItemRectMin();
-                auto   size = ImGui::GetItemRectSize();
-                ImVec4 glow = color;
-                glow.z      = 0.1f;
-                ImGui::GetWindowDrawList()->AddShadowCircle(
-                    {min.x + (size.x / 2), min.y + (size.y / 2)}, size.x / 2.5, ImGui::GetColorU32(glow), 25, {0, 0});
-            }
+            // {
+            //     auto   min  = ImGui::GetItemRectMin();
+            //     auto   size = ImGui::GetItemRectSize();
+            //     ImVec4 glow = color;
+            //     glow.z      = 0.1f;
+            //     ImGui::GetWindowDrawList()->AddShadowCircle(
+            //         {min.x + (size.x / 2), min.y + (size.y / 2)}, size.x / 2.5, ImGui::GetColorU32(glow), 25, {0, 0});
+            // }
 
             ImGui::Dummy({});
 
@@ -1048,7 +1048,7 @@ namespace mui
         std::vector<SubCategory*> _subcategories;
 
         SimpleAnimation<int>   selectedAnim {0, 255, 0.5f, STween::QuintOut};
-        SimpleAnimation<float> hoverAnim {0, 5, 1.5f, STween::QuintOut};
+        SimpleAnimation<float> hoverAnim {0, 5, 1.5f, STween::Linear};
 
         std::function<void()> _draw;
 

@@ -10,7 +10,7 @@ namespace EntityManager
     template <typename T>
     struct Entity
     {
-        T*      entity {};
+        T*       entity {};
         uint32_t prefabId {};
     };
 
@@ -25,7 +25,7 @@ namespace EntityManager
     struct Player
     {
         CBaseEntity* entity {};
-        char         name[32] {}; // forced by steam
+        char name[128 + 1] {}; // 32 chars max, but utf8 (1 to 4 bytes per char) forced by steam
     };
 
     struct Npc : Entity<CBaseEntity>

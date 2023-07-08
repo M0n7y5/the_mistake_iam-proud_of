@@ -509,3 +509,11 @@ struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
 
 struct CClient : ILObjectBase<Client_Fields>
 { };
+
+struct CLocalPlayer : ILObjectBase<LocalPlayer_Fields>
+{
+    CBasePlayer* GetLocalPlayer()
+    {
+        return (CBasePlayer*)this->StaticFields<LocalPlayer_StaticFields>()->_Entity_k__BackingField;
+    }
+};

@@ -281,7 +281,6 @@ static void UpdateMesh(ImDrawData* draw_data)
 
 static void CreateDrawCommands(CCommandBuffer* commandBuffer, ImDrawData* draw_data, Vector2 fbSize)
 {
-    uintptr_t prevTextureId = 0;
     Vector4   clipOffset =
         Vector4(draw_data->DisplayPos.x, draw_data->DisplayPos.y, draw_data->DisplayPos.x, draw_data->DisplayPos.y);
 

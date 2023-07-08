@@ -1,0 +1,8 @@
+{
+    "todo-tree.tree.showBadges": true,
+    "todo-tree.tree.showCountsInTree": true,
+    "todo-tree.tree.scanMode": "workspace only",
+    "todo-tree.general.statusBar": "top three",
+    "todo-tree.general.statusBarClickBehaviour": "toggle highlights",
+    "todo-tree.highlights.useColourScheme": true
+}

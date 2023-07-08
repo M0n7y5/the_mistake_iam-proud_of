@@ -4,6 +4,8 @@
 #include "../Kotlar/Kotlar.h"
 #include "globals.h"
 #include "../mrt/xorstr.hpp"
+#include "../mrt/ww898/utf_converters.hpp"
+#include <string_view>
 
 Il2CppString* Il2CppString::newString(const char* text)
 {
@@ -12,14 +14,12 @@ Il2CppString* Il2CppString::newString(const char* text)
 
 std::string Il2CppString::str()
 {
-    if (length > 193)
+    using namespace ww898::utf;
+    if (length > 512)
         return {"ERR_STR: LENGHT"};
 
-    char output[193];
-
-    sprintf(output, "%ws", this->chars);
-
-    return std::string(output);
+    std::wstring_view ws(this->chars);
+    return conv<char>(ws);
 }
 
 Matrix4x4 Matrix4x4::Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
@@ -158,7 +158,7 @@ void CCanvas::SetWorldCamera(CCamera* camera)
 bool CCanvas::IsRootCanvas()
 {
     static auto addr = OFF(Offsets::UnityEngine_Canvas::Methods::get_isRootCanvas);
-    return ((bool(__thiscall*)(CCanvas*))(addr))(this);  
+    return ((bool(__thiscall*)(CCanvas*))(addr))(this);
 }
 
 // Il2CppObject* CPrefabUtility::InstantiatePrefab(Il2CppObject* object)

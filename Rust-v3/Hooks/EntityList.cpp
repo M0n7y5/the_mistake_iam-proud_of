@@ -97,6 +97,13 @@ ClientInitHookMethodCustom(BaseNpc)
 {
     CallOriginal(BaseNpc);
     using namespace EntityManager;
+
+    auto id  = _this->net->fields.ID.fields.Value;
+
+    Npc npc{};
+    npc.entity = (CBaseEntity*)_this;
+    npc.prefabId = _this->prefabID;
+    DB::npcs.insert_or_assign(id, npc);
 }
 
 // DoClientDestroy
