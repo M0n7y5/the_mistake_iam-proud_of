@@ -7,8 +7,10 @@
 			"command": "msbuild",
 			"args": [
 				"/property:Configuration=Debug",
-				//"/property:GenerateFullPaths=true",
-				"/t:build"
+				"/property:GenerateFullPaths=true",
+				// "/t:build",
+				"/t:Rebuild",
+				"-m"
 			],
 			"group": "build",
 			"presentation": {
