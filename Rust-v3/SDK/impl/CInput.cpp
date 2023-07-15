@@ -25,3 +25,21 @@ bool CInput::GetMouseButton(int32_t button)
     static auto addr = OFF(Offsets::UnityEngine_Input::StaticMethods::GetMouseButton_System_Int32_button);
     return ((bool (*)(int32_t))(addr))(button);
 }
+
+bool CInput::GetKeyDown(KeyCode key)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Input::StaticMethods::GetKeyDown_UnityEngine_KeyCode_key);
+    return ((bool (*)(KeyCode))(addr))(key);
+}
+
+bool CInput::GetKey(KeyCode key)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Input::StaticMethods::GetKey_UnityEngine_KeyCode_key);
+    return ((bool (*)(KeyCode))(addr))(key);
+}
+
+// CString* CInput::GetBind(std::string name)
+// {
+//     static auto addr = OFF(Offsets::UnityEngine_Input::StaticMethods::GetKey_UnityEngine_KeyCode_key);
+//     return ((bool (*)(KeyCode))(addr))(key);
+// }

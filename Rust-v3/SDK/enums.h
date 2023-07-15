@@ -640,3 +640,16 @@ enum class FindObjectsSortMode : int32_t
     //     Sort the objects by InstanceID in ascending order.
     InstanceID
 };
+
+enum class PlayerChams : int32_t
+{
+	Default = 0,
+	Glow = 1,
+	Outline = 2
+};
+
+enum class AimbotSmooth : int32_t
+{
+	Linear = 0,
+	SlowEnd
+};

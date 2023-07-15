@@ -1,4 +1,9 @@
+#pragma once
 #include "../ui/imgui/imgui.h"
+#include "enums.h"
+#include "input_data.h"
+#include "settings_types.h"
+#include <memory>
 
 struct Settings
 {
@@ -8,21 +13,58 @@ struct Settings
         {
             struct Aimbot
             {
-                bool Enabled      = false;
-                bool RollResolver = false;
-                bool SilentAim    = false;
-            } aimbot;
+                ToggleKeybindOption aim               = ToggleKeybindOption(KeyCode::Mouse3);
+                bool                Silent            = false;
+                bool                ShootWhenPossible = true;
+                bool                Humanizer         = true;
+                bool                Prediction        = true;
+                int                 HumanizerAmount   = 4;
+                int                 Smooth            = 10;
+                int                 FOV               = 90;
+                AimbotSmooth        SmoothMode        = AimbotSmooth::Linear;
 
-            struct Exploits
+            } aimbot{};
+
+            struct Magic
             {
-                bool DoubleTap = false;
-                bool HideShots = false;
-            } exploits;
+                ToggleKeybindOption mag       = {KeyCode::Mouse4, true};
+                bool                RapidFire = false;
+                // bool                MiniCopter            = false;
+                // bool                HeliCopter            = false;
+                // bool                ShootAtPos            = false;
+                bool SmartHitscan          = true;
+                int  NumberOfHitscanPoints = 120;
+                int  PointsPerFrame        = 5;
+            } magic{};
 
-        } general;
+            struct Targeting
+            {
+                PlayerBones PlayerHitbox = PlayerBones::head;
+                PlayerBones NPCHitbox    = PlayerBones::head;
+                bool        Players      = true;
+                bool        NPC          = false;
+                bool        Friends      = false;
+                bool        Heli         = false;
+                bool        Traps        = false;
+                bool        VisCheck     = false;
+                bool        TargetLock   = false;
+
+            } targeting{};
+
+            struct Projectile
+            {
+                bool        HitOverride       = true;
+                PlayerBones PlayerHitOverride = PlayerBones::spine1;
+                bool        BulletTP          = false;
+                bool        Pierce            = false;
+                bool        InstaHit          = false;
+                bool        BulletRain        = false;
+            } projectile{};
+        } general{};
 
         struct AntiAim
         {
+
             struct General
             {
                 bool Enabled   = false;
@@ -43,33 +85,20 @@ struct Settings
             //     bool HideShots = false;
             // } exploits;
 
-        } antiaim;
+        } antiaim{};
 
     } ragebot;
 
     struct Visuals
     {
-        struct ToggleColorOption
-        {
-            ImColor Color {};
-            bool    Enable = false;
-
-            constexpr ToggleColorOption(int r = 0.f, int g = 0.f, int b = 0.f, int a = 0.f, bool enabled = false)
-            {
-                Color  = ImColor(r, g, b, a);
-                Enable = enabled;
-            }
-        };
-
         struct Chams
         {
-            ImColor colChamsVis      = ImColor(255, 30, 30, 255);
-            ImColor colChamsInvis    = ImColor(30, 255, 30, 255);
-            ImColor colChamsAdditive = ImColor(30, 30, 255, 255);
-
-            float ChamsGlowTime         = (1.f);
-            float ChamsGlowIntensity    = (2.f);
-            float ChamsOutlineThickness = (0.0035f);
+            ImColor colChamsVis           = ImColor(255, 30, 30, 255);
+            ImColor colChamsInvis         = ImColor(30, 255, 30, 255);
+            ImColor colChamsAdditive      = ImColor(30, 30, 255, 255);
+            float   ChamsGlowTime         = (1.f);
+            float   ChamsGlowIntensity    = (2.f);
+            float   ChamsOutlineThickness = (0.0035f);
         };
 
         struct Player
@@ -84,9 +113,10 @@ struct Settings
             ToggleColorOption ActiveItem  = {8, 255, 190, 255, true};
             ToggleColorOption TeamID      = {255, 255, 255, 255, true};
             ToggleColorOption PlayerFlags = {255, 255, 255, 255, true};
-            ToggleColorOption Wounded     = {252, 148, 3, true};
+            ToggleColorOption Wounded     = {252, 148, 3, 255, true};
+            ToggleColorOption Sleeping    = {252, 148, 3, 255, true};
 
-            Chams chams {};
+            Chams chams{};
         };
 
         struct General
@@ -99,15 +129,81 @@ struct Settings
 
             struct Misc
             {
-                ToggleColorOption colSleepers = ToggleColorOption(252, 169, 3);
-                ToggleColorOption colTeammate = ToggleColorOption(0, 255, 0);
+                // ToggleColorOption colSleepers = ToggleColorOption(252, 169, 3);
+                // ToggleColorOption colTeammate = ToggleColorOption(0, 255, 0);
             } misc;
 
-            Player friends {};
-            Player enemies {};
-            Player npc {};
+            Player friends = {
+                .Enabled     = true,
+                .Hotbar      = true,
+                .Health      = true,
+                .Box         = ToggleColorOption(0, 255, 0),
+                .Skeleton    = ToggleColorOption(0, 255, 0, 255, true),
+                .Name        = ToggleColorOption(0, 255, 0, 255, true),
+                .Dist        = ToggleColorOption(0, 255, 0, 255, true),
+                .ActiveItem  = ToggleColorOption(8, 255, 190, 255, true),
+                .TeamID      = ToggleColorOption(255, 255, 255, 255, true),
+                .PlayerFlags = ToggleColorOption(255, 255, 255, 255, true),
+                .Wounded     = ToggleColorOption(252, 148, 3, 255, true),
+                .Sleeping    = ToggleColorOption(252, 148, 3, 255, true),
+                .chams =
+                    {
+                        .colChamsVis           = ImColor(255, 30, 30, 255),
+                        .colChamsInvis         = ImColor(30, 255, 30, 255),
+                        .colChamsAdditive      = ImColor(30, 30, 255, 255),
+                        .ChamsGlowTime         = (1.f),
+                        .ChamsGlowIntensity    = (2.f),
+                        .ChamsOutlineThickness = (0.0035f),
+                    },
+            };
+            Player enemies = {
+                .Enabled     = true,
+                .Hotbar      = true,
+                .Health      = true,
+                .Box         = ToggleColorOption(255, 255, 255, 255),
+                .Skeleton    = ToggleColorOption(255, 255, 255, 255, true),
+                .Name        = ToggleColorOption(255, 255, 255, 255, true),
+                .Dist        = ToggleColorOption(255, 255, 255, 255, true),
+                .ActiveItem  = ToggleColorOption(8, 255, 190, 255, true),
+                .TeamID      = ToggleColorOption(255, 255, 255, 255, true),
+                .PlayerFlags = ToggleColorOption(255, 255, 255, 255, true),
+                .Wounded     = ToggleColorOption(252, 148, 3, 255, true),
+                .Sleeping    = ToggleColorOption(252, 148, 3, 255, true),
+                .chams =
+                    {
+                        .colChamsVis           = ImColor(255, 30, 30, 255),
+                        .colChamsInvis         = ImColor(30, 255, 30, 255),
+                        .colChamsAdditive      = ImColor(30, 30, 255, 255),
+                        .ChamsGlowTime         = (1.f),
+                        .ChamsGlowIntensity    = (2.f),
+                        .ChamsOutlineThickness = (0.0035f),
+                    },
+            };
+            Player npc = {
+                .Enabled     = true,
+                .Hotbar      = true,
+                .Health      = true,
+                .Box         = ToggleColorOption(77, 136, 255),
+                .Skeleton    = ToggleColorOption(77, 136, 255, 255, true),
+                .Name        = ToggleColorOption(77, 136, 255, 255, true),
+                .Dist        = ToggleColorOption(77, 136, 255, 255, true),
+                .ActiveItem  = ToggleColorOption(8, 255, 190, 255, true),
+                .TeamID      = ToggleColorOption(255, 255, 255, 255, true),
+                .PlayerFlags = ToggleColorOption(255, 255, 255, 255, true),
+                .Wounded     = ToggleColorOption(252, 148, 3, 255, true),
+                .Sleeping    = ToggleColorOption(252, 148, 3, 255, true),
+                .chams =
+                    {
+                        .colChamsVis           = ImColor(255, 30, 30, 255),
+                        .colChamsInvis         = ImColor(30, 255, 30, 255),
+                        .colChamsAdditive      = ImColor(30, 30, 255, 255),
+                        .ChamsGlowTime         = (1.f),
+                        .ChamsGlowIntensity    = (2.f),
+                        .ChamsOutlineThickness = (0.0035f),
+                    },
+            };
 
-        } general;
+        } general{};
 
         struct Collectibles
         {
@@ -120,7 +216,7 @@ struct Settings
                 int  Distance            = 150;
                 int  MaxAnticlutterCount = 5;
 
-            } general;
+            } general{};
 
             struct Colors
             {
@@ -134,8 +230,8 @@ struct Settings
                 ToggleColorOption metal    = {86, 66, 50};
                 ToggleColorOption sulfur   = {239, 201, 31};
                 ToggleColorOption hemp     = {140, 227, 0};
-            } colors;
-        } collectibles;
+            } colors{};
+        } collectibles{};
 
         struct Radtown
         {
@@ -146,7 +242,7 @@ struct Settings
                 bool AntiClutter         = false;
                 int  Distance            = 80;
                 int  MaxAnticlutterCount = 5;
-            } general;
+            } general{};
 
             struct Colors
             {
@@ -160,7 +256,7 @@ struct Settings
                 ToggleColorOption foodbox      = {209, 193, 19};
                 ToggleColorOption other        = {255, 255, 255};
             } colors;
-        } radtown;
+        } radtown{};
 
         struct Ores
         {
@@ -171,15 +267,15 @@ struct Settings
                 bool AntiClutter         = false;
                 int  Distance            = 150;
                 int  MaxAnticlutterCount = 5;
-            } general;
+            } general{};
 
             struct Colors
             {
                 ToggleColorOption stone  = {155, 155, 155};
                 ToggleColorOption sulfur = {239, 201, 31};
                 ToggleColorOption metal  = {86, 66, 50};
-            } colors;
-        } ores;
+            } colors{};
+        } ores{};
 
         struct Animals
         {
@@ -187,18 +283,19 @@ struct Settings
             {
                 bool Enabled  = false;
                 bool Fade     = false;
-                int  Distance = 150;
                 bool Bear     = true;
                 bool Boar     = true;
                 bool Wolf     = true;
                 bool Stag     = false;
-            } general;
+                int  Distance = 150;
+
+            } general{};
 
             struct Colors
             {
                 ToggleColorOption animals = {203, 130, 255};
-            } colors;
-        } animals;
+            } colors{};
+        } animals{};
 
         struct Vehicles
         {
@@ -211,7 +308,7 @@ struct Settings
                 int  BoatDistance   = 350;
                 int  PatrolDistance = 150;
                 int  OtherDistance  = 350;
-            } general;
+            } general{};
 
             struct Colors
             {
@@ -223,10 +320,65 @@ struct Settings
                 ToggleColorOption baloon    = {79, 54, 21};
                 ToggleColorOption patrol    = {211, 127, 10};
                 ToggleColorOption bradley   = {211, 127, 10};
-            } colors;
-        } vehicles;
+            } colors{};
+        } vehicles{};
 
-    } visuals;
+        struct Traps
+        {
+            struct General
+            {
+                bool Enabled      = false;
+                bool HideInactive = false;
+                int  Distance     = 100;
+            } general{};
+
+            struct Colors
+            {
+                ToggleColorOption autoTurret       = {240, 56, 10};
+                ToggleColorOption autoTurretAuthed = {44, 222, 20};
+                ToggleColorOption samSite          = {240, 56, 10};
+                ToggleColorOption shotgunTrap      = {240, 56, 10};
+                ToggleColorOption flameTurret      = {240, 56, 10};
+                ToggleColorOption landmine         = {240, 56, 10};
+                ToggleColorOption bearTrap         = {255, 245, 166};
+            } colors{};
+        } traps{};
+
+        struct Items
+        {
+            struct General
+            {
+                ImColor weapons  = {251, 7, 160};
+                ImColor other    = {251, 7, 160};
+                int     Distance = 150;
+            } general{};
+
+            struct Backpack
+            {
+                ToggleColorOption option   = {255, 245, 166, 255, true};
+                int               Distance = 150;
+            } backpacks{};
+
+            struct Corpse
+            {
+                bool              Name     = true;
+                ToggleColorOption option   = {255, 245, 166, 255, true};
+                int               Distance = 150;
+            } corpses{};
+
+            struct Stash
+            {
+                bool              HideOpenStashes = true;
+                ToggleColorOption option          = {255, 245, 166, 255, true};
+                int               Distance        = 200;
+            } stashes{};
+
+        } item{};
+
+    } visuals{};
 };
 
-static Settings settings {};
+namespace SettingsData
+{
+extern Settings *settings;
+}

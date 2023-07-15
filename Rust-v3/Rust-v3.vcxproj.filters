@@ -275,5 +275,14 @@
     <ClInclude Include="ui\ESP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SDK\input_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\settings_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

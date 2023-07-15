@@ -4,5 +4,6 @@
     "todo-tree.tree.scanMode": "workspace only",
     "todo-tree.general.statusBar": "top three",
     "todo-tree.general.statusBarClickBehaviour": "toggle highlights",
-    "todo-tree.highlights.useColourScheme": true
+    "todo-tree.highlights.useColourScheme": true,
+    "discord.enabled": true
 }

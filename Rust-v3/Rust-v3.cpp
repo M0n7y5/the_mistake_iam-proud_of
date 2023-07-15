@@ -4,14 +4,21 @@
 #include <Windows.h>
 
 #include "mrt/lazy_importer.hpp"
-#include "mrt/xorstr.hpp"
 #include "mrt/logging.h"
+#include "mrt/xorstr.hpp"
 
 #include "Hooks/Hooks.h"
 #include "SDK/globals.h"
 #include "SDK/mem.h"
+#include "SDK/settings.h"
 
 #include <fstream>
+#include <memory>
+
+namespace SettingsData
+{
+Settings *settings = nullptr;
+}
 
 int Start(uint64_t imageBase)
 {
@@ -37,6 +44,8 @@ int Start(uint64_t imageBase)
     LI_FN(MessageBoxA)((HWND)NULL, lol, _("Title Test"), 0);
 
     // delete[] lol;
+    using namespace SettingsData;
+    settings = new Settings();
 
     G::baseUnityPlayer  = mem::GetModuleAddress(_(L"UnityPlayer.dll"));
     G::baseGameAssemlby = mem::GetModuleAddress(_(L"GameAssembly.dll"));
@@ -57,8 +66,8 @@ bool __stdcall Initialize(uint64_t imageBase)
     // return Start(imageBase);
 
     LI_FN(CreateThread)
-    ((LPSECURITY_ATTRIBUTES)NULL, NULL, reinterpret_cast<LPTHREAD_START_ROUTINE>(Start), (void*)imageBase, 0,
-        (LPDWORD)0);
+    ((LPSECURITY_ATTRIBUTES)NULL, NULL, reinterpret_cast<LPTHREAD_START_ROUTINE>(Start),
+     (void *)imageBase, 0, (LPDWORD)0);
 
     return true;
 }
@@ -71,40 +80,40 @@ bool __stdcall InitializeEAC(uint64_t hModule, DWORD ul_reason_for_call, uint64_
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL,  // handle to DLL module
-    DWORD                     fdwReason, // reason for calling function
-    LPVOID                    lpvReserved)                  // reserved
+                    DWORD     fdwReason, // reason for calling function
+                    LPVOID    lpvReserved)  // reserved
 {
     // Perform actions based on the reason for calling.
     switch (fdwReason)
     {
-        case DLL_PROCESS_ATTACH:
-            // Initialize once for each new process.
-            // Return FALSE to fail DLL load.
+    case DLL_PROCESS_ATTACH:
+        // Initialize once for each new process.
+        // Return FALSE to fail DLL load.
 
-            // NON-EAC RUN
-            Initialize((uint64_t)hinstDLL);
+        // NON-EAC RUN
+        Initialize((uint64_t)hinstDLL);
 
-            // EAC RUN
-            // Initialize((uint64_t)ul_reason_for_call, lpReserved);
-            break;
+        // EAC RUN
+        // Initialize((uint64_t)ul_reason_for_call, lpReserved);
+        break;
 
-        case DLL_THREAD_ATTACH:
-            // Do thread-specific initialization.
-            break;
+    case DLL_THREAD_ATTACH:
+        // Do thread-specific initialization.
+        break;
 
-        case DLL_THREAD_DETACH:
-            // Do thread-specific cleanup.
-            break;
+    case DLL_THREAD_DETACH:
+        // Do thread-specific cleanup.
+        break;
 
-        case DLL_PROCESS_DETACH:
+    case DLL_PROCESS_DETACH:
 
-            if (lpvReserved != nullptr)
-            {
-                break; // do not do cleanup if process termination scenario
-            }
+        if (lpvReserved != nullptr)
+        {
+            break; // do not do cleanup if process termination scenario
+        }
 
-            // Perform any necessary cleanup.
-            break;
+        // Perform any necessary cleanup.
+        break;
     }
     return TRUE; // Successful DLL_PROCESS_ATTACH.
 }

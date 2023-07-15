@@ -1,11 +1,12 @@
 #include "Client.h"
 #include "../SDK/il2cpp_api.h"
 #include "../SDK/structs.h"
-#include "../mrt/xorstr.hpp"
 #include "../mrt/logging.h"
+#include "../mrt/xorstr.hpp"
 
-#include "../ui/imgui_backend/imgui_impl_unity.h"
+#include "../SDK/settings.h"
 #include "../ui/GUI.h"
+#include "../ui/imgui_backend/imgui_impl_unity.h"
 
 static uintptr_t LateUpdate_o = 0;
 static uintptr_t Awake_o      = 0;
@@ -13,7 +14,9 @@ static uintptr_t OnDisable_o  = 0;
 
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-static void hk_LateUpdate(CClient* _this)
+static bool isMenuOpen = true;
+
+static void hk_LateUpdate(CClient *_this)
 {
     static bool initMe = true;
 
@@ -28,22 +31,26 @@ static void hk_LateUpdate(CClient* _this)
         L::Print("Client LateUpdate -> initMe");
         L::PopConsoleColor();
 #endif
+        // TODO: actually use this?
         auto success = ImGui_Impl_Unity_Init();
 
         return;
     }
 
-    // auto camera = CCamera::GetMainCamera();
-    // auto camera = CCamera::GetMainCamera();
+    if(CInput::GetKeyDown(KeyCode::Insert))
+    {
+        isMenuOpen ^= true;
+    }
 
-    auto joj = _this;
-
-    auto& io = ImGui::GetIO();
+    auto &io = ImGui::GetIO();
 
     ImGui_Impl_Unity_NewFrame(io);
     ImGui::NewFrame();
 
-    GUI::Render();
+    if (isMenuOpen)
+    {
+        GUI::Render();
+    }
 
     ImGui::EndFrame();
     ImGui::Render();
@@ -53,7 +60,7 @@ static void hk_LateUpdate(CClient* _this)
     reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
 }
 
-static void hk_Awake(void* _this)
+static void hk_Awake(void *_this)
 {
     static bool initMe = true;
 
@@ -77,7 +84,7 @@ static void hk_Awake(void* _this)
     reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
 }
 
-static void hk_OnDisable(void* _this)
+static void hk_OnDisable(void *_this)
 {
     static bool initMe = true;
 
@@ -104,7 +111,7 @@ static void hk_OnDisable(void* _this)
 void Hooks::Client::Init()
 {
     auto klass   = il2cpp::InitClass(_("Client"));
-    LateUpdate_o = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), (void*)&hk_LateUpdate);
+    LateUpdate_o = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), (void *)&hk_LateUpdate);
     // Awake_o      = il2cpp::HookVirtualFunction(klass, _("Awake"), (void*)&hk_Awake);
     // OnDisable_o  = il2cpp::HookVirtualFunction(klass, _("OnDisable"), (void*)&hk_OnDisable);
 }

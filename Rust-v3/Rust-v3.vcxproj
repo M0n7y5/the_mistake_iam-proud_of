@@ -199,6 +199,9 @@
     <ClCompile Include="ui\mui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="SDK\input_data.h" />
+    <ClInclude Include="SDK\settings.h" />
+    <ClInclude Include="SDK\settings_types.h" />
     <ClInclude Include="ui\ESP.h" />
     <ClInclude Include="Features\EntityManager.h" />
     <ClInclude Include="Hooks\EntityList.h" />

@@ -10,7 +10,6 @@ ImVec2 GetTextSize(const char* text)
 }
 
 // Draw helpers
-
 void RenderTextOutline(ImVec2 pos, ImColor color, ImColor outlineColor, const char* text)
 {
     outlineColor.Value.w = color.Value.w;
@@ -56,8 +55,6 @@ void Indicators()
 {
     
 }
-
-
 
 void ESP::Draw()
 {
