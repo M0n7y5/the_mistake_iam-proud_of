@@ -632,27 +632,24 @@ template <typename T> class Feature : public RenderableFeature
     static inline int UID = 37;
 
   public:
-    std::string _name;
+    std::string name;
     T          *_data = nullptr;
 
-    explicit Feature(std::string name, T *variable) : _name(std::move(name)), _data(variable)
+    explicit Feature(std::string name, T *variable) : name(std::move(name)), _data(variable)
     {
-        _name.append("##");
-        _name.append(std::to_string(UID));
         UID += 37;
     }
 };
 
 class BoolFeature : public Feature<bool>
 {
-    KeyButton  *key = nullptr;
-    std::string kbButton;
+    KeyButton *key = nullptr;
 
   public:
-    explicit BoolFeature(std::string name, bool *var, KeyButton *key = nullptr) : Feature(name, var)
+    explicit BoolFeature(std::string name, bool *var, KeyButton *key = nullptr)
+        : Feature(std::move(name), var)
     {
         this->key = key;
-        kbButton  = this->_name + "_kbbtn";
     }
 
     void Init() override
@@ -661,13 +658,13 @@ class BoolFeature : public Feature<bool>
 
     void Draw(ImVec2 size) override
     {
-        static bool opppen = false;
-        auto        curX   = ImGui::GetCursorPosX();
+        ImGui::PushID(this);
+        auto curX = ImGui::GetCursorPosX();
         // ToggleFeature(_name.c_str(), static_cast<bool*>(_data), size.x);
-        ToggleButton(_name.c_str(), static_cast<bool *>(_data));
+        ToggleButton(_("##tgl"), static_cast<bool *>(_data));
 
         ImGui::SameLine();
-        ImGui::TextUnformatted(_name.c_str(), ImGui::FindRenderedTextEnd(_name.c_str()));
+        ImGui::TextUnformatted(name.c_str(), ImGui::FindRenderedTextEnd(name.c_str()));
 
         if (key)
         {
@@ -682,7 +679,7 @@ class BoolFeature : public Feature<bool>
             auto ss = ImGui::GetItemRectSize();
             ImGui::SetCursorPosX(curX + size.x - txtSize.x - 5);
             ImGui::SetCursorPosY(curY);
-            if (ImGui::InvisibleButton(kbButton.c_str(), ss))
+            if (ImGui::InvisibleButton(_("##invbt"), ss))
             {
                 KeyBindActivePopup = true;
                 currentKeyBind     = this->key;
@@ -717,33 +714,21 @@ class BoolFeature : public Feature<bool>
                 ImGui::EndPopup();
             }
         }
+
+        ImGui::PopID();
     }
 };
 
 class ColorFeature : public Feature<ImColor>
 {
-
-    std::string colorButton;
-    std::string colorButtonCurrent;
-    std::string colorButtonPrev;
-    std::string popupName;
-    std::string popupPicker;
-    std::string popupPalette;
-    std::string togg;
-    ImVec4      backup_color;
-    bool       *toggle = nullptr;
+    ImVec4 backup_color;
+    bool  *toggle = nullptr;
 
   public:
-    explicit ColorFeature(std::string name, ImColor *var, bool *tog = nullptr) : Feature(name, var)
+    explicit ColorFeature(std::string name, ImColor *var, bool *tog = nullptr)
+        : Feature(std::move(name), var)
     {
-        colorButton        = _name + "_" + "colorButton";
-        colorButtonCurrent = _name + "_" + "colorButton_current";
-        colorButtonPrev    = _name + "_" + "colorButton_prev";
-        popupName          = _name + "_" + "popup";
-        popupPicker        = _name + "_" + "colorPicker";
-        popupPalette       = _name + "_" + "pallete";
-        togg               = _name + "_" + "togg";
-        toggle             = tog;
+        toggle = tog;
     }
 
     void Init() override
@@ -752,13 +737,14 @@ class ColorFeature : public Feature<ImColor>
 
     void Draw(ImVec2 size) override
     {
+        ImGui::PushID(this);
         static bool   saved_palette_init = true;
         static ImVec4 saved_palette[88]  = {};
         if (saved_palette_init)
         {
             for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
             {
-                ImGui::ColorConvertHSVtoRGB(n / 87.0f, 0.8f, 0.8f, saved_palette[n].x,
+                ImGui::ColorConvertHSVtoRGB((float)n / 87.0f, 0.8f, 0.8f, saved_palette[n].x,
                                             saved_palette[n].y, saved_palette[n].z);
                 saved_palette[n].w = 1.0f; // Alpha
             }
@@ -770,20 +756,19 @@ class ColorFeature : public Feature<ImColor>
 
         if (toggle)
         {
-            ToggleButton(togg.c_str(), toggle);
+            ToggleButton(_("##tglb"), toggle);
             ImGui::SameLine();
         }
 
-        ImGui::TextUnformatted(_name.c_str(), ImGui::FindRenderedTextEnd(_name.c_str()));
+        ImGui::TextUnformatted(name.c_str(), ImGui::FindRenderedTextEnd(name.c_str()));
         ImGui::SameLine();
         ImGui::SetCursorPosX(size.x - 37.f + curX);
 
         auto &color = ((ImColor *)_data)->Value;
 
-        auto hh = ImGui::GetTextLineHeight();
         ImGui::SetCursorPosY(curY + 5);
-        bool open_popup = ImGui::ColorButton(colorButton.c_str(), color,
-                                             ImGuiColorEditFlags_AlphaPreview, {30, 10});
+        bool open_popup =
+            ImGui::ColorButton(_("##colbt"), color, ImGuiColorEditFlags_AlphaPreview, {30, 10});
 
         // {
         //     auto   min  = ImGui::GetItemRectMin();
@@ -799,15 +784,15 @@ class ColorFeature : public Feature<ImColor>
 
         if (open_popup)
         {
-            ImGui::OpenPopup(popupName.c_str());
+            ImGui::OpenPopup(_("##popup"));
             backup_color = color;
         }
-        if (ImGui::BeginPopup(popupName.c_str(), ImGuiWindowFlags_NoMove))
+        if (ImGui::BeginPopup(_("##popup"), ImGuiWindowFlags_NoMove))
         {
-            ImGui::TextUnformatted(_name.c_str(), ImGui::FindRenderedTextEnd(_name.c_str()));
+            ImGui::TextUnformatted(name.c_str(), ImGui::FindRenderedTextEnd(name.c_str()));
             ImGui::Separator();
 
-            ImGui::ColorPicker4(popupPicker.c_str(), (float *)&color,
+            ImGui::ColorPicker4(_("##colpick"), (float *)&color,
                                 ImGuiColorEditFlags_NoSidePreview |
                                     ImGuiColorEditFlags_NoSmallPreview |
                                     ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoLabel);
@@ -817,8 +802,8 @@ class ColorFeature : public Feature<ImColor>
 
             ImGui::BeginGroup();
             {
-                ImGui::Text("Current");
-                ImGui::ColorButton(colorButtonCurrent.c_str(), color,
+                ImGui::Text("%s", _("Current"));
+                ImGui::ColorButton(_("##colcur"), color,
                                    ImGuiColorEditFlags_NoPicker |
                                        ImGuiColorEditFlags_AlphaPreviewHalf,
                                    ImVec2(90, 20));
@@ -828,8 +813,8 @@ class ColorFeature : public Feature<ImColor>
             ImGui::SameLine();
             ImGui::BeginGroup();
             {
-                ImGui::Text("Previous");
-                if (ImGui::ColorButton(colorButtonPrev.c_str(), backup_color,
+                ImGui::Text("%s", _("Previous"));
+                if (ImGui::ColorButton(_("##colprev"), backup_color,
                                        ImGuiColorEditFlags_NoPicker |
                                            ImGuiColorEditFlags_AlphaPreviewHalf,
                                        ImVec2(90, 20)))
@@ -838,7 +823,7 @@ class ColorFeature : public Feature<ImColor>
             }
 
             ImGui::Separator();
-            ImGui::Text("Palette");
+            ImGui::Text("%s", _("Palette"));
             for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
             {
                 ImGui::PushID(n);
@@ -848,7 +833,7 @@ class ColorFeature : public Feature<ImColor>
                 ImGuiColorEditFlags palette_button_flags = ImGuiColorEditFlags_NoAlpha |
                                                            ImGuiColorEditFlags_NoPicker |
                                                            ImGuiColorEditFlags_NoTooltip;
-                if (ImGui::ColorButton(popupPalette.c_str(), saved_palette[n], palette_button_flags,
+                if (ImGui::ColorButton(_("##pallete"), saved_palette[n], palette_button_flags,
                                        ImVec2(20, 20)))
                     color =
                         ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z, color.w);
@@ -872,9 +857,11 @@ class ColorFeature : public Feature<ImColor>
             ImGui::EndGroup();
             ImGui::EndPopup();
         }
+        ImGui::PopID();
     }
 };
 
+/*
 class IntFeature : public Feature<int>
 {
 
@@ -912,6 +899,7 @@ class IntFeature : public Feature<int>
         ImGui::PopStyleVar();
     }
 };
+*/
 
 template <typename T>
     requires std::is_integral_v<T> || std::is_floating_point_v<T>
@@ -921,7 +909,7 @@ class NumberFeature : public Feature<T>
     const char *format;
 
   public:
-    explicit NumberFeature(std::string name, T *var, T min, T max, const char *format)
+    explicit NumberFeature(std::string &name, T *var, T min, T max, const char *format)
         : Feature<T>(name, var), min(min), max(max), format(format)
     {
     }
@@ -932,9 +920,9 @@ class NumberFeature : public Feature<T>
 
     void Draw(ImVec2 size) override
     {
+        ImGui::PushID(this);
         // const auto curX = ImGui::GetCursorPosX();
-        ImGui::TextUnformatted(this->_name.c_str(),
-                               ImGui::FindRenderedTextEnd(this->_name.c_str()));
+        ImGui::TextUnformatted(this->name.c_str(), ImGui::FindRenderedTextEnd(this->name.c_str()));
         // ImGui::SameLine();
         // ImGui::SetCursorPosX(size.x - 37.f + curX);
 
@@ -951,16 +939,17 @@ class NumberFeature : public Feature<T>
 
         if constexpr (std::is_same_v<T, int>)
         {
-            SliderScalar2(this->_name.c_str(), ImGuiDataType_S32, this->_data, &min, &max, format);
+            SliderScalar2(_("##sldr"), ImGuiDataType_S32, this->_data, &min, &max, format);
         }
 
         if constexpr (std::is_same_v<T, float>)
         {
-            SliderScalar2(this->_name.c_str(), ImGuiDataType_Float, this->_data, &min, &max, format,
+            SliderScalar2(_("##sldr"), ImGuiDataType_Float, this->_data, &min, &max, format,
                           ImGuiSliderFlags_Logarithmic);
         }
 
         ImGui::PopStyleVar();
+        ImGui::PopID();
     }
 };
 
@@ -968,7 +957,6 @@ template <typename T> class ComboFeature : public Feature<T>
 {
     std::vector<std::string> strings;
     std::vector<T>           vals;
-    std::string              cmbName;
     int                      currentItemIndex = 0;
 
   public:
@@ -976,7 +964,6 @@ template <typename T> class ComboFeature : public Feature<T>
                  std::vector<std::string> &stringVals)
         : Feature<T>(name, _target)
     {
-        cmbName = "##_cmb" + name;
         strings = std::move(stringVals);
         vals    = std::move(possibleVals);
     }
@@ -987,15 +974,16 @@ template <typename T> class ComboFeature : public Feature<T>
 
     void Draw(ImVec2 size) override
     {
+        ImGui::PushID(this);
         const auto curX = ImGui::GetCursorPosX();
-        ImGui::TextUnformatted(this->_name.c_str(),
-                               ImGui::FindRenderedTextEnd(this->_name.c_str()));
+        ImGui::TextUnformatted(this->name.c_str(),
+                               ImGui::FindRenderedTextEnd(this->name.c_str()));
         ImGui::SameLine();
         ImGui::Dummy({});
         ImGui::SameLine();
         ImGui::SetCursorPosX(curX + size.x - 155);
         ImGui::SetNextItemWidth(150);
-        if (ImGui::BeginCombo(cmbName.c_str(), strings[currentItemIndex].c_str()))
+        if (ImGui::BeginCombo(_("##cmbox"), strings[currentItemIndex].c_str()))
         {
             for (int n = 0; n < vals.size(); n++)
             {
@@ -1013,6 +1001,7 @@ template <typename T> class ComboFeature : public Feature<T>
             }
             ImGui::EndCombo();
         }
+        ImGui::PopID();
     }
 };
 
@@ -1600,9 +1589,6 @@ class Window
 
                     ImGui::Dummy({0, 3});
 
-                    ///
-
-                    auto g                = ImGui::GetWindowDrawList();
                     auto deafultFontSizeY = ImGui::CalcTextSize("A").y;
 
                     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{});

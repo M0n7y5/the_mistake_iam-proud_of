@@ -3,7 +3,7 @@
 #include "mui.h"
 #include <functional> // std::function
 #include <utility>
-
+#include "../mrt/xorstr.hpp"
 // TODO: Implement support for toggle options
 
 mui::Window window{};
@@ -11,7 +11,9 @@ mui::Window window{};
 void GUI::Init()
 {
     using namespace SettingsData;
-    auto llll = settings;
+    // auto llll = settings;
+
+    // auto lol = __("Enabled").get();
 
     mui::fonts::Init();
     window.AddCategory("RageBot", "B")
@@ -21,7 +23,7 @@ void GUI::Init()
                 sub.AddFeatureSet(
                        "Aim-bot",
                        [](mui::FeatureSet &fs) -> void {
-                           fs.AddFeature("Enabled", &settings->ragebot.general.aimbot.aim.Enabled,
+                           fs.AddFeature(_("Enabled"), &settings->ragebot.general.aimbot.aim.Enabled,
                                          &settings->ragebot.general.aimbot.aim.key);
                            fs.AddFeature("Silent Aim", &settings->ragebot.general.aimbot.Silent);
                            fs.AddFeature("Prediction",
