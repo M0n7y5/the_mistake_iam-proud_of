@@ -5,8 +5,10 @@
 #include "../mrt/xorstr.hpp"
 
 #include "../SDK/settings.h"
+#include "../ui/ESP.h"
 #include "../ui/GUI.h"
 #include "../ui/imgui_backend/imgui_impl_unity.h"
+
 
 static uintptr_t LateUpdate_o = 0;
 static uintptr_t Awake_o      = 0;
@@ -37,7 +39,7 @@ static void hk_LateUpdate(CClient *_this)
         return;
     }
 
-    if(CInput::GetKeyDown(KeyCode::Insert))
+    if (CInput::GetKeyDown(KeyCode::Insert))
     {
         isMenuOpen ^= true;
     }
@@ -47,6 +49,9 @@ static void hk_LateUpdate(CClient *_this)
     ImGui_Impl_Unity_NewFrame(io);
     ImGui::NewFrame();
 
+    ESP::g = ImGui::GetBackgroundDrawList();
+    ESP::Draw();
+    
     if (isMenuOpen)
     {
         GUI::Render();

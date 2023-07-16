@@ -18,6 +18,7 @@ struct Settings
                 bool                ShootWhenPossible = true;
                 bool                Humanizer         = true;
                 bool                Prediction        = true;
+                bool                Smoothing         = true;
                 int                 HumanizerAmount   = 4;
                 int                 Smooth            = 10;
                 int                 FOV               = 90;
@@ -79,12 +80,6 @@ struct Settings
 
             } general;
 
-            // struct Desync
-            //{
-            //     bool Roll = false;
-            //     bool HideShots = false;
-            // } exploits;
-
         } antiaim{};
 
     } ragebot;
@@ -126,12 +121,20 @@ struct Settings
             bool TeamAsFriends       = true;
             bool ForceSkeletonUpdate = false;
             int  SkeletonDistance    = 100.f;
+            bool Watermark           = true;
 
-            struct Misc
+            struct Indicators
             {
-                // ToggleColorOption colSleepers = ToggleColorOption(252, 169, 3);
+                bool Enabled   = true;
+                bool Radar     = true;
+                int  RadarSize = 100;
+
+                ToggleColorOption VisualPredition = {255, 0, 0, 255, true};
+
+                // bool Enabled = true;
+
                 // ToggleColorOption colTeammate = ToggleColorOption(0, 255, 0);
-            } misc;
+            } indicators{};
 
             Player friends = {
                 .Enabled     = true,

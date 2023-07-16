@@ -137,10 +137,7 @@ class Vector2
         return pointToRotate;
     }
 
-    // ImVec2 ToImVec2()
-    //{
-    //	return ImVec2(x, y);
-    // }
+
 };
 
 class Vector3

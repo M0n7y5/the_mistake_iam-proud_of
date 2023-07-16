@@ -1,8 +1,8 @@
 #include "PlayerWalkMovement.h"
 #include "../SDK/il2cpp_api.h"
 #include "../SDK/structs.h"
-#include "../mrt/xorstr.hpp"
 #include "../mrt/logging.h"
+#include "../mrt/xorstr.hpp"
 
 uintptr_t DoFixedUpdate_o = 0;
 uintptr_t ClientInput_o   = 0;
@@ -10,7 +10,7 @@ uintptr_t TeleportTo_o    = 0;
 
 bool joj = true;
 
-void hk_DoFixedUpdate(CPlayerWalkMovement* _this, CModelState* modelState)
+void hk_DoFixedUpdate(CPlayerWalkMovement *_this, CModelState *modelState)
 {
     static bool initme = true;
 
@@ -30,10 +30,12 @@ void hk_DoFixedUpdate(CPlayerWalkMovement* _this, CModelState* modelState)
 
     do
     {
-        auto player = (CBasePlayer*)_this->_Owner_k__BackingField;
+        auto player = (CBasePlayer *)_this->_Owner_k__BackingField;
 
         if (!player->IsLocalPlayer()) // hmm
             break;
+
+        auto lula = player->input;
 
         if (modelState->HasFlag(ModelStateFlags::Sleeping))
             break;
@@ -46,13 +48,12 @@ void hk_DoFixedUpdate(CPlayerWalkMovement* _this, CModelState* modelState)
             _this->jumpTime   = _flt(0.f);
             _this->groundTime = _flt(999999999.f);
         }
-    }
-    while (false);
+    } while (false);
 
     reinterpret_cast<decltype(&hk_DoFixedUpdate)>(DoFixedUpdate_o)(_this, modelState);
 }
 
-void hk_ClientInput(CPlayerWalkMovement* _this, CInputState* inputState, CModelState* modelState)
+void hk_ClientInput(CPlayerWalkMovement *_this, CInputState *inputState, CModelState *modelState)
 {
     static bool initme = true;
 
@@ -72,7 +73,7 @@ void hk_ClientInput(CPlayerWalkMovement* _this, CInputState* inputState, CModelS
     reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, inputState, modelState);
 }
 
-void hk_TeleportTo(CPlayerWalkMovement* _this, Vector3 position, CBasePlayer* player)
+void hk_TeleportTo(CPlayerWalkMovement *_this, Vector3 position, CBasePlayer *player)
 {
     static bool initme = true;
 
@@ -94,7 +95,6 @@ void hk_TeleportTo(CPlayerWalkMovement* _this, Vector3 position, CBasePlayer* pl
 
 void Hooks::PlayerWalkMovement::Init()
 {
-
 
     auto klass = il2cpp::InitClass(_("PlayerWalkMovement"));
 

@@ -139,7 +139,7 @@ void GUI::Init()
                 });
         });
 
-    window.AddCategory("Legit", "A");
+    //window.AddCategory("Legit", "A");
     window.AddCategory("Visual", "C")
         .AddSubCategory(
             "General",

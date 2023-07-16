@@ -100,3 +100,9 @@ void CCamera::SetClearFlags(CameraClearFlags flags)
     static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_clearFlags_UnityEngine_CameraClearFlags_value);
     ((void(__thiscall*)(CCamera*, CameraClearFlags))(addr))(this, flags);
 }
+
+float CCamera::GetFov()
+{
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::get_fieldOfView);
+    return ((float(__thiscall*)(CCamera*))(addr))(this);
+}

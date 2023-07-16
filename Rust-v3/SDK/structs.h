@@ -391,8 +391,8 @@ struct CInput : ILObjectBase<UnityEngine_Input_Fields>
         }
     }
 
-    static CString* GetBind(std::string name);
-    static void SetBind(std::string name, std::string value, bool cycled = false);
+    static CString *GetBind(std::string name);
+    static void     SetBind(std::string name, std::string value, bool cycled = false);
 };
 
 struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
@@ -410,6 +410,7 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
     void            SetDepth(float depth);
     void            SetCullingMask(Layer layer);
     void            SetClearFlags(CameraClearFlags flags);
+    float           GetFov();
 };
 
 struct CCanvas : ILObjectBase<UnityEngine_Canvas_Fields>
@@ -510,9 +511,8 @@ struct CHeldEntity : CBaseEntity, HeldEntity_Fields_s
     bool   IsBaseProjectile();
 };
 
-class CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
+struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
 {
-  public:
     uint64_t     GetTeamID();
     bool         IsLocalPlayer();
     bool         IsWounded();
@@ -557,9 +557,5 @@ struct CClient : ILObjectBase<Client_Fields>
 
 struct CLocalPlayer : ILObjectBase<LocalPlayer_Fields>
 {
-    CBasePlayer *GetLocalPlayer()
-    {
-        return (CBasePlayer *)this->StaticFields<LocalPlayer_StaticFields>()
-            ->_Entity_k__BackingField;
-    }
+    static CBasePlayer *GetLocalPlayer();
 };
