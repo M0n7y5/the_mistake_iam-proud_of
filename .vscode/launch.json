@@ -8,6 +8,7 @@
             "name": "(Windows) Attach",
             "type": "cppvsdbg",
             "request": "attach",
+            "symbolSearchPath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Rust"
         }
     ]
 }

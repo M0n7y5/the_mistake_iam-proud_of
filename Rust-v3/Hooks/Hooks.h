@@ -17,6 +17,13 @@ inline void InitHooks()
     Projectile::Init();
     PerformanceText::Init();
     MainCamera::Init();
-    Client::Init();
     EntityList::Init();
+}
+
+// we just hook this forst and rest in Game Thread
+inline void PreInitHooks()
+{
+    using namespace Hooks;
+
+    Client::Init();
 }

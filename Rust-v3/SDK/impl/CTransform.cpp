@@ -5,11 +5,11 @@
 
 // Impl : CTransform
 
-CTransform* CTransform::GetTransform(void* addr)
-{
-    static auto off = OFF(Offsets::UnityEngine_Component::Methods::get_transform);
-    return ((CTransform * (*)(void*))(off))(addr);
-}
+// CTransform* CTransform::GetTransform(void* addr)
+// {
+//     static auto off = OFF(Offsets::UnityEngine_GameObject::StaticMethods::);
+//     return ((CTransform * (*)(void*))(off))(addr);
+// }
 
 Vector3 CTransform::GetPosition() /* rand crash, to:do track*/
 {

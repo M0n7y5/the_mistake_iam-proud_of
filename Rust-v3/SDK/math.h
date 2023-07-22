@@ -59,12 +59,12 @@ class Vector2
 
     Vector2 operator/(float input) const
     {
-        return Vector2 {x / input, y / input};
+        return Vector2{x / input, y / input};
     }
 
     Vector2 operator*(float input) const
     {
-        return Vector2 {x * input, y * input};
+        return Vector2{x * input, y * input};
     }
 
     Vector2& operator-=(const Vector2& v)
@@ -123,21 +123,20 @@ class Vector2
         return x == _flt(0.f) && y == _flt(0.f);
     }
 
-    static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, float angle, bool angleInRadians = false)
+    static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, float angle,
+                               bool angleInRadians = false)
     {
-        float rad        = DEG2RAD(normalize_angle(angle));
-        float s          = (float)-std::sin(rad);
-        float c          = (float)std::cos(rad);
+        float rad = DEG2RAD(normalize_angle(angle));
+        float s   = (float)-std::sin(rad);
+        float c   = (float)std::cos(rad);
         pointToRotate.x -= centerPoint.x;
         pointToRotate.y -= centerPoint.y;
-        float xnew       = pointToRotate.x * c - pointToRotate.y * s;
-        float znew       = pointToRotate.x * s + pointToRotate.y * c;
-        pointToRotate.x  = xnew + centerPoint.x;
-        pointToRotate.y  = znew + centerPoint.y;
+        float xnew      = pointToRotate.x * c - pointToRotate.y * s;
+        float znew      = pointToRotate.x * s + pointToRotate.y * c;
+        pointToRotate.x = xnew + centerPoint.x;
+        pointToRotate.y = znew + centerPoint.y;
         return pointToRotate;
     }
-
-
 };
 
 class Vector3
@@ -159,22 +158,22 @@ class Vector3
 
     Vector3 operator+(const Vector3& input) const
     {
-        return Vector3 {x + input.x, y + input.y, z + input.z};
+        return Vector3{x + input.x, y + input.y, z + input.z};
     }
 
     Vector3 operator+(const Vector2& input) const
     {
-        return Vector3 {x + input.x, y + input.y, z};
+        return Vector3{x + input.x, y + input.y, z};
     }
 
     Vector3 operator-(const Vector3& input) const
     {
-        return Vector3 {x - input.x, y - input.y, z - input.z};
+        return Vector3{x - input.x, y - input.y, z - input.z};
     }
 
     Vector3 operator-(const Vector2& input) const
     {
-        return Vector3 {x - input.x, y - input.y, z};
+        return Vector3{x - input.x, y - input.y, z};
     }
 
     bool operator<(const Vector3& input) const
@@ -190,18 +189,18 @@ class Vector3
     bool Invalid()
     {
         return ((x > -_flt(1.f) && x < _flt(1.f)) && (y > -_flt(1.f) && y < _flt(1.f)) &&
-                   (z > -_flt(1.f) && z < _flt(1.f))) ||
+                (z > -_flt(1.f) && z < _flt(1.f))) ||
                (x == _flt(0.f) && z == _flt(0.f));
     }
 
     Vector3 operator/(float input) const
     {
-        return Vector3 {x / input, y / input, z / input};
+        return Vector3{x / input, y / input, z / input};
     }
 
     Vector3 operator*(float input) const
     {
-        return Vector3 {x * input, y * input, z * input};
+        return Vector3{x * input, y * input, z * input};
     }
 
     Vector3& operator+=(const Vector3& v)
@@ -371,14 +370,14 @@ class Vector3
         {
             return {this->x / num, this->y / num, this->z / num};
         }
-        return Vector3 {};
+        return Vector3{};
     }
 
     Vector3 normalized() const
     {
         float len = length();
         return {x == _flt(0.f) ? _flt(0.f) : x / len, y == _flt(0.f) ? _flt(0.f) : y / len,
-            z == _flt(0.f) ? _flt(0.f) : z / len};
+                z == _flt(0.f) ? _flt(0.f) : z / len};
     }
 
     float dot_product(Vector3 input) const
@@ -418,7 +417,8 @@ class Vector3
     bool empty() const
     {
         return (x == _flt(0.f) && y == _flt(0.f) && z == _flt(0.f)) ||
-               (x == negate_flt(_flt(1.f)) && y == negate_flt(_flt(1.f)) && z == negate_flt(_flt(1.f)));
+               (x == negate_flt(_flt(1.f)) && y == negate_flt(_flt(1.f)) &&
+                z == negate_flt(_flt(1.f)));
     }
 
     static float Angle(Vector3 from, Vector3 to)
@@ -439,8 +439,8 @@ class Vector3
     static Vector3 Reflect(Vector3 inDirection, Vector3 inNormal)
     {
         float num = negate_flt(_flt(2.f)) * inNormal.dot_product(inDirection);
-        return Vector3(
-            num * inNormal.x + inDirection.x, num * inNormal.y + inDirection.y, num * inNormal.z + inDirection.z);
+        return Vector3(num * inNormal.x + inDirection.x, num * inNormal.y + inDirection.y,
+                       num * inNormal.z + inDirection.z);
     }
 
     Vector3 ToVec()
@@ -469,11 +469,13 @@ class Vector3
         if (m_vecUp)
         {
             Vector3 m_vecLeft = (*m_vecUp).Cross(*this);
-            m_flRoll          = RAD2DEG(std::atan2f(m_vecLeft.y, (m_vecLeft.z * x) - (m_vecLeft.x * z)));
+            m_flRoll = RAD2DEG(std::atan2f(m_vecLeft.y, (m_vecLeft.z * x) - (m_vecLeft.x * z)));
         }
 
-        // return Vector3(RAD2DEG(atan2f(-z, sqrtf(x * x + y * y))), RAD2DEG(atan2f(y, x)), m_dRoll);
-        return Vector3(RAD2DEG(std::atan2f(-y, std::sqrt(x * x + z * z))), RAD2DEG(std::atan2f(z, x)), m_flRoll);
+        // return Vector3(RAD2DEG(atan2f(-z, sqrtf(x * x + y * y))), RAD2DEG(atan2f(y, x)),
+        // m_dRoll);
+        return Vector3(RAD2DEG(std::atan2f(-y, std::sqrt(x * x + z * z))),
+                       RAD2DEG(std::atan2f(z, x)), m_flRoll);
     }
 
     static float Clamp(float value, float min, float max)
@@ -515,30 +517,30 @@ class Vector4
 
     Vector4 operator+(const Vector4& input) const
     {
-        return Vector4 {x + input.x, y + input.y, z + input.z, w + input.w};
+        return Vector4{x + input.x, y + input.y, z + input.z, w + input.w};
     }
 
     Vector4 operator-(const Vector4& input) const
     {
-        return Vector4 {x - input.x, y - input.y, z - input.z, w - input.w};
+        return Vector4{x - input.x, y - input.y, z - input.z, w - input.w};
     }
 
     Vector4 operator/(float input) const
     {
-        return Vector4 {x / input, y / input, z / input, w / input};
+        return Vector4{x / input, y / input, z / input, w / input};
     }
 
     Vector4 operator*(float input) const
     {
-        return Vector4 {x * input, y * input, z * input, w * input};
+        return Vector4{x * input, y * input, z * input, w * input};
     }
 
     static Vector4 QuatMult(Vector4 lhs, Vector4 rhs)
     {
-        return Vector4 {lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
-            lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
-            lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
-            lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z};
+        return Vector4{lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
+                       lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
+                       lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
+                       lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z};
     }
 
     Vector4& operator-=(const Vector4& v)
@@ -713,9 +715,12 @@ class Vector4
         float   num11 = rotation.w * num2;
         float   num12 = rotation.w * num3;
         Vector3 result;
-        result.x = (_flt(1.f) - (num5 + num6)) * point.x + (num7 - num12) * point.y + (num8 + num11) * point.z;
-        result.y = (num7 + num12) * point.x + (_flt(1.f) - (num4 + num6)) * point.y + (num9 - num10) * point.z;
-        result.z = (num8 - num11) * point.x + (num9 + num10) * point.y + (_flt(1.f) - (num4 + num5)) * point.z;
+        result.x = (_flt(1.f) - (num5 + num6)) * point.x + (num7 - num12) * point.y +
+                   (num8 + num11) * point.z;
+        result.y = (num7 + num12) * point.x + (_flt(1.f) - (num4 + num6)) * point.y +
+                   (num9 - num10) * point.z;
+        result.z = (num8 - num11) * point.x + (num9 + num10) * point.y +
+                   (_flt(1.f) - (num4 + num5)) * point.z;
         return result;
     }
 
@@ -761,18 +766,21 @@ class Matrix4x4
   public:
     inline Matrix4x4()
     {
-        Init(_flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
-            _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f));
+        Init(_flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
+             _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
+             _flt(0.f));
     }
 
-    inline Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
-        float m21, float m22, float m23, float m30, float m31, float m32, float m33)
+    inline Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12,
+                     float m13, float m20, float m21, float m22, float m23, float m30, float m31,
+                     float m32, float m33)
     {
         Init(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
     }
 
-    inline void Init(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
-        float m21, float m22, float m23, float m30, float m31, float m32, float m33)
+    inline void Init(float m00, float m01, float m02, float m03, float m10, float m11, float m12,
+                     float m13, float m20, float m21, float m22, float m23, float m30, float m31,
+                     float m32, float m33)
     {
         m[0][0] = m00;
         m[0][1] = m01;
@@ -817,8 +825,8 @@ class Matrix4x4
 
     Matrix4x4 transpose() const
     {
-        return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2],
-            m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
+        return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1],
+                         m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
     }
 
     static Matrix4x4 Translate(Vector3 vector)
@@ -846,10 +854,10 @@ class Matrix4x4
 
     // game specific
     // needs to be implemented outside
-    static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar);
+    static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear,
+                           float zFar);
 
-    union
-    {
+    union {
         float m[4][4];
 
         struct
@@ -896,9 +904,12 @@ inline Vector3 quatmult(const Vector3* point, Vector4* quat)
     float   num11 = quat->w * num2;
     float   num12 = quat->w * num3;
     Vector3 result;
-    result.x = (_flt(1.f) - (num5 + num6)) * point->x + (num7 - num12) * point->y + (num8 + num11) * point->z;
-    result.y = (num7 + num12) * point->x + (_flt(1.f) - (num4 + num6)) * point->y + (num9 - num10) * point->z;
-    result.z = (num8 - num11) * point->x + (num9 + num10) * point->y + (_flt(1.f) - (num4 + num5)) * point->z;
+    result.x = (_flt(1.f) - (num5 + num6)) * point->x + (num7 - num12) * point->y +
+               (num8 + num11) * point->z;
+    result.y = (num7 + num12) * point->x + (_flt(1.f) - (num4 + num6)) * point->y +
+               (num9 - num10) * point->z;
+    result.z = (num8 - num11) * point->x + (num9 + num10) * point->y +
+               (_flt(1.f) - (num4 + num5)) * point->z;
     return result;
 }
 
@@ -906,8 +917,30 @@ inline Vector3 vecright   = {_flt(1.f), _flt(0.f), _flt(0.f)};
 inline Vector3 vecforward = {_flt(0.f), _flt(0.f), _flt(1.f)};
 inline Vector3 vecup      = {_flt(0.f), _flt(1.f), _flt(0.f)};
 
-inline float Remap(float value, float inputStart, float inputEnd, float outputStart, float outputEnd)
+inline float Remap(float value, float inputStart, float inputEnd, float outputStart,
+                   float outputEnd)
 {
-    float result = (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
+    float result =
+        (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
     return result;
+}
+
+inline Vector2 Vector2::operator+(const Vector2& input) const
+{
+    return Vector2{x + input.x, y + input.y};
+}
+
+inline Vector2 Vector2::operator+(const Vector3& input) const
+{
+    return Vector2{x + input.x, y + input.y};
+}
+
+inline Vector2 Vector2::operator-(const Vector2& input) const
+{
+    return Vector2{x - input.x, y - input.y};
+}
+
+inline Vector2 Vector2::operator-(const Vector3& input) const
+{
+    return Vector2{x - input.x, y - input.y};
 }

@@ -10,7 +10,8 @@
 				"/property:GenerateFullPaths=true",
 				// "/t:build",
 				"/t:Rebuild",
-				"-m"
+				"-m",
+				"-clp:ShowTimestamp"
 			],
 			"group": "build",
 			"presentation": {

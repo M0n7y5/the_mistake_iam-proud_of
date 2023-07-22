@@ -37,22 +37,22 @@ struct CObject
 {
     void setHideFlags(HideFlags flags);
 
-    static Il2CppObject *Instantiate(Il2CppObject *type);
+    static Il2CppObject* Instantiate(Il2CppObject* type);
 
-    static void DontDestroyOnLoad(Il2CppObject *object);
+    static void DontDestroyOnLoad(Il2CppObject* object);
 };
 
 template <typename T> // CObject is part of this cuz no fields
 struct ILObjectBase : Il2CppObject, T, CObject
 {
-    template <typename TType> TType *StaticFields()
+    template <typename TType> TType* StaticFields()
     {
-        return reinterpret_cast<TType *>(this->klass->static_fields);
+        return reinterpret_cast<TType*>(this->klass->static_fields);
     }
 
-    template <typename TType> TType *As()
+    template <typename TType> TType* As()
     {
-        return reinterpret_cast<TType *>(this);
+        return reinterpret_cast<TType*>(this);
     }
 };
 
@@ -67,7 +67,7 @@ typedef struct Il2CppString
         length; ///< Length of string *excluding* the trailing null (which is included in 'chars').
     Il2CppChar chars[IL2CPP_ZERO_LEN_ARRAY];
 
-    static Il2CppString *newString(const char *text);
+    static Il2CppString* newString(const char* text);
     std::string          str();
 
 } Il2CppString;
@@ -78,7 +78,7 @@ typedef struct Il2CppArray : public Il2CppObject
 {
 
     /* bounds is NULL for szarrays */
-    Il2CppArrayBounds *bounds;
+    Il2CppArrayBounds* bounds;
     /* total number of elements of the array */
     il2cpp_array_size_t max_length;
 } Il2CppArray;
@@ -88,30 +88,30 @@ typedef struct Il2CppArray : public Il2CppObject
 //  so we use this hack instead
 struct CArrayBase
 {
-    static void *NewInternal(Il2CppClass *klass, il2cpp_array_size_t size);
-    static void *NewInternal(const char *klass, il2cpp_array_size_t size,
-                             const char *namespaze = "");
+    static void* NewInternal(Il2CppClass* klass, il2cpp_array_size_t size);
+    static void* NewInternal(const char* klass, il2cpp_array_size_t size,
+                             const char* namespaze = "");
 };
 
 template <typename T> struct CArray : Il2CppArray, CArrayBase
 {
     union {
         T  data[IL2CPP_ZERO_LEN_ARRAY];
-        T *dataPtr[IL2CPP_ZERO_LEN_ARRAY];
+        T* dataPtr[IL2CPP_ZERO_LEN_ARRAY];
 
         // for debugger
         T  dataDummy[8];
-        T *dataPtrDummy[8];
+        T* dataPtrDummy[8];
     };
 
-    static CArray<T> *New(Il2CppClass *klass, il2cpp_array_size_t size)
+    static CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size)
     {
-        return (CArray<T> *)NewInternal(klass, size);
+        return (CArray<T>*)NewInternal(klass, size);
     }
 
-    static CArray<T> *New(const char *klass, il2cpp_array_size_t size, const char *namespaze = "")
+    static CArray<T>* New(const char* klass, il2cpp_array_size_t size, const char* namespaze = "")
     {
-        return (CArray<T> *)NewInternal(klass, size, namespaze);
+        return (CArray<T>*)NewInternal(klass, size, namespaze);
     }
 };
 
@@ -126,7 +126,7 @@ template <typename T> struct WeakArray
 
 struct CType : Il2CppObject
 {
-    static CType *FomClass(const char *name, const char *namespaze = "");
+    static CType* FomClass(const char* name, const char* namespaze = "");
 };
 
 // template <typename T>
@@ -142,62 +142,73 @@ struct CType : Il2CppObject
 
 struct CAssetBundle
 {
-    static CAssetBundle *LoadFileFromMemory(CArray<uint8_t> *assetBundle, uint32_t CRC,
+    static CAssetBundle* LoadFileFromMemory(CArray<uint8_t>* assetBundle, uint32_t CRC,
                                             uint64_t offset);
 
     // Should be used only for debug
-    static CAssetBundle *LoadFileFromFile(const char *path);
+    static CAssetBundle* LoadFileFromFile(const char* path);
 
-    void *LoadAssetInternal(const char *name, CType *type);
+    void* LoadAssetInternal(const char* name, CType* type);
 
-    template <typename T> T *LoadAsset(const char *name, CType *type)
+    template <typename T> T* LoadAsset(const char* name, CType* type)
     {
-        return (T *)LoadAssetInternal(name, type);
+        return (T*)LoadAssetInternal(name, type);
     }
+};
+
+struct CTransform : ILObjectBase<UnityEngine_Transform_Fields>
+{
+    Vector3 GetPosition();
+    void    SetPosition(Vector3 position);
+    void    SetRotation(Vector4 rotation);
 };
 
 struct CGameObject : ILObjectBase<UnityEngine_GameObject_Fields>
 {
-    void *AddComponentInternal(CType *type);
+    void* AddComponentInternal(CType* type);
 
-    void *GetComponentInternal(CType *type);
+    void* GetComponentInternal(CType* type);
 
-    static void *FindInternal(const char *name);
+    Layer GetLayer();
 
-    static void *FindObjectsByTypeInternal(CType *type, FindObjectsInactive findObjectsInactive,
+    static void* FindInternal(const char* name);
+
+    static void* FindObjectsByTypeInternal(CType* type, FindObjectsInactive findObjectsInactive,
                                            FindObjectsSortMode sortMode);
 
     template <typename T>
-    static CArray<T> *FindObjectsByType(CType *type, FindObjectsInactive findObjectsInactive,
+    static CArray<T>* FindObjectsByType(CType* type, FindObjectsInactive findObjectsInactive,
                                         FindObjectsSortMode sortMode)
     {
-        return (CArray<T> *)FindObjectsByTypeInternal(type, findObjectsInactive, sortMode);
+        return (CArray<T>*)FindObjectsByTypeInternal(type, findObjectsInactive, sortMode);
     }
 
-    template <typename T> T *AddComponent(CType *type)
+    template <typename T> T* AddComponent(CType* type)
     {
-        return (T *)AddComponentInternal(type);
+        return (T*)AddComponentInternal(type);
     }
 
-    template <typename T> T *GetComponent(CType *type)
+    template <typename T> T* GetComponent(CType* type)
     {
-        return (T *)GetComponentInternal(type);
+        return (T*)GetComponentInternal(type);
     }
 
-    template <typename T> static T *Instantiate(Il2CppObject *object)
+    template <typename T> static T* Instantiate(Il2CppObject* object)
     {
-        return (T *)CObject::Instantiate(object);
+        return (T*)CObject::Instantiate(object);
     }
 
-    template <typename T> static T *Find(const char *name)
+    template <typename T> static T* Find(const char* name)
     {
-        return (T *)FindInternal(name);
+        return (T*)FindInternal(name);
     }
+
+    CTransform* GetTransform();
 };
 
 struct CUnsafeUtility
 {
-    static void *PinGCObjectAndGetAddress(Il2CppObject *object, uintptr_t *gcHandle);
+    static void* PinGCObjectAndGetAddress(Il2CppObject* object, uintptr_t* gcHandle);
 };
 
 class CTime
@@ -212,14 +223,6 @@ class CTime
     static float GetFixedTime();
     static float GetTimeScale();
     static void  SetTimeScale(float value);
-};
-
-struct CTransform : ILObjectBase<UnityEngine_Transform_Fields>
-{
-    static CTransform *GetTransform(void *addr);
-    Vector3            GetPosition();
-    void               SetPosition(Vector3 position);
-    void               SetRotation(Vector4 rotation);
 };
 
 struct Bounds
@@ -256,6 +259,17 @@ struct OBB
 
 struct CRect : UnityEngine_Rect_Fields // native
 {
+    bool Contains(Vector2 point)
+    {
+        return point.x >= this->m_XMin && point.x < (this->m_Width + this->m_XMin) &&
+               point.y >= this->m_YMin && point.y < (this->m_Height + this->m_YMin);
+    }
+
+    bool Contains(Vector3 point)
+    {
+        return point.x >= this->m_XMin && point.x < (this->m_Width + this->m_XMin) &&
+               point.y >= this->m_YMin && point.y < (this->m_Height + this->m_YMin);
+    }
 };
 
 struct CVertexAttributeDescriptor : UnityEngine_Rendering_VertexAttributeDescriptor_Fields
@@ -264,7 +278,7 @@ struct CVertexAttributeDescriptor : UnityEngine_Rendering_VertexAttributeDescrip
 
 struct CShader : ILObjectBase<UnityEngine_Shader_Fields>
 {
-    static uint32_t PropertyToID(const char *name);
+    static uint32_t PropertyToID(const char* name);
 };
 
 struct CPostProcessLayer
@@ -288,26 +302,26 @@ struct CSubMeshDescriptor
 
 struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
 {
-    static CMesh *New();
+    static CMesh* New();
     void          ctor();
     void          MarkDynamic();
     void          Clear(bool keepVertexLayout);
     void          SetIndexBufferParams(uint32_t indexCount, IndexFormat format);
     void          SetVertexBufferParams(int32_t                                        vertexCount,
-                                        const std::vector<CVertexAttributeDescriptor> &attributes);
-    void          SetSubMeshes(CSubMeshDescriptor *desc, uint32_t count, MeshUpdateFlags flags);
+                                        const std::vector<CVertexAttributeDescriptor>& attributes);
+    void          SetSubMeshes(CSubMeshDescriptor* desc, uint32_t count, MeshUpdateFlags flags);
     void          UploadMeshData(bool markNoLongerReadable);
     void          SetSubmeshCount(uint32_t count);
-    void SetVertexBufferData(int32_t stream, void *data, int32_t dataStart, int32_t meshBufferStart,
+    void SetVertexBufferData(int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart,
                              int32_t count, int32_t elemSize, MeshUpdateFlags flags);
-    void SetIndexBufferData(void *data, int32_t dataStart, int32_t meshBufferStart, int32_t count,
+    void SetIndexBufferData(void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count,
                             int32_t elemSize, MeshUpdateFlags flags);
 };
 
 struct CMaterial : ILObjectBase<UnityEngine_Material_Fields>
 {
-    void              ctor(CShader *shader);
-    static CMaterial *New();
+    void              ctor(CShader* shader);
+    static CMaterial* New();
 };
 
 struct CTexture : ILObjectBase<UnityEngine_Texture_Fields>
@@ -336,22 +350,22 @@ struct CSprite : ILObjectBase<UnityEngine_Sprite_Fields>
 struct CMaterialPropertyBlock : ILObjectBase<UnityEngine_MaterialPropertyBlock_Fields>
 {
     void                           ctor();
-    void                           SetTexture(uint32_t nameID, CTexture *value);
-    static CMaterialPropertyBlock *New();
+    void                           SetTexture(uint32_t nameID, CTexture* value);
+    static CMaterialPropertyBlock* New();
 };
 
 struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
 {
-    static CCommandBuffer *New();
+    static CCommandBuffer* New();
     void                   ctor();
-    void                   setName(const char *name);
-    void                   SetViewport(CRect *pixelRect);
-    void                   SetViewProjectionMatrices(Matrix4x4 *view, Matrix4x4 *proj);
-    void                   EnableScissorRect(CRect *rect);
+    void                   setName(const char* name);
+    void                   SetViewport(CRect* pixelRect);
+    void                   SetViewProjectionMatrices(Matrix4x4* view, Matrix4x4* proj);
+    void                   EnableScissorRect(CRect* rect);
     void                   DisableScissorRect();
     void                   Clear();
-    void DrawMesh(CMesh *mesh, Matrix4x4 *matrix, CMaterial *material, uint32_t submeshIndex,
-                  int32_t shaderPass, CMaterialPropertyBlock *properties);
+    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex,
+                  int32_t shaderPass, CMaterialPropertyBlock* properties);
 };
 
 struct CInput : ILObjectBase<UnityEngine_Input_Fields>
@@ -361,13 +375,14 @@ struct CInput : ILObjectBase<UnityEngine_Input_Fields>
     static bool    GetMouseButton(int32_t button);
     static bool    GetKeyDown(KeyCode key);
     static bool    GetKey(KeyCode key);
-    static bool    Active(KeyButton &button)
+    static bool    Active(KeyButton& button)
     {
         switch (button.buttonData.type)
         {
         case TriggerType::HOLD:
             return GetKey(button.buttonData.key);
-        case TriggerType::TOGGLE: {
+        case TriggerType::TOGGLE:
+        {
             if (GetKeyDown(button.buttonData.key))
             {
                 button.buttonData.isToggled ^= true;
@@ -380,7 +395,7 @@ struct CInput : ILObjectBase<UnityEngine_Input_Fields>
         }
     }
 
-    static bool Enabled(KeyButton &button)
+    static bool Enabled(KeyButton& button)
     {
         switch (button.buttonData.type)
         {
@@ -391,20 +406,20 @@ struct CInput : ILObjectBase<UnityEngine_Input_Fields>
         }
     }
 
-    static CString *GetBind(std::string name);
+    static CString* GetBind(std::string name);
     static void     SetBind(std::string name, std::string value, bool cycled = false);
 };
 
 struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
 {
-    static CCamera *GetCurrentCamera();
-    static CCamera *GetMainCamera();
+    static CCamera* GetCurrentCamera();
+    static CCamera* GetMainCamera();
     Vector3         GetPosition();
     Matrix4x4       GetViewMatrix();
     CRect           GetPixelRect();
-    bool            WorldToScreenOld(const Vector3 &elementPosition, Vector2 &screenPosition);
-    Vector3         WorldToScreen(Vector3 elementPosition);
-    void            AddCommandBuffer(CameraEvent event, CCommandBuffer *buffer);
+    bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
+    bool            WorldToScreen(Vector3 position, Vector2& screenPos, float screenHeight);
+    void            AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer);
     bool            GetOrtoGraphic();
     void            SetOrtoGraphic(bool isOrto);
     void            SetDepth(float depth);
@@ -416,7 +431,7 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
 struct CCanvas : ILObjectBase<UnityEngine_Canvas_Fields>
 {
     void SetRenderMode(RenderMode mode);
-    void SetWorldCamera(CCamera *camera);
+    void SetWorldCamera(CCamera* camera);
     bool IsRootCanvas();
 };
 
@@ -430,14 +445,14 @@ struct CColider : ILObjectBase<UnityEngine_Collider_Fields>
 
 struct CTerrainCollision : TerrainCollision_o
 {
-    void Reset(CColider *collider);
+    void Reset(CColider* collider);
 };
 
 struct CModel : ILObjectBase<Model_Fields>
 {
-    Vector3            GetBonePosition(PlayerBones bone);
-    CTransform        *GetBoneTransform(PlayerBones bone);
-    CArray<CString *> *GetBoneNames();
+    Vector3           GetBonePosition(PlayerBones bone);
+    CTransform*       GetBoneTransform(PlayerBones bone);
+    CArray<CString*>* GetBoneNames();
 };
 
 struct CProtobuf_Entity : ILObjectBase<ProtoBuf_Entity_Fields>
@@ -507,7 +522,7 @@ struct CItem : ILObjectBase<Item_Fields>
 
 struct CHeldEntity : CBaseEntity, HeldEntity_Fields_s
 {
-    CItem *GetItem();
+    CItem* GetItem();
     bool   IsBaseProjectile();
 };
 
@@ -518,7 +533,7 @@ struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
     bool         IsWounded();
     bool         IsSleeping();
     bool         InSafeZone();
-    CHeldEntity *GetHeldEntity();
+    CHeldEntity* GetHeldEntity();
     float        MaxHealth();
     float        StartHealth();
     float        StartMaxHealth();
@@ -557,5 +572,5 @@ struct CClient : ILObjectBase<Client_Fields>
 
 struct CLocalPlayer : ILObjectBase<LocalPlayer_Fields>
 {
-    static CBasePlayer *GetLocalPlayer();
+    static CBasePlayer* GetLocalPlayer();
 };

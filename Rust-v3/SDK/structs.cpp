@@ -7,8 +7,7 @@
 #include "il2cpp_api.h"
 #include <string_view>
 
-
-Il2CppString *Il2CppString::newString(const char *text)
+Il2CppString* Il2CppString::newString(const char* text)
 {
     return il2cpp_string_new(text);
 }
@@ -37,58 +36,58 @@ void CObject::setHideFlags(HideFlags flags)
 {
     static auto addr =
         OFF(Offsets::UnityEngine_Object::Methods::set_hideFlags_UnityEngine_HideFlags_value);
-    ((void(__thiscall *)(CObject *, HideFlags))(addr))(this, flags);
+    ((void(__thiscall*)(CObject*, HideFlags))(addr))(this, flags);
 }
 
-Il2CppObject *CObject::Instantiate(Il2CppObject *type)
+Il2CppObject* CObject::Instantiate(Il2CppObject* type)
 {
     static auto addr =
         OFF(Offsets::UnityEngine_Object::StaticMethods::Instantiate_UnityEngine_Object_original);
-    return ((Il2CppObject * (*)(Il2CppObject *))(addr))(type);
+    return ((Il2CppObject * (*)(Il2CppObject*))(addr))(type);
 }
 
-void CObject::DontDestroyOnLoad(Il2CppObject *object)
+void CObject::DontDestroyOnLoad(Il2CppObject* object)
 {
     // UnityEngine.Object::DontDestroyOnLoad
     static auto addr = il2cpp_resolve_icall(_("UnityEngine.Object::DontDestroyOnLoad"));
-    ((void (*)(Il2CppObject *))(addr))(object);
+    ((void (*)(Il2CppObject*))(addr))(object);
 }
 
-CAssetBundle *CAssetBundle::LoadFileFromMemory(CArray<uint8_t> *assetBundle, uint32_t CRC,
+CAssetBundle* CAssetBundle::LoadFileFromMemory(CArray<uint8_t>* assetBundle, uint32_t CRC,
                                                uint64_t offset)
 {
     static auto addr =
         il2cpp_resolve_icall(_("UnityEngine.AssetBundle::LoadFromMemory_Internal()"));
 
-    return reinterpret_cast<CAssetBundle *(__fastcall *)(CArray<uint8_t> *, uint32_t, uint64_t)>(
-        addr)(assetBundle, CRC, offset);
+    return reinterpret_cast<CAssetBundle*(__fastcall*)(CArray<uint8_t>*, uint32_t, uint64_t)>(addr)(
+        assetBundle, CRC, offset);
 }
 
-CAssetBundle *CAssetBundle::LoadFileFromFile(const char *path)
+CAssetBundle* CAssetBundle::LoadFileFromFile(const char* path)
 {
     static auto addr =
         OFF(Offsets::UnityEngine_AssetBundle::StaticMethods::LoadFromFile_System_String_path);
 
     auto str = il2cpp_string_new(path);
 
-    return ((CAssetBundle * (*)(Il2CppString *))(addr))(str);
+    return ((CAssetBundle * (*)(Il2CppString*))(addr))(str);
 }
 
-void *CAssetBundle::LoadAssetInternal(const char *name, CType *type)
+void* CAssetBundle::LoadAssetInternal(const char* name, CType* type)
 {
     auto str = il2cpp_string_new(name);
 
     static auto addr = OFF(
         Offsets::UnityEngine_AssetBundle::Methods::LoadAsset_System_String_name__System_Type_type);
-    return ((void *(__thiscall *)(CAssetBundle *, Il2CppString *, CType *))(addr))(this, str, type);
+    return ((void*(__thiscall*)(CAssetBundle*, Il2CppString*, CType*))(addr))(this, str, type);
 }
 
-void *CArrayBase::NewInternal(Il2CppClass *klass, il2cpp_array_size_t size)
+void* CArrayBase::NewInternal(Il2CppClass* klass, il2cpp_array_size_t size)
 {
     return il2cpp_array_new_specific(klass, size);
 }
 
-void *CArrayBase::NewInternal(const char *klass, il2cpp_array_size_t size, const char *namespaze)
+void* CArrayBase::NewInternal(const char* klass, il2cpp_array_size_t size, const char* namespaze)
 {
     auto klassType = il2cpp::InitClass(klass, namespaze);
 
@@ -98,7 +97,7 @@ void *CArrayBase::NewInternal(const char *klass, il2cpp_array_size_t size, const
     return il2cpp_array_new_specific(klassType, size);
 }
 
-CType *CType::FomClass(const char *name, const char *namespaze)
+CType* CType::FomClass(const char* name, const char* namespaze)
 {
     auto klass = il2cpp::InitClass(name, namespaze);
 
@@ -110,68 +109,78 @@ CType *CType::FomClass(const char *name, const char *namespaze)
     if (!type)
         return nullptr;
 
-    return (CType *)il2cpp_type_get_object(type);
+    return (CType*)il2cpp_type_get_object(type);
 }
 
-void *CGameObject::AddComponentInternal(CType *type)
+void* CGameObject::AddComponentInternal(CType* type)
 {
     static auto addr =
         OFF(Offsets::UnityEngine_GameObject::Methods::AddComponent_System_Type_componentType);
-    return ((void *(__thiscall *)(CGameObject *, CType *))(addr))(this, type);
+    return ((void*(__thiscall*)(CGameObject*, CType*))(addr))(this, type);
+}
+Layer CGameObject::GetLayer()
+{
+    static auto addr = OFF(Offsets::UnityEngine_GameObject::Methods::get_layer);
+    return ((Layer(__thiscall*)(CGameObject*))(addr))(this);
 }
 
-void *CGameObject::GetComponentInternal(CType *type)
+void* CGameObject::GetComponentInternal(CType* type)
 {
     static auto addr = OFF(Offsets::UnityEngine_GameObject::Methods::GetComponent_System_Type_type);
-    return ((void *(__thiscall *)(CGameObject *, CType *))(addr))(this, type);
+    return ((void*(__thiscall*)(CGameObject*, CType*))(addr))(this, type);
 }
 
-void *CGameObject::FindInternal(const char *name)
+void* CGameObject::FindInternal(const char* name)
 {
     auto        str  = CString::newString(name);
     static auto addr = OFF(Offsets::UnityEngine_GameObject::StaticMethods::Find_System_String_name);
-    return ((void *(*)(CString *))(addr))(str);
+    return ((void* (*)(CString*))(addr))(str);
 }
 
-void *CGameObject::FindObjectsByTypeInternal(CType *type, FindObjectsInactive findObjectsInactive,
+void* CGameObject::FindObjectsByTypeInternal(CType* type, FindObjectsInactive findObjectsInactive,
                                              FindObjectsSortMode sortMode)
 {
     static auto addr = il2cpp_resolve_icall(_("UnityEngine.Object::FindObjectsByType"));
-    return ((void *(*)(CType *, FindObjectsInactive, FindObjectsSortMode))(addr))(
+    return ((void* (*)(CType*, FindObjectsInactive, FindObjectsSortMode))(addr))(
         type, findObjectsInactive, sortMode);
 }
 
+CTransform* CGameObject::GetTransform()
+{
+    static auto addr = OFF(Offsets::UnityEngine_Component::Methods::get_transform);
+    return ((CTransform * (__thiscall*)(CGameObject*))(addr))(this);
+}
 // void* CGameObject::InstantiateInternal(Il2CppObject* type)
 //{
 //     return nullptr;
 // }
 
-void *CUnsafeUtility::PinGCObjectAndGetAddress(Il2CppObject *object, uintptr_t *gcHandle)
+void* CUnsafeUtility::PinGCObjectAndGetAddress(Il2CppObject* object, uintptr_t* gcHandle)
 {
     static auto addr = il2cpp_resolve_icall(
         _("Unity.Collections.LowLevel.Unsafe.UnsafeUtility::PinSystemObjectAndGetAddress"));
 
-    return ((void *(*)(Il2CppObject *, uintptr_t *))(addr))(object, gcHandle);
+    return ((void* (*)(Il2CppObject*, uintptr_t*))(addr))(object, gcHandle);
 }
 
 void CCanvas::SetRenderMode(RenderMode mode)
 {
     // UnityEngine.Canvas::set_renderMode
     static auto addr = il2cpp_resolve_icall(_("UnityEngine.Canvas::set_renderMode"));
-    ((void(__thiscall *)(CCanvas *, RenderMode))(addr))(this, mode);
+    ((void(__thiscall*)(CCanvas*, RenderMode))(addr))(this, mode);
 }
 
-void CCanvas::SetWorldCamera(CCamera *camera)
+void CCanvas::SetWorldCamera(CCamera* camera)
 {
     static auto addr =
         OFF(Offsets::UnityEngine_Canvas::Methods::set_worldCamera_UnityEngine_Camera_value);
-    ((void(__thiscall *)(CCanvas *, CCamera *))(addr))(this, camera);
+    ((void(__thiscall*)(CCanvas*, CCamera*))(addr))(this, camera);
 }
 
 bool CCanvas::IsRootCanvas()
 {
     static auto addr = OFF(Offsets::UnityEngine_Canvas::Methods::get_isRootCanvas);
-    return ((bool(__thiscall *)(CCanvas *))(addr))(this);
+    return ((bool(__thiscall*)(CCanvas*))(addr))(this);
 }
 
 // Il2CppObject* CPrefabUtility::InstantiatePrefab(Il2CppObject* object)
@@ -181,8 +190,8 @@ bool CCanvas::IsRootCanvas()
 //     ((Il2CppObject * (*)(Il2CppObject*))(addr))(object);
 // }
 
-CBasePlayer *CLocalPlayer::GetLocalPlayer()
+CBasePlayer* CLocalPlayer::GetLocalPlayer()
 {
-    static auto addr = OFF(Offsets::LocalPlayer::StaticMethods::get_Entity);
-    return ((CBasePlayer*(*)())(addr))();
+    static auto addr = OFF(Offsets::LocalPlayer::StaticMethods::get_LocalOrSpectatePlayer);
+    return ((CBasePlayer * (*)())(addr))();
 }

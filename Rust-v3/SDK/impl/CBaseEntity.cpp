@@ -7,7 +7,7 @@
 
 Vector3 CBaseEntity::GetOriginPosition()
 {
-    return CTransform::GetTransform(this)->GetPosition();
+    return ((CGameObject*)this)->GetTransform()->GetPosition();
 }
 
 Vector3 CBaseEntity::GetLocalVelocity()

@@ -13,23 +13,23 @@ struct Settings
         {
             struct Aimbot
             {
-                ToggleKeybindOption aim               = ToggleKeybindOption(KeyCode::Mouse3);
-                bool                Silent            = false;
-                bool                ShootWhenPossible = true;
-                bool                Humanizer         = true;
-                bool                Prediction        = true;
-                bool                Smoothing         = true;
-                int                 HumanizerAmount   = 4;
-                int                 Smooth            = 10;
-                int                 FOV               = 90;
-                AimbotSmooth        SmoothMode        = AimbotSmooth::Linear;
+                TKO          aim               = TKO(KeyCode::Mouse3);
+                bool         Silent            = false;
+                bool         ShootWhenPossible = true;
+                bool         Humanizer         = true;
+                bool         Prediction        = true;
+                bool         Smoothing         = true;
+                int          HumanizerAmount   = 4;
+                int          Smooth            = 10;
+                int          FOV               = 90;
+                AimbotSmooth SmoothMode        = AimbotSmooth::Linear;
 
             } aimbot{};
 
             struct Magic
             {
-                ToggleKeybindOption mag       = {KeyCode::Mouse4, true};
-                bool                RapidFire = false;
+                TKO  mag       = {KeyCode::Mouse4, true};
+                bool RapidFire = false;
                 // bool                MiniCopter            = false;
                 // bool                HeliCopter            = false;
                 // bool                ShootAtPos            = false;
@@ -98,18 +98,19 @@ struct Settings
 
         struct Player
         {
-            bool              Enabled     = true;
-            bool              Hotbar      = true;
-            bool              Health      = true;
-            ToggleColorOption Box         = {255, 255, 255, 255};
-            ToggleColorOption Skeleton    = {255, 255, 255, 255, true};
-            ToggleColorOption Name        = {255, 255, 255, 255, true};
-            ToggleColorOption Dist        = {255, 255, 255, 255, true};
-            ToggleColorOption ActiveItem  = {8, 255, 190, 255, true};
-            ToggleColorOption TeamID      = {255, 255, 255, 255, true};
-            ToggleColorOption PlayerFlags = {255, 255, 255, 255, true};
-            ToggleColorOption Wounded     = {252, 148, 3, 255, true};
-            ToggleColorOption Sleeping    = {252, 148, 3, 255, true};
+            bool Enabled = true;
+            bool Hotbar  = true;
+            bool Health  = true;
+
+            TCO Box         = {255, 255, 255, 255};
+            TCO Skeleton    = {255, 255, 255, 255, true};
+            TCO Name        = {255, 255, 255, 255, true};
+            TCO Dist        = {255, 255, 255, 255, true};
+            TCO ActiveItem  = {8, 255, 190, 255, true};
+            TCO TeamID      = {255, 255, 255, 255, true};
+            TCO PlayerFlags = {255, 255, 255, 255, true};
+            TCO Wounded     = {252, 148, 3, 255, true};
+            TCO Sleeping    = {252, 148, 3, 255, true};
 
             Chams chams{};
         };
@@ -125,11 +126,15 @@ struct Settings
 
             struct Indicators
             {
-                bool Enabled   = true;
-                bool Radar     = true;
-                int  RadarSize = 100;
-
-                ToggleColorOption VisualPredition = {255, 0, 0, 255, true};
+                bool Enabled         = true;
+                bool Radar           = true;
+                int  RadarSize       = 100;
+                TCO  RadarEnemies    = {255, 0, 0, 255, true};
+                TCO  RadarFriends    = {0, 255, 0, 255, true};
+                TCO  RadarSleepers   = {255, 204, 153, 255, true};
+                TCO  RadarWounded    = {255, 179, 25, 255, true};
+                TCO  RadarNPC        = {77, 136, 255, 255, true};
+                TCO  VisualPredition = {255, 0, 0, 255, true};
 
                 // bool Enabled = true;
 
@@ -140,15 +145,15 @@ struct Settings
                 .Enabled     = true,
                 .Hotbar      = true,
                 .Health      = true,
-                .Box         = ToggleColorOption(0, 255, 0),
-                .Skeleton    = ToggleColorOption(0, 255, 0, 255, true),
-                .Name        = ToggleColorOption(0, 255, 0, 255, true),
-                .Dist        = ToggleColorOption(0, 255, 0, 255, true),
-                .ActiveItem  = ToggleColorOption(8, 255, 190, 255, true),
-                .TeamID      = ToggleColorOption(255, 255, 255, 255, true),
-                .PlayerFlags = ToggleColorOption(255, 255, 255, 255, true),
-                .Wounded     = ToggleColorOption(252, 148, 3, 255, true),
-                .Sleeping    = ToggleColorOption(252, 148, 3, 255, true),
+                .Box         = TCO(0, 255, 0),
+                .Skeleton    = TCO(0, 255, 0, 255, true),
+                .Name        = TCO(0, 255, 0, 255, true),
+                .Dist        = TCO(0, 255, 0, 255, true),
+                .ActiveItem  = TCO(8, 255, 190, 255, true),
+                .TeamID      = TCO(255, 255, 255, 255, true),
+                .PlayerFlags = TCO(255, 255, 255, 255, true),
+                .Wounded     = TCO(252, 148, 3, 255, true),
+                .Sleeping    = TCO(252, 148, 3, 255, true),
                 .chams =
                     {
                         .colChamsVis           = ImColor(255, 30, 30, 255),
@@ -163,15 +168,15 @@ struct Settings
                 .Enabled     = true,
                 .Hotbar      = true,
                 .Health      = true,
-                .Box         = ToggleColorOption(255, 255, 255, 255),
-                .Skeleton    = ToggleColorOption(255, 255, 255, 255, true),
-                .Name        = ToggleColorOption(255, 255, 255, 255, true),
-                .Dist        = ToggleColorOption(255, 255, 255, 255, true),
-                .ActiveItem  = ToggleColorOption(8, 255, 190, 255, true),
-                .TeamID      = ToggleColorOption(255, 255, 255, 255, true),
-                .PlayerFlags = ToggleColorOption(255, 255, 255, 255, true),
-                .Wounded     = ToggleColorOption(252, 148, 3, 255, true),
-                .Sleeping    = ToggleColorOption(252, 148, 3, 255, true),
+                .Box         = TCO(255, 255, 255, 255),
+                .Skeleton    = TCO(255, 255, 255, 255, true),
+                .Name        = TCO(255, 255, 255, 255, true),
+                .Dist        = TCO(255, 255, 255, 255, true),
+                .ActiveItem  = TCO(8, 255, 190, 255, true),
+                .TeamID      = TCO(255, 255, 255, 255, true),
+                .PlayerFlags = TCO(255, 255, 255, 255, true),
+                .Wounded     = TCO(252, 148, 3, 255, true),
+                .Sleeping    = TCO(252, 148, 3, 255, true),
                 .chams =
                     {
                         .colChamsVis           = ImColor(255, 30, 30, 255),
@@ -186,15 +191,15 @@ struct Settings
                 .Enabled     = true,
                 .Hotbar      = true,
                 .Health      = true,
-                .Box         = ToggleColorOption(77, 136, 255),
-                .Skeleton    = ToggleColorOption(77, 136, 255, 255, true),
-                .Name        = ToggleColorOption(77, 136, 255, 255, true),
-                .Dist        = ToggleColorOption(77, 136, 255, 255, true),
-                .ActiveItem  = ToggleColorOption(8, 255, 190, 255, true),
-                .TeamID      = ToggleColorOption(255, 255, 255, 255, true),
-                .PlayerFlags = ToggleColorOption(255, 255, 255, 255, true),
-                .Wounded     = ToggleColorOption(252, 148, 3, 255, true),
-                .Sleeping    = ToggleColorOption(252, 148, 3, 255, true),
+                .Box         = TCO(77, 136, 255),
+                .Skeleton    = TCO(77, 136, 255, 255, true),
+                .Name        = TCO(77, 136, 255, 255, true),
+                .Dist        = TCO(77, 136, 255, 255, true),
+                .ActiveItem  = TCO(8, 255, 190, 255, true),
+                .TeamID      = TCO(255, 255, 255, 255, true),
+                .PlayerFlags = TCO(255, 255, 255, 255, true),
+                .Wounded     = TCO(252, 148, 3, 255, true),
+                .Sleeping    = TCO(252, 148, 3, 255, true),
                 .chams =
                     {
                         .colChamsVis           = ImColor(255, 30, 30, 255),
@@ -223,16 +228,16 @@ struct Settings
 
             struct Colors
             {
-                ToggleColorOption food     = {130, 104, 38};
-                ToggleColorOption mushroom = {158, 121, 59};
-                ToggleColorOption pumpkin  = {130, 104, 38};
-                ToggleColorOption corn     = {249, 255, 89};
-                ToggleColorOption potato   = {255, 191, 89};
-                ToggleColorOption wood     = {125, 89, 42};
-                ToggleColorOption stone    = {155, 155, 155};
-                ToggleColorOption metal    = {86, 66, 50};
-                ToggleColorOption sulfur   = {239, 201, 31};
-                ToggleColorOption hemp     = {140, 227, 0};
+                TCO food     = {130, 104, 38};
+                TCO mushroom = {158, 121, 59};
+                TCO pumpkin  = {130, 104, 38};
+                TCO corn     = {249, 255, 89};
+                TCO potato   = {255, 191, 89};
+                TCO wood     = {125, 89, 42};
+                TCO stone    = {155, 155, 155};
+                TCO metal    = {86, 66, 50};
+                TCO sulfur   = {239, 201, 31};
+                TCO hemp     = {140, 227, 0};
             } colors{};
         } collectibles{};
 
@@ -249,15 +254,15 @@ struct Settings
 
             struct Colors
             {
-                ToggleColorOption barrels      = {153, 221, 255};
-                ToggleColorOption crates       = {255, 255, 153};
-                ToggleColorOption military     = {128, 255, 149};
-                ToggleColorOption heli         = {128, 255, 149};
-                ToggleColorOption lootbox      = {130, 104, 38};
-                ToggleColorOption lootboxElite = {128, 255, 149};
-                ToggleColorOption toolbox      = {255, 204, 179};
-                ToggleColorOption foodbox      = {209, 193, 19};
-                ToggleColorOption other        = {255, 255, 255};
+                TCO barrels      = {153, 221, 255};
+                TCO crates       = {255, 255, 153};
+                TCO military     = {128, 255, 149};
+                TCO heli         = {128, 255, 149};
+                TCO lootbox      = {130, 104, 38};
+                TCO lootboxElite = {128, 255, 149};
+                TCO toolbox      = {255, 204, 179};
+                TCO foodbox      = {209, 193, 19};
+                TCO other        = {255, 255, 255};
             } colors;
         } radtown{};
 
@@ -274,9 +279,9 @@ struct Settings
 
             struct Colors
             {
-                ToggleColorOption stone  = {155, 155, 155};
-                ToggleColorOption sulfur = {239, 201, 31};
-                ToggleColorOption metal  = {86, 66, 50};
+                TCO stone  = {155, 155, 155};
+                TCO sulfur = {239, 201, 31};
+                TCO metal  = {86, 66, 50};
             } colors{};
         } ores{};
 
@@ -286,17 +291,19 @@ struct Settings
             {
                 bool Enabled  = false;
                 bool Fade     = false;
-                bool Bear     = true;
-                bool Boar     = true;
-                bool Wolf     = true;
-                bool Stag     = false;
                 int  Distance = 150;
 
             } general{};
 
             struct Colors
             {
-                ToggleColorOption animals = {203, 130, 255};
+                TCO bear      = {203, 130, 255};
+                TCO polarBear = {203, 130, 255};
+                TCO boar      = {203, 130, 255};
+                TCO chicken   = {203, 130, 255};
+                TCO stag      = {203, 130, 255};
+                TCO wolf      = {203, 130, 255};
+                TCO zombie    = {203, 130, 255};
             } colors{};
         } animals{};
 
@@ -315,14 +322,14 @@ struct Settings
 
             struct Colors
             {
-                ToggleColorOption mini      = {118, 191, 255};
-                ToggleColorOption scrapHeli = {71, 121, 165};
-                ToggleColorOption boat      = {145, 103, 48};
-                ToggleColorOption rhib      = {145, 103, 48};
-                ToggleColorOption horse     = {88, 217, 255};
-                ToggleColorOption baloon    = {79, 54, 21};
-                ToggleColorOption patrol    = {211, 127, 10};
-                ToggleColorOption bradley   = {211, 127, 10};
+                TCO mini      = {118, 191, 255};
+                TCO scrapHeli = {71, 121, 165};
+                TCO boat      = {145, 103, 48};
+                TCO rhib      = {145, 103, 48};
+                TCO horse     = {88, 217, 255};
+                TCO baloon    = {79, 54, 21};
+                TCO patrol    = {211, 127, 10};
+                TCO bradley   = {211, 127, 10};
             } colors{};
         } vehicles{};
 
@@ -337,13 +344,13 @@ struct Settings
 
             struct Colors
             {
-                ToggleColorOption autoTurret       = {240, 56, 10};
-                ToggleColorOption autoTurretAuthed = {44, 222, 20};
-                ToggleColorOption samSite          = {240, 56, 10};
-                ToggleColorOption shotgunTrap      = {240, 56, 10};
-                ToggleColorOption flameTurret      = {240, 56, 10};
-                ToggleColorOption landmine         = {240, 56, 10};
-                ToggleColorOption bearTrap         = {255, 245, 166};
+                TCO autoTurret       = {240, 56, 10};
+                TCO autoTurretAuthed = {44, 222, 20};
+                TCO samSite          = {240, 56, 10};
+                TCO shotgunTrap      = {240, 56, 10};
+                TCO flameTurret      = {240, 56, 10};
+                TCO landmine         = {240, 56, 10};
+                TCO bearTrap         = {255, 245, 166};
             } colors{};
         } traps{};
 
@@ -358,22 +365,22 @@ struct Settings
 
             struct Backpack
             {
-                ToggleColorOption option   = {255, 245, 166, 255, true};
-                int               Distance = 150;
+                TCO option   = {255, 245, 166, 255, true};
+                int Distance = 150;
             } backpacks{};
 
             struct Corpse
             {
-                bool              Name     = true;
-                ToggleColorOption option   = {255, 245, 166, 255, true};
-                int               Distance = 150;
+                bool Name     = true;
+                TCO  option   = {255, 245, 166, 255, true};
+                int  Distance = 150;
             } corpses{};
 
             struct Stash
             {
-                bool              HideOpenStashes = true;
-                ToggleColorOption option          = {255, 245, 166, 255, true};
-                int               Distance        = 200;
+                bool HideOpenStashes = true;
+                TCO  option          = {255, 245, 166, 255, true};
+                int  Distance        = 200;
             } stashes{};
 
         } item{};
@@ -383,5 +390,5 @@ struct Settings
 
 namespace SettingsData
 {
-extern Settings *settings;
+    extern Settings* settings;
 }

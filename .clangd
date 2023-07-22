@@ -4,6 +4,7 @@ InlayHints:
   ParameterNames: Yes
   DeducedTypes: Yes
 CompileFlags:
+  # Compiler: clang-cl
   Add:
     - "-std=c++20"
     - "-D"

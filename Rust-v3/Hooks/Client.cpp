@@ -8,7 +8,7 @@
 #include "../ui/ESP.h"
 #include "../ui/GUI.h"
 #include "../ui/imgui_backend/imgui_impl_unity.h"
-
+#include "Hooks.h"
 
 static uintptr_t LateUpdate_o = 0;
 static uintptr_t Awake_o      = 0;
@@ -16,9 +16,10 @@ static uintptr_t OnDisable_o  = 0;
 
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-static bool isMenuOpen = true;
+static bool isMenuOpen    = true;
+static bool graceFullExit = true;
 
-static void hk_LateUpdate(CClient *_this)
+static void hk_LateUpdate(CClient* _this)
 {
     static bool initMe = true;
 
@@ -28,10 +29,10 @@ static void hk_LateUpdate(CClient *_this)
         initMe = false;
         reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
 
+        InitHooks();
+
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-        L::Print("Client LateUpdate -> initMe");
-        L::PopConsoleColor();
+        L::Print<L::Yellow>("Client LateUpdate -> initMe");
 #endif
         // TODO: actually use this?
         auto success = ImGui_Impl_Unity_Init();
@@ -39,33 +40,44 @@ static void hk_LateUpdate(CClient *_this)
         return;
     }
 
+    reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
+
     if (CInput::GetKeyDown(KeyCode::Insert))
     {
         isMenuOpen ^= true;
     }
 
-    auto &io = ImGui::GetIO();
+    auto& io = ImGui::GetIO();
 
-    ImGui_Impl_Unity_NewFrame(io);
-    ImGui::NewFrame();
-
-    ESP::g = ImGui::GetBackgroundDrawList();
-    ESP::Draw();
-    
-    if (isMenuOpen)
+    if (graceFullExit)
     {
-        GUI::Render();
+        graceFullExit = false;
+        ImGui_Impl_Unity_NewFrame(io);
+        ImGui::NewFrame();
+
+        ESP::g = ImGui::GetBackgroundDrawList();
+        ESP::Draw();
+
+        if (isMenuOpen)
+        {
+            GUI::Render();
+        }
+
+        ImGui::EndFrame();
+        ImGui::Render();
+
+        ImGui_Impl_Unity_RenderDrawData(ImGui::GetDrawData());
     }
-
-    ImGui::EndFrame();
-    ImGui::Render();
-
-    ImGui_Impl_Unity_RenderDrawData(ImGui::GetDrawData());
-
-    reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
+    else
+    {
+        ImGui::EndFrame();
+        graceFullExit = true;
+        //__debugbreak(); // figure this one out
+    }
+    graceFullExit = true;
 }
 
-static void hk_Awake(void *_this)
+static void hk_Awake(void* _this)
 {
     static bool initMe = true;
 
@@ -76,9 +88,7 @@ static void hk_Awake(void *_this)
         reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
 
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-        L::Print("Client Awake -> initMe");
-        L::PopConsoleColor();
+        L::Print<L::Yellow>("Client Awake -> initMe");
 #endif
 
         return;
@@ -89,7 +99,7 @@ static void hk_Awake(void *_this)
     reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
 }
 
-static void hk_OnDisable(void *_this)
+static void hk_OnDisable(void* _this)
 {
     static bool initMe = true;
 
@@ -100,9 +110,7 @@ static void hk_OnDisable(void *_this)
         reinterpret_cast<decltype(&hk_OnDisable)>(OnDisable_o)(_this);
 
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-        L::Print("Client OnDisable -> initMe");
-        L::PopConsoleColor();
+        L::Print<L::Yellow>("Client OnDisable -> initMe");
 #endif
 
         return;
@@ -116,7 +124,7 @@ static void hk_OnDisable(void *_this)
 void Hooks::Client::Init()
 {
     auto klass   = il2cpp::InitClass(_("Client"));
-    LateUpdate_o = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), (void *)&hk_LateUpdate);
+    LateUpdate_o = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), (void*)&hk_LateUpdate);
     // Awake_o      = il2cpp::HookVirtualFunction(klass, _("Awake"), (void*)&hk_Awake);
     // OnDisable_o  = il2cpp::HookVirtualFunction(klass, _("OnDisable"), (void*)&hk_OnDisable);
 }

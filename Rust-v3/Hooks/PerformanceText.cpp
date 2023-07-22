@@ -17,9 +17,7 @@ static void hk_LateUpdate(void* _this)
         reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
 
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
         L::Print("PerformanceText LateUpdate -> initMe");
-        L::PopConsoleColor();
 #endif
 
         return;

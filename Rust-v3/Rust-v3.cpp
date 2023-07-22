@@ -55,7 +55,7 @@ int Start(uint64_t imageBase)
     L::Print("GameAssembly.dll base 0x{:X}", G::baseGameAssemlby);
 #endif // _DEBUG
 
-    InitHooks();
+    PreInitHooks();
 
     return 0;
 }

@@ -19,7 +19,7 @@ CCamera* CCamera::GetMainCamera()
 
 Vector3 CCamera::GetPosition()
 {
-    return CTransform::GetTransform(this)->GetPosition();
+    return ((CGameObject*)this)->GetTransform()->GetPosition();
 }
 
 Matrix4x4 CCamera::GetViewMatrix()
@@ -41,9 +41,9 @@ bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPo
     if (elementPosition.empty())
         return false;
 
-    Vector3 trans_vec {view_matrix[0][3], view_matrix[1][3], view_matrix[2][3]};
-    Vector3 right_vec {view_matrix[0][0], view_matrix[1][0], view_matrix[2][0]};
-    Vector3 up_vec {view_matrix[0][1], view_matrix[1][1], view_matrix[2][1]};
+    Vector3 trans_vec{view_matrix[0][3], view_matrix[1][3], view_matrix[2][3]};
+    Vector3 right_vec{view_matrix[0][0], view_matrix[1][0], view_matrix[2][0]};
+    Vector3 up_vec{view_matrix[0][1], view_matrix[1][1], view_matrix[2][1]};
 
     const float w = trans_vec.dot_product(elementPosition) + view_matrix[3][3];
 
@@ -58,15 +58,23 @@ bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPo
     return true;
 }
 
-Vector3 CCamera::WorldToScreen(Vector3 position)
+bool CCamera::WorldToScreen(Vector3 position, Vector2& screenPos, float screenHeight)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
-    return ((Vector3(__thiscall*)(CCamera*, Vector3))(addr))(this, position);
+    static auto addr =
+        OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
+    auto vec = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr))(this, position);
+
+    if (vec.z < _flt(0.001f))
+        return false;
+
+    screenPos = {vec.x, screenHeight - vec.y};
+    return true;
 }
 
 void CCamera::AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::
+    static auto addr = OFF(
+        Offsets::UnityEngine_Camera::Methods::
             AddCommandBuffer_UnityEngine_Rendering_CameraEvent_evt__UnityEngine_Rendering_CommandBuffer_buffer);
     ((void(__thiscall*)(CCamera*, CameraEvent, CCommandBuffer*))(addr))(this, event, buffer);
 }
@@ -79,7 +87,8 @@ bool CCamera::GetOrtoGraphic()
 
 void CCamera::SetOrtoGraphic(bool isOrto)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_orthographic_System_Boolean_value);
+    static auto addr =
+        OFF(Offsets::UnityEngine_Camera::Methods::set_orthographic_System_Boolean_value);
     ((void(__thiscall*)(CCamera*, bool))(addr))(this, isOrto);
 }
 
@@ -91,13 +100,15 @@ void CCamera::SetDepth(float depth)
 
 void CCamera::SetCullingMask(Layer layer)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_cullingMask_System_Int32_value);
+    static auto addr =
+        OFF(Offsets::UnityEngine_Camera::Methods::set_cullingMask_System_Int32_value);
     ((void(__thiscall*)(CCamera*, Layer))(addr))(this, layer);
 }
 
 void CCamera::SetClearFlags(CameraClearFlags flags)
 {
-    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_clearFlags_UnityEngine_CameraClearFlags_value);
+    static auto addr = OFF(
+        Offsets::UnityEngine_Camera::Methods::set_clearFlags_UnityEngine_CameraClearFlags_value);
     ((void(__thiscall*)(CCamera*, CameraClearFlags))(addr))(this, flags);
 }
 

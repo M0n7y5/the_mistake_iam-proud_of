@@ -2,8 +2,15 @@
 #include "il2cpp.h"
 #include "../mrt/lazy_importer.hpp"
 #include "../mrt/logging.h"
+#include <algorithm>
 #include <cstring>
+#include <iterator>
+#include <vadefs.h>
 #include "mem.h"
+#include <vector>
+#include <span>
+#include <ranges>
+
 constexpr static auto mod = LI_MODULE("GameAssembly.dll");
 
 Il2CppDomain* il2cpp_domain_get()
@@ -36,7 +43,8 @@ Il2CppObject* il2cpp_object_new(const Il2CppClass* klass)
     return LI_FN(il2cpp_object_new).in_safe_cached(mod.get())(klass);
 }
 
-Il2CppClass* il2cpp_class_from_name(const Il2CppImage* image, const char* namespaze, const char* name)
+Il2CppClass* il2cpp_class_from_name(const Il2CppImage* image, const char* namespaze,
+                                    const char* name)
 {
     return LI_FN(il2cpp_class_from_name).in_safe_cached(mod.get())(image, namespaze, name);
 }
@@ -100,9 +108,11 @@ Il2CppClass* il2cpp::InitClass(const char* name, const char* name_space)
             static void* getBitmap = LI_FN(il2cpp_class_get_bitmap).in_safe(mod.get());
             //(void*)mem::FindExportedFunction(module::assembly,
             // XS("il2cpp_class_get_bitmap"));
-            mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)getBitmap, imageSize, &found);
+            mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)getBitmap, imageSize,
+                             &found);
             uint64_t firstMethod = mem::ResolveCall<uint64_t>((uint8_t*)found);
-            mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)firstMethod, imageSize, &found);
+            mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)firstMethod, imageSize,
+                             &found);
             uint64_t initMethod = mem::ResolveCall<uint64_t>((uint8_t*)found);
 
             initClass = (void*)initMethod;
@@ -115,7 +125,8 @@ Il2CppClass* il2cpp::InitClass(const char* name, const char* name_space)
     return 0;
 }
 
-MethodInfo* il2cpp::GetMethod(Il2CppClass* klass, const char* name, int argCount, const char* argName, int selectedArg)
+MethodInfo* il2cpp::GetMethod(Il2CppClass* klass, const char* name, int argCount,
+                              const char* argName, int selectedArg)
 {
     void* iter = 0;
     while (auto f = il2cpp_class_get_methods(klass, &iter))
@@ -149,8 +160,8 @@ MethodInfo* il2cpp::GetMethod(Il2CppClass* klass, const char* name, int argCount
     return nullptr;
 }
 
-MethodInfo* il2cpp::GetMethod(
-    const char* klassName, const char* name, int argCount, const char* argName, const char* nameSpace, int selectedArg)
+MethodInfo* il2cpp::GetMethod(const char* klassName, const char* name, int argCount,
+                              const char* argName, const char* nameSpace, int selectedArg)
 {
     auto klass = InitClass(klassName, nameSpace);
     if (!klass)
@@ -159,74 +170,219 @@ MethodInfo* il2cpp::GetMethod(
     return GetMethod(klass, name, argCount, argName, selectedArg);
 }
 
-/// <summary>
-/// This will return original method
-/// </summary>
-/// <param name="klass"></param>
-/// <param name="methodName"></param>
-/// <param name="hook"></param>
-/// <param name="name_space"></param>
-/// <returns></returns>
-uintptr_t il2cpp::HookVirtualFunction(Il2CppClass* klass, const char* methodName, void* hook, const char* name_space)
+std::vector<Il2CppMethodPointer> existingHooks{};
+
+uintptr_t il2cpp::HookVirtualFunction(Il2CppClass* _klass, const char* methodName, void* hook,
+                                      bool forceDirectHook, const char* name_space)
 {
-    MethodInfo* m      = il2cpp::GetMethod(klass, methodName);
-    auto        search = *(uintptr_t*)m;
-    auto        table  = (uintptr_t)klass;
+    auto klass = _klass;
 
-#ifdef _DEBUG
-    L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-    L::Print("Attempt to hook method {} in class {} ...", methodName, klass->_1.name);
-    L::PopConsoleColor();
-#endif
-
+    MethodInfo* m = il2cpp::GetMethod(klass, methodName);
     if (m == nullptr)
     {
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_RED);
-        L::Print("Method was not found!", methodName, klass->_1.name);
-        L::PopConsoleColor();
-#endif
-        return 0;
-    }
+        L::Print<L::RedInstense>("Method not found! Name: {}, Class: {}", methodName,
+                                 klass->_1.name);
+        L::Print<L::Yellow>("Atempting to search in subclasses");
+        bool vFound = false;
 
-    if (search == (uintptr_t)hook)
-        return (uintptr_t)hook;
+        std::span<Il2CppClass*> sp(klass->_2.typeHierarchy, klass->_2.typeHierarchyDepth);
 
-    for (uintptr_t i = table; i <= table + 0x1500; i += 0x1)
-    {
-        const MethodInfo* tmp = (const MethodInfo*)i;
-
-        uintptr_t addr = *reinterpret_cast<uintptr_t*>(i);
-        if (addr == (uintptr_t)search)
+        int idx = 0;
+        for (auto kl : std::ranges::reverse_view(sp))
         {
-#ifdef _DEBUG
-            L::PushConsoleColor(FOREGROUND_INTENSE_GREEN);
-            L::Print("Method found! Orignal 0x{:X}, Hook 0x{:X}", addr, (uintptr_t)hook);
-            L::PopConsoleColor();
-#endif
+            L::Print("IDX: {}, Klass: {}", idx++, kl->_1.name);
 
-            *reinterpret_cast<uintptr_t*>(i) = (uintptr_t)hook;
-            return search;
-            // return i;
+            m = il2cpp::GetMethod(kl, methodName);
+
+            if (m == nullptr)
+                continue;
+
+            else
+            {
+                L::Print<L::BlueInstense>("Found in subclass {}. debugbreak...", kl->_1.name);
+
+                klass = InitClass(kl->_1.name);
+                m     = il2cpp::GetMethod(kl, methodName);
+
+                __debugbreak();
+
+                vFound = true;
+
+                break;
+            };
+        }
+
+        // for (int i = 0; i < klass->_2.vtable_count; i++)
+        // {
+        //     auto virtualMethod = klass->vtable[i];
+
+        //     L::Print("Index: {}, Name: {}", i, virtualMethod.method->name);
+
+        //     if (strcmp(methodName, virtualMethod.method->name) == 0)
+        //     {
+
+        //         L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
+        //         L::Print("Method hooked directly from VTable! Orignal "
+        //                  "0x{:X}, VOriginal 0x{:X}, Hook 0x{:X}",
+        //                  (uintptr_t)virtualMethod.methodPtr,
+        //                  (uintptr_t)virtualMethod.method->virtualMethodPointer,
+        //                  (uintptr_t)hook);
+        //         L::PopConsoleColor();
+
+        //         // virtualMethod.methodPtr = (Il2CppMethodPointer)hook;
+
+        //         auto met = (MethodInfo*)virtualMethod.method;
+        //         if (met->methodPointer == met->virtualMethodPointer)
+        //         {
+        //             auto orig                 = (uintptr_t)met->methodPointer;
+        //             met->methodPointer        = (Il2CppMethodPointer)hook;
+        //             met->virtualMethodPointer = (Il2CppMethodPointer)hook;
+        //             return orig;
+        //         }
+        //     }
+        // }
+
+#endif
+        if (!vFound)
+        {
+            return 0;
         }
     }
 
 #ifdef _DEBUG
-    L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-    L::Print("Method not found in VTable Attempting to hook methodpointer directly! Orignal 0x{:X}, Hook 0x{:X}",
-        (uintptr_t)m->methodPointer, (uintptr_t)hook);
-    L::PopConsoleColor();
+    L::Print("Attempt to hook method {} in class {} VTABLE ...", methodName, klass->_1.name);
 #endif
 
-    // maybe shit is not in vtable ... like Update or LateUpdate methods
-    auto orig        = (uintptr_t)m->methodPointer;
-    m->methodPointer = (Il2CppMethodPointer)hook;
+    //     auto search = *(uintptr_t*)m;
+    //     auto serr   = (uintptr_t)m->methodPointer;
+    //     auto table  = (uintptr_t)klass;
+    //     bool lll    = false;
+    //     for (uintptr_t i = table; i <= table + 0x1500; i += 0x1)
+    //     {
+    //         VirtualInvokeData* tmp = (VirtualInvokeData*)i;
 
+    //         uintptr_t addr = *reinterpret_cast<uintptr_t*>(i);
+    //         if (addr == (uintptr_t)search)
+    //         {
+    // #ifdef _DEBUG
+    //             L::Print("Method found! Orignal 0x{:X}, Hook 0x{:X}", addr, (uintptr_t)hook);
+    // #endif
+    //             lll                              = true;
+    //             *reinterpret_cast<uintptr_t*>(i) = (uintptr_t)hook;
+    //             return search;
+    //             // return i;
+    //         }
+    //     }
+
+    std::span<VirtualInvokeData> vtable(klass->vtable, klass->_2.vtable_count);
+
+    for (auto& vInvoke : vtable)
+    {
+        if (strcmp(vInvoke.method->name, methodName) == 0)
+        {
+            auto original = (uintptr_t)vInvoke.methodPtr;
+
+#ifdef _DEBUG
+            L::Print<L::GreenInstense>("Method found! Orignal 0x{:X}, Hook 0x{:X}",
+                                       (uintptr_t)vInvoke.methodPtr, (uintptr_t)hook);
+#endif
+
+            if (std::find(existingHooks.begin(), existingHooks.end(), m->methodPointer) !=
+                existingHooks.end())
+            {
+                L::Print<L::RedInstense>(
+                    "Attempt to hook already VTABLE hooked method {} in class {}. debugbreak ...",
+                    methodName, klass->_1.name);
+
+                __debugbreak();
+
+                return 0;
+            }
+
+            vInvoke.methodPtr = (Il2CppMethodPointer)hook;
+            existingHooks.emplace_back((Il2CppMethodPointer)hook);
+
+            if (!forceDirectHook)
+            {
+                return original;
+            }
+            else
+            {
+#ifdef _DEBUG
+                L::Print<L::YellowInstense>("DirectHookForce ENABLED -> DIRECTHOOK! "
+                                            "Orignal 0x{:X}, Hook 0x{:X}",
+                                            (uintptr_t)m->methodPointer, (uintptr_t)hook);
+#endif
+
+                if (std::find(existingHooks.begin(), existingHooks.end(), m->methodPointer) !=
+                    existingHooks.end())
+                {
+                    L::Print<L::RedInstense>("Attempt to hook already DIRECT hooked method {} in "
+                                             "class {}. debugbreak ...",
+                                             methodName, klass->_1.name);
+                    __debugbreak();
+
+                    return 0;
+                }
+
+                // if (m->methodPointer == m->virtualMethodPointer)
+                // {
+                //     m->virtualMethodPointer = (Il2CppMethodPointer)hook;
+                // }
+                // else
+                // {
+                //     L::Print<L::MagentaInstense>(
+                //         "MethodPtr vs VirtualMethodPtr DIFF: 0x{:X} - 0x{:X}", methodName,
+                //         klass->_1.name);
+                // }
+                m->methodPointer = (Il2CppMethodPointer)hook;
+
+                existingHooks.emplace_back((Il2CppMethodPointer)hook);
+                return original;
+            }
+        }
+    }
+
+#ifdef _DEBUG
+    L::Print<L::YellowInstense>(
+        "Method not found in VTable Attempting to hook methodpointer DIRECTLY! Orignal "
+        "0x{:X}, Hook 0x{:X}",
+        (uintptr_t)m->methodPointer, (uintptr_t)hook);
+#endif
+
+    if (std::find(existingHooks.begin(), existingHooks.end(), m->methodPointer) !=
+        existingHooks.end())
+    {
+        L::Print<L::RedInstense>(
+            "Attempt to hook already DIRECT hooked method {} in class {}. debugbreak ...",
+            methodName, klass->_1.name);
+
+        __debugbreak();
+
+        return 0;
+    }
+
+    // maybe shit is not in vtable ... like Update or LateUpdate methods
+    auto orig = (uintptr_t)m->methodPointer;
+
+    // if (m->methodPointer == m->virtualMethodPointer)
+    // {
+    //     m->virtualMethodPointer = (Il2CppMethodPointer)hook;
+    // }
+    // else
+    // {
+    //     L::Print<L::MagentaInstense>("MethodPtr vs VirtualMethodPtr DIFF: 0x{:X} - 0x{:X}",
+    //                                  methodName, klass->_1.name);
+    // }
+
+    m->methodPointer = (Il2CppMethodPointer)hook;
+    existingHooks.emplace_back((Il2CppMethodPointer)hook);
     return orig;
 }
 
-uintptr_t il2cpp::HookVirtualFunction(
-    const char* classname, const char* function_to_hook, void* our_func, const char* name_space)
+uintptr_t il2cpp::HookVirtualFunction(const char* classname, const char* function_to_hook,
+                                      void* our_func, const char* name_space)
 {
     auto search = (uintptr_t)il2cpp::GetMethod(classname, function_to_hook, -1, "", name_space);
     auto table  = (uintptr_t)il2cpp::InitClass(classname, name_space);
@@ -260,4 +416,17 @@ uintptr_t il2cpp::HookVirtualFunction(uint64_t start, uint64_t search, void* our
     }
 
     return NULL;
+}
+
+bool il2cpp::InheritsFrom(Il2CppClass* klass, const char* klassName)
+{
+    std::span<Il2CppClass*> sp(klass->_2.typeHierarchy, klass->_2.typeHierarchyDepth);
+
+    for (auto kl : std::ranges::reverse_view(sp))
+    {
+        if (strcmp(kl->_1.name, klassName) == 0)
+            return true;
+    }
+
+    return false;
 }

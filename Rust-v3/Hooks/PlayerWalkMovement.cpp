@@ -21,9 +21,7 @@ void hk_DoFixedUpdate(CPlayerWalkMovement *_this, CModelState *modelState)
         reinterpret_cast<decltype(&hk_DoFixedUpdate)>(DoFixedUpdate_o)(_this, modelState);
 
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-        L::Print("PlayerWalkMovement DoFixedUpdate -> initMe");
-        L::PopConsoleColor();
+        L::Print<L::Yellow>("PlayerWalkMovement DoFixedUpdate -> initMe");
 #endif
         return;
     }
@@ -63,9 +61,7 @@ void hk_ClientInput(CPlayerWalkMovement *_this, CInputState *inputState, CModelS
         reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, inputState, modelState);
 
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-        L::Print("PlayerWalkMovement ClientInput -> initMe");
-        L::PopConsoleColor();
+        L::Print<L::Yellow>("PlayerWalkMovement ClientInput -> initMe");
 #endif
         return;
     }
@@ -83,9 +79,7 @@ void hk_TeleportTo(CPlayerWalkMovement *_this, Vector3 position, CBasePlayer *pl
         reinterpret_cast<decltype(&hk_TeleportTo)>(TeleportTo_o)(_this, position, player);
 
 #ifdef _DEBUG
-        L::PushConsoleColor(FOREGROUND_INTENSE_YELLOW);
-        L::Print("PlayerWalkMovement TeleportTo -> initMe");
-        L::PopConsoleColor();
+        L::Print<L::Yellow>("PlayerWalkMovement TeleportTo -> initMe");
 #endif
         return;
     }
