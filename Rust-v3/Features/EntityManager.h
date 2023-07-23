@@ -18,7 +18,7 @@ namespace EntityManager
     struct OreResource : Entity<CBaseEntity>
     {
         Vector3 postition{};
-        float   distance = 0.f;
+        int   distance = 0;
     };
 
     struct Animal : Entity<CBaseEntity>
@@ -28,7 +28,7 @@ namespace EntityManager
 
     struct Player
     {
-        CBaseEntity* entity{};
+        CBasePlayer* entity{};
         uint64_t     classHash;
         char name[128 + 1]{}; // 32 chars max, but utf8 (1 to 4 bytes per char) forced by steam
     };
@@ -112,6 +112,11 @@ namespace EntityManager
             radtown.clear();
             vehicles.clear();
             traps.clear();
+        }
+        inline int TotalEntities()
+        {
+            return ores.size() + animals.size() + players.size() + collectibles.size() +
+                   radtown.size() + vehicles.size() + traps.size();
         }
     }; // namespace DB
 

@@ -5,6 +5,38 @@
 #include "settings_types.h"
 #include <memory>
 
+namespace SettingsDataTypes
+{
+    struct Chams
+    {
+        ImColor colChamsVis           = ImColor(255, 30, 30, 255);
+        ImColor colChamsInvis         = ImColor(30, 255, 30, 255);
+        ImColor colChamsAdditive      = ImColor(30, 30, 255, 255);
+        float   ChamsGlowTime         = (1.f);
+        float   ChamsGlowIntensity    = (2.f);
+        float   ChamsOutlineThickness = (0.0035f);
+    };
+
+    struct Player
+    {
+        bool Enabled = true;
+        bool Hotbar  = true;
+        bool Health  = true;
+
+        TCO Box         = {255, 255, 255, 255};
+        TCO Skeleton    = {255, 255, 255, 255, true};
+        TCO Name        = {255, 255, 255, 255, true};
+        TCO Dist        = {255, 255, 255, 255, true};
+        TCO ActiveItem  = {8, 255, 190, 255, true};
+        TCO TeamID      = {255, 255, 255, 255, true};
+        TCO PlayerFlags = {255, 255, 255, 255, true};
+        TCO Wounded     = {252, 148, 3, 255, true};
+        TCO Sleeping    = {252, 148, 3, 255, true};
+
+        Chams chams{};
+    };
+} // namespace SettingsDataTypes
+
 struct Settings
 {
     struct RageBot
@@ -21,7 +53,8 @@ struct Settings
                 bool         Smoothing         = true;
                 int          HumanizerAmount   = 4;
                 int          Smooth            = 10;
-                int          FOV               = 90;
+                TCO          FOV               = {255, 255, 255, 200, true};
+                int          FOVRadius         = 90;
                 AimbotSmooth SmoothMode        = AimbotSmooth::Linear;
 
             } aimbot{};
@@ -86,35 +119,6 @@ struct Settings
 
     struct Visuals
     {
-        struct Chams
-        {
-            ImColor colChamsVis           = ImColor(255, 30, 30, 255);
-            ImColor colChamsInvis         = ImColor(30, 255, 30, 255);
-            ImColor colChamsAdditive      = ImColor(30, 30, 255, 255);
-            float   ChamsGlowTime         = (1.f);
-            float   ChamsGlowIntensity    = (2.f);
-            float   ChamsOutlineThickness = (0.0035f);
-        };
-
-        struct Player
-        {
-            bool Enabled = true;
-            bool Hotbar  = true;
-            bool Health  = true;
-
-            TCO Box         = {255, 255, 255, 255};
-            TCO Skeleton    = {255, 255, 255, 255, true};
-            TCO Name        = {255, 255, 255, 255, true};
-            TCO Dist        = {255, 255, 255, 255, true};
-            TCO ActiveItem  = {8, 255, 190, 255, true};
-            TCO TeamID      = {255, 255, 255, 255, true};
-            TCO PlayerFlags = {255, 255, 255, 255, true};
-            TCO Wounded     = {252, 148, 3, 255, true};
-            TCO Sleeping    = {252, 148, 3, 255, true};
-
-            Chams chams{};
-        };
-
         struct General
         {
             bool Enabled             = true;
@@ -141,7 +145,7 @@ struct Settings
                 // ToggleColorOption colTeammate = ToggleColorOption(0, 255, 0);
             } indicators{};
 
-            Player friends = {
+            SettingsDataTypes::Player friends = {
                 .Enabled     = true,
                 .Hotbar      = true,
                 .Health      = true,
@@ -164,7 +168,7 @@ struct Settings
                         .ChamsOutlineThickness = (0.0035f),
                     },
             };
-            Player enemies = {
+            SettingsDataTypes::Player enemies = {
                 .Enabled     = true,
                 .Hotbar      = true,
                 .Health      = true,
@@ -187,7 +191,7 @@ struct Settings
                         .ChamsOutlineThickness = (0.0035f),
                     },
             };
-            Player npc = {
+            SettingsDataTypes::Player npc = {
                 .Enabled     = true,
                 .Hotbar      = true,
                 .Health      = true,

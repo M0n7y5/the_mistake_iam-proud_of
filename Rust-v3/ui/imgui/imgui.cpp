@@ -6880,8 +6880,9 @@ void ImGui::RenderWindowShadow(ImGuiWindow* window)
     window->DrawList->AddShadowRect(
         window->Pos, window->Pos + window->Size, shadow_col, shadow_size, shadow_offset,
         ImDrawFlags_ShadowCutOutShapeBackground, window->WindowRounding);
-    // window->DrawList->AddShadowRect(window->Pos, window->Pos + window->Size, shadow_col, shadow_size, shadow_offset,
-    // ImDrawFlags_ShadowCutOutShapeBackground, window->WindowRounding); window->DrawList->AddShadowRect(window->Pos,
+    window->DrawList->AddShadowRect(window->Pos, window->Pos + window->Size, shadow_col, shadow_size, shadow_offset,
+    ImDrawFlags_ShadowCutOutShapeBackground, window->WindowRounding);
+    // window->DrawList->AddShadowRect(window->Pos,
     // window->Pos + window->Size, shadow_col, shadow_size, shadow_offset, ImDrawFlags_ShadowCutOutShapeBackground,
     // window->WindowRounding);
 }

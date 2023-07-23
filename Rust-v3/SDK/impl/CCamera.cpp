@@ -58,7 +58,7 @@ bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPo
     return true;
 }
 
-bool CCamera::WorldToScreen(Vector3 position, Vector2& screenPos, float screenHeight)
+bool CCamera::WorldToScreen(Vector3 position, Vector2& screenPos, CRect& screen)
 {
     static auto addr =
         OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
@@ -67,7 +67,55 @@ bool CCamera::WorldToScreen(Vector3 position, Vector2& screenPos, float screenHe
     if (vec.z < _flt(0.001f))
         return false;
 
-    screenPos = {vec.x, screenHeight - vec.y};
+    if (screen.Contains(vec) == false)
+        return false;
+
+    screenPos = {vec.x, screen.m_Height - vec.y};
+    return true;
+}
+
+void CCamera::WorldToScreenVec2Ex(std::vector<Vector3>& positions, std::vector<Vec2Ex>& screenPos,
+                                  CRect& screen)
+{
+    static auto addr =
+        OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
+
+    auto call = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr));
+
+    for (auto pos : positions)
+    {
+        auto vec   = call(this, pos);
+        bool isOff = (vec.z < _flt(0.001f)) || (screen.Contains(vec) == false);
+
+        Vec2Ex vex = {{vec.x, screen.m_Height - vec.y}, isOff};
+        vec.y      = screen.m_Height - vec.y;
+        screenPos.emplace_back(vex);
+    }
+}
+
+bool CCamera::WorldToScreenVec2Ex(std::array<Vector3, 8>& positions,
+                                  std::array<Vector3, 8>& screenPos, CRect& screen)
+{
+    static auto addr =
+        OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
+
+    const auto call     = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr));
+    int        offCount = 0;
+
+    for (int i = 0; i < positions.size(); i++)
+    {
+        auto       vec   = call(this, positions[i]);
+        const bool isOff = (vec.z < _flt(0.001f)) || (screen.Contains(vec) == false);
+
+        if (isOff)
+            offCount++;
+        vec.y        = screen.m_Height - vec.y;
+        screenPos[i] = vec;
+    }
+
+    if (offCount == 8)
+        return false;
+
     return true;
 }
 

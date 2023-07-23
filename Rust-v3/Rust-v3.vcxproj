@@ -70,7 +70,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;DEBUG_CONSOLE</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;DEBUG_CONSOLE;NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -90,7 +90,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -153,6 +153,8 @@
   <ItemGroup>
     <ClCompile Include="ui\ESP.cpp" />
     <ClCompile Include="Features\EntityManager.cpp" />
+    <ClCompile Include="Features\Movement.cpp" />
+    <ClCompile Include="Features\Aimbot.cpp" />
     <ClCompile Include="Hooks\EntityList.cpp" />
     <ClCompile Include="Hooks\BasePlayer.cpp" />
     <ClCompile Include="Hooks\Client.cpp" />
@@ -204,6 +206,8 @@
     <ClInclude Include="SDK\settings_types.h" />
     <ClInclude Include="ui\ESP.h" />
     <ClInclude Include="Features\EntityManager.h" />
+    <ClInclude Include="Features\Movement.h" />
+    <ClInclude Include="Features\Aimbot.h" />
     <ClInclude Include="Hooks\EntityList.h" />
     <ClInclude Include="Hooks\BasePlayer.h" />
     <ClInclude Include="Hooks\Client.h" />

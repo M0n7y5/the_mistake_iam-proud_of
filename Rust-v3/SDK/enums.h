@@ -188,8 +188,8 @@ enum class HideFlags : int32_t
     //
     // Summary:
     //     The object will not be saved to the Scene. It will not be destroyed when a new
-    //     Scene is loaded. It is a shortcut for HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor
-    //     | HideFlags.DontUnloadUnusedAsset.
+    //     Scene is loaded. It is a shortcut for HideFlags.DontSaveInBuild |
+    //     HideFlags.DontSaveInEditor | HideFlags.DontUnloadUnusedAsset.
     DontSave = 0x34,
     //
     // Summary:
@@ -384,18 +384,17 @@ enum class PlayerFlags : int32_t
 // Todo: update
 enum class PlayerBones : int32_t
 {
-    // assets / prefabs / player / player_mod = 0,
-    // pelvis = 1,
-    // z nejakyho duvodu asi uz pelvis neexistuje idk
+    pelvis                 = 0,
     l_hip                  = 1,
     l_knee                 = 2,
     l_foot                 = 3,
     l_toe                  = 4,
     l_ankle_scale          = 5,
-    penis                  = 7,
-    GenitalCensor          = 8,
-    GenitalCensor_LOD0     = 9,
-    Inner_LOD0             = 10,
+    penis                  = 6,
+    GenitalCensor          = 7,
+    GenitalCensor_LOD0     = 8,
+    Inner_LOD0             = 9,
+    Inner_LOD0_11          = 10,
     GenitalCensor_LOD1     = 11,
     GenitalCensor_LOD2     = 12,
     r_hip                  = 13,
@@ -466,13 +465,13 @@ enum class PlayerBones : int32_t
     r_breast               = 78,
     BoobCensor             = 79,
     BreastCensor_LOD0      = 80,
-    BreastCensor_LOD1      = 81,
-    BreastCensor_LOD2      = 82,
-    collision              = 83,
-    displacement           = 84
+    Inner_LOD0_2           = 81,
+    Inner_LOD0_22          = 82,
+    BreastCensor_LOD1      = 83,
+    BreastCensor_LOD2      = 84
 };
 
-enum class ModelStateFlags : int32_t
+enum class ModelStateFlags : uint32_t
 {
     Ducked    = 1,
     Jumped    = 2,
@@ -485,6 +484,12 @@ enum class ModelStateFlags : int32_t
     Prone     = 256,
     Mounted   = 512,
     Relaxed   = 1024
+};
+
+enum class LifeState : uint32_t
+{
+    Alive = 0,
+    Dead
 };
 
 //
@@ -643,13 +648,13 @@ enum class FindObjectsSortMode : int32_t
 
 enum class PlayerChams : int32_t
 {
-	Default = 0,
-	Glow = 1,
-	Outline = 2
+    Default = 0,
+    Glow    = 1,
+    Outline = 2
 };
 
 enum class AimbotSmooth : int32_t
 {
-	Linear = 0,
-	SlowEnd
+    Linear = 0,
+    SlowEnd
 };

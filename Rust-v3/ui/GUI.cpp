@@ -39,8 +39,9 @@ void GUI::Init()
                                          {"Linear", "SlowEnd"});
                            fs.AddFeature("Smoothing", &settings->ragebot.general.aimbot.Smooth, 0,
                                          50, "%d");
-                           fs.AddFeature("FOV", &settings->ragebot.general.aimbot.FOV, 60, 150,
-                                         "%d");
+                           fs.AddFeature("FOV Circle", &settings->ragebot.general.aimbot.FOV);
+                           fs.AddFeature("FOV Radius", &settings->ragebot.general.aimbot.FOVRadius,
+                                         10, 180, "%d");
                        })
                     .AddFeatureSet(
                         "Magic",
@@ -160,7 +161,7 @@ void GUI::Init()
                 //     &settings.visuals.misc.colTeammate);
                 // });
 
-                auto addPlayerOptions = [&](Settings::Visuals::Player& player,
+                auto addPlayerOptions = [&](SettingsDataTypes::Player& player,
                                             std::string                name) -> void {
                     sub.AddFeatureSet(std::move(name), [&](mui::FeatureSet& fs) {
                         auto& p = player;
@@ -172,6 +173,7 @@ void GUI::Init()
                         fs.AddFeature("Distance", &p.Dist.Color, &p.Dist.Enable);
                         fs.AddFeature("Active Item", &p.ActiveItem.Color, &p.ActiveItem.Enable);
                         fs.AddFeature("Wounded", &p.Wounded.Color, &p.Wounded.Enable);
+                        fs.AddFeature("Sleeping", &p.Sleeping.Color, &p.Sleeping.Enable);
                         fs.AddFeature("TeamID", &p.TeamID.Color, &p.TeamID.Enable);
                         fs.AddFeature("Player Flags", &p.PlayerFlags.Color, &p.PlayerFlags.Enable);
                         fs.AddFeature("Hotbar", &p.Hotbar);
@@ -294,7 +296,7 @@ void GUI::Init()
                 sub.AddFeatureSet("General", [](mui::FeatureSet& fs) {
                     fs.AddFeature("Enabled", &settings->visuals.vehicles.general.Enabled);
                     fs.AddFeature("Fade", &settings->visuals.vehicles.general.PatrolHealth);
-                    fs.AddFeature("Fade", &settings->visuals.vehicles.general.Fade);
+                    fs.AddFeature("Patrol Health", &settings->visuals.vehicles.general.Fade);
                     fs.AddFeature("Heli Distance", &settings->visuals.vehicles.general.HeliDistance,
                                   50, 1500, "%d meters");
                     fs.AddFeature("Boat Distance", &settings->visuals.vehicles.general.BoatDistance,

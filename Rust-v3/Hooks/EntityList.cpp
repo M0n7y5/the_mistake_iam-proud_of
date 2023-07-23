@@ -14,97 +14,98 @@
 #include <mutex>
 #include <span>
 // This is the main method which all the hooks being redirecting to
-static void ClientInit(CBaseNetworkable* _this, uint64_t classHash)
-{
-#ifdef _DEBUG
-    L::Print("ClientInit -> Class Added to Entity List: {}", _this->klass->_1.name);
-#endif
-}
+// static void ClientInit(CBaseNetworkable* _this, uint64_t classHash)
+// {
+// #ifdef _DEBUG
+//     L::Print("ClientInit -> Class Added to Entity List: {}", _this->klass->_1.name);
+// #endif
+// }
 
-static void ClientInitAnimals(CBaseNetworkable* _this, uint64_t classHash)
-{
-    using namespace EntityManager;
+// static void ClientInitAnimals(CBaseNetworkable* _this, uint64_t classHash)
+// {
+//     using namespace EntityManager;
 
-    auto entity = (CBaseEntity*)_this;
-    auto id     = _this->net->fields.ID.fields.Value;
-    auto pos    = ((CBaseEntity*)_this)->GetOriginPosition();
+//     auto entity = (CBaseEntity*)_this;
+//     auto id     = _this->net->fields.ID.fields.Value;
+//     auto pos    = ((CBaseEntity*)_this)->GetOriginPosition();
 
-#ifdef _DEBUG
-    L::Print("Animal[{}]: {} -> ID: {}, pos: {} {} {},  Ptr: {:X}", _this->klass->_1.name,
-             std::string(_this->klass->_1.name), _this->prefabID, pos.x, pos.y, pos.z,
-             (uintptr_t)_this);
-#endif
+// #ifdef _DEBUG
+//     L::Print("Animal[{}]: {} -> ID: {}, pos: {} {} {},  Ptr: {:X}", _this->klass->_1.name,
+//              std::string(_this->klass->_1.name), _this->prefabID, pos.x, pos.y, pos.z,
+//              (uintptr_t)_this);
+// #endif
 
-    Animal animal{};
+//     Animal animal{};
 
-    animal.classHash = classHash;
-    animal.entity    = entity;
-    animal.prefabId  = _this->prefabID;
+//     animal.classHash = classHash;
+//     animal.entity    = entity;
+//     animal.prefabId  = _this->prefabID;
 
-    DB::animals.insert_or_assign(id, animal);
-    EntityManager::DB::AddID(_this, id);
-}
+//     DB::animals.insert_or_assign(id, animal);
+//     EntityManager::DB::AddID(_this, id);
+// }
 
-static void ClientInitPlayer(CBaseNetworkable* _this)
-{
-    using namespace EntityManager;
+// static void ClientInitPlayer(CBaseNetworkable* _this)
+// {
+//     using namespace EntityManager;
 
-    auto entity     = (CBasePlayer*)_this;
-    auto id         = _this->net->fields.ID.fields.Value;
-    auto pos        = ((CBaseEntity*)_this)->GetOriginPosition();
-    auto playerName = ((CString*)entity->_displayName)->str();
+//     auto entity     = (CBasePlayer*)_this;
+//     auto id         = _this->net->fields.ID.fields.Value;
+//     auto pos        = ((CBaseEntity*)_this)->GetOriginPosition();
+//     auto playerName = ((CString*)entity->_displayName)->str();
 
-#ifdef _DEBUG
-    L::Print("BasePlayer[{}] -> ID: {}, pos: {} {} {}, Name: {}, NPC?:{}, Ptr: {:X}",
-             _this->klass->_1.name, _this->prefabID, pos.x, pos.y, pos.z, playerName,
-             entity->playerModel->fields._IsNpc_k__BackingField, (uintptr_t)_this);
-#endif
+// #ifdef _DEBUG
+//     L::Print("BasePlayer[{}] -> ID: {}, pos: {} {} {}, Name: {}, NPC?:{}, Ptr: {:X}",
+//              _this->klass->_1.name, _this->prefabID, pos.x, pos.y, pos.z, playerName,
+//              entity->playerModel->fields._IsNpc_k__BackingField, (uintptr_t)_this);
+// #endif
 
-    Player player{};
-    if (memcpy_s(player.name, 129, playerName.c_str(), playerName.size()) == 0)
-    {
-        if (entity->playerModel->fields._IsNpc_k__BackingField)
-        {
-            player.classHash = HASH_RUNTIME(_this->klass->_1.name);
-            EntityManager::DB::NPCCount++;
-        }
-        else
-        {
-            EntityManager::DB::PlayerCount++;
-        }
+//     Player player{};
+//     if (memcpy_s(player.name, 129, playerName.c_str(), playerName.size()) == 0)
+//     {
+//         if (entity->playerModel->fields._IsNpc_k__BackingField)
+//         {
+//             player.classHash = HASH_RUNTIME(_this->klass->_1.name);
+//             EntityManager::DB::NPCCount++;
+//         }
+//         else
+//         {
+//             EntityManager::DB::PlayerCount++;
+//         }
 
-        player.entity = (CBaseEntity*)_this;
-        DB::players.insert_or_assign(id, player);
-        EntityManager::DB::AddID(_this, id);
-    }
-}
+//         player.entity = (CBaseEntity*)_this;
+//         DB::players.insert_or_assign(id, player);
+//         EntityManager::DB::AddID(_this, id);
+//     }
+// }
 
-std::mutex  testMtx{};
-static void DoClientDestroy(CBaseNetworkable* _this)
-{
-    auto id = EntityManager::DB::GetID(_this);
+// std::mutex  testMtx{};
+// static void DoClientDestroy(CBaseNetworkable* _this)
+// {
+//     auto id = EntityManager::DB::GetID(_this);
 
-#ifdef _DEBUG
-    L::Print("DoClientDestroy[{}] -> Pref ID {}, Ptr: {:X}", _this->klass->_1.name, _this->prefabID,
-             (uintptr_t)_this);
-#endif
+// #ifdef _DEBUG
+//     L::Print("DoClientDestroy[{}] -> Pref ID {}, Ptr: {:X}", _this->klass->_1.name,
+//     _this->prefabID,
+//              (uintptr_t)_this);
+// #endif
 
-    if (il2cpp::InheritsFrom(_this->klass, _("BasePlayer")))
-    {
-        auto player = (CBasePlayer*)_this;
+//     if (il2cpp::InheritsFrom(_this->klass, _("BasePlayer")))
+//     {
+//         auto player = (CBasePlayer*)_this;
 
-        if (player->playerModel->fields._IsNpc_k__BackingField)
-        {
-            EntityManager::DB::NPCCount--;
-        }
-        else
-        {
-            EntityManager::DB::PlayerCount--;
-        }
-    }
+//         if (player->playerModel->fields._IsNpc_k__BackingField)
+//         {
+//             EntityManager::DB::NPCCount--;
+//         }
+//         else
+//         {
+//             EntityManager::DB::PlayerCount--;
+//         }
+//     }
 
-    EntityManager::DB::RemoveID(id);
-}
+//     EntityManager::DB::RemoveID(id);
+// }
 
 // #define DoClientDestroyMethod(name)                                                                \
 //     uintptr_t name##_DoClientDestroy_o;                                                            \
@@ -272,53 +273,53 @@ static void DoClientDestroy(CBaseNetworkable* _this)
 // #endif
 // }
 
-static void ClientInitBaseNPC(CBaseNetworkable* _this)
-{
-    auto classHash = HASH_RUNTIME(_this->klass->_1.name);
-    switch (classHash)
-    {
-    case HASH_CTIME("Bear"):
-    case HASH_CTIME("Boar"):
-    case HASH_CTIME("Chicken"):
-    case HASH_CTIME("Horse"):
-    case HASH_CTIME("Polarbear"):
-    case HASH_CTIME("Stag"):
-    case HASH_CTIME("Wolf"):
-    case HASH_CTIME("Zombie"):
-    {
-        ClientInitAnimals(_this, classHash);
-        break;
-    }
-    case HASH_CTIME("ScientistNPC"):
-    case HASH_CTIME("BanditGuard"):
-    case HASH_CTIME("GingerbreadNPC"):
-    case HASH_CTIME("TunnelDweller"):
-    case HASH_CTIME("UnderwaterDweller"):
-    case HASH_CTIME("ScarecrowNPC"):
-    {
-        ClientInitPlayer(_this);
-        break;
-    }
-    }
-}
+// static void ClientInitBaseNPC(CBaseNetworkable* _this)
+// {
+//     auto classHash = HASH_RUNTIME(_this->klass->_1.name);
+//     switch (classHash)
+//     {
+//     case HASH_CTIME("Bear"):
+//     case HASH_CTIME("Boar"):
+//     case HASH_CTIME("Chicken"):
+//     case HASH_CTIME("Horse"):
+//     case HASH_CTIME("Polarbear"):
+//     case HASH_CTIME("Stag"):
+//     case HASH_CTIME("Wolf"):
+//     case HASH_CTIME("Zombie"):
+//     {
+//         ClientInitAnimals(_this, classHash);
+//         break;
+//     }
+//     case HASH_CTIME("ScientistNPC"):
+//     case HASH_CTIME("BanditGuard"):
+//     case HASH_CTIME("GingerbreadNPC"):
+//     case HASH_CTIME("TunnelDweller"):
+//     case HASH_CTIME("UnderwaterDweller"):
+//     case HASH_CTIME("ScarecrowNPC"):
+//     {
+//         ClientInitPlayer(_this);
+//         break;
+//     }
+//     }
+// }
 
-FullHookMethodCustom(BaseNpc)
-{
-    CallOriginal(BaseNpc);
-    ClientInitBaseNPC(_this);
-    // ClientInitPlayer(_this);
-    //      using namespace EntityManager;
+// FullHookMethodCustom(BaseNpc)
+// {
+//     CallOriginal(BaseNpc);
+//     ClientInitBaseNPC(_this);
+//     // ClientInitPlayer(_this);
+//     //      using namespace EntityManager;
 
-    //     auto id  = _this->net->fields.ID.fields.Value;
-    //     auto pos = ((CBaseEntity*)_this)->GetOriginPosition();
+//     //     auto id  = _this->net->fields.ID.fields.Value;
+//     //     auto pos = ((CBaseEntity*)_this)->GetOriginPosition();
 
-    // #ifdef _DEBUG
-    //     L::Print("BaseNpc -> ID: {}, pos: {} {} {}", _this->prefabID, pos.x, pos.y, pos.z);
-    // #endif
-}
+//     // #ifdef _DEBUG
+//     //     L::Print("BaseNpc -> ID: {}, pos: {} {} {}", _this->prefabID, pos.x, pos.y, pos.z);
+//     // #endif
+// }
 
 // NPCs
-FullHookMethodEx(ScientistNPC, ClientInitPlayer);
+//FullHookMethodEx(ScientistNPC, ClientInitPlayer);
 // FullHookMethodEx(BanditGuard, ClientInitNPC);
 // FullHookMethodEx(GingerbreadNPC, ClientInitNPC);
 // FullHookMethodEx(TunnelDweller, ClientInitNPC);
@@ -333,7 +334,7 @@ FullHookMethodEx(ScientistNPC, ClientInitPlayer);
 // FullHookMethodEx(Horse, ClientInitAnimals);
 // FullHookMethodEx(Polarbear, ClientInitAnimals);
 // FullHookMethodEx(Stag, ClientInitAnimals);
-FullHookMethodEx(Wolf, ClientInitBaseNPC);
+//FullHookMethodEx(Wolf, ClientInitBaseNPC);
 // FullHookMethodEx(Zombie, ClientInitAnimals);
 
 // DoClientDestroy
@@ -414,10 +415,10 @@ void Hooks::EntityList::Init()
     // ((MethodInfo*)klass->vtable._15_PreNetworkUpdate.method)->virtualMethodPointer =
     //     (Il2CppMethodPointer)&hkBaseNetworkable_PostNetworkUpdate;
 
-    //il2cpp::InitClass("BaseNPC");
-    //il2cpp::InitClass("BaseEntity");
-    //il2cpp::InitClass("Wolf");
-    // il2cpp::InitClass("AutoTurret");
+    // il2cpp::InitClass("BaseNPC");
+    // il2cpp::InitClass("BaseEntity");
+    // il2cpp::InitClass("Wolf");
+    //  il2cpp::InitClass("AutoTurret");
 
     // BaseNetworkable_ClientInit_o = (uintptr_t)klass->vtable._14_ClientInit.method->methodPointer;
     // ((MethodInfo*)klass->vtable._14_ClientInit.method)->methodPointer =

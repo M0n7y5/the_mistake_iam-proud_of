@@ -2,7 +2,9 @@
 // this needs to be here before il2cpp header
 // since its using its types but doesnt include its header
 // its the il2cppdumper issue
+#include <array>
 #include <cstdint>
+#include <stdint.h>
 #include <string>
 #include <vadefs.h>
 
@@ -410,6 +412,13 @@ struct CInput : ILObjectBase<UnityEngine_Input_Fields>
     static void     SetBind(std::string name, std::string value, bool cycled = false);
 };
 
+// for efficiently pulling out data for bones or boxes
+struct Vec2Ex
+{
+    Vector2  vec;
+    uint32_t isOffscreen;
+};
+
 struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
 {
     static CCamera* GetCurrentCamera();
@@ -418,14 +427,18 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
     Matrix4x4       GetViewMatrix();
     CRect           GetPixelRect();
     bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
-    bool            WorldToScreen(Vector3 position, Vector2& screenPos, float screenHeight);
-    void            AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer);
-    bool            GetOrtoGraphic();
-    void            SetOrtoGraphic(bool isOrto);
-    void            SetDepth(float depth);
-    void            SetCullingMask(Layer layer);
-    void            SetClearFlags(CameraClearFlags flags);
-    float           GetFov();
+    bool            WorldToScreen(Vector3 position, Vector2& screenPos, CRect& screen);
+    void  WorldToScreenVec2Ex(std::vector<Vector3>& positions, std::vector<Vec2Ex>& screenPos,
+                              CRect& screen);
+    bool  WorldToScreenVec2Ex(std::array<Vector3, 8>& positions, std::array<Vector3, 8>& screenPos,
+                              CRect& screen);
+    void  AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer);
+    bool  GetOrtoGraphic();
+    void  SetOrtoGraphic(bool isOrto);
+    void  SetDepth(float depth);
+    void  SetCullingMask(Layer layer);
+    void  SetClearFlags(CameraClearFlags flags);
+    float GetFov();
 };
 
 struct CCanvas : ILObjectBase<UnityEngine_Canvas_Fields>
@@ -541,6 +554,16 @@ struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
     float        GetJumpHeight();
     float        GetRadius();
     float        NoClipRadius(float margin);
+
+    bool IsDucking()
+    {
+        return (ModelStateFlags)this->modelState->fields.flags == ModelStateFlags::Ducked;
+    }
+
+    LifeState GetLifeState()
+    {
+        return (LifeState)this->lifestate;
+    }
 
     bool HasFlag(PlayerFlags Flag)
     {
