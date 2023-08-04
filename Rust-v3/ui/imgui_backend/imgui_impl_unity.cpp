@@ -60,7 +60,7 @@ static ImVec2 ScreenToImgui(Vector2 point)
 void FixPostprocessingUnityBug()
 {
     auto postProcessLayer_type =
-        CType::FomClass("PostProcessLayer", "UnityEngine.Rendering.PostProcessing");
+        CType::FromClass("PostProcessLayer", "UnityEngine.Rendering.PostProcessing");
 
     auto layers = CGameObject::FindObjectsByType<CPostProcessLayer *>(
         postProcessLayer_type, FindObjectsInactive::Include, FindObjectsSortMode::None);
@@ -76,7 +76,7 @@ void FixPostprocessingUnityBug()
 // Get all Root canvases in the game and set the to render to canvas camera
 void SetAllRootCanvasesToCameras()
 {
-    auto canvasType = CType::FomClass("Canvas", "UnityEngine");
+    auto canvasType = CType::FromClass("Canvas", "UnityEngine");
 
     auto allCanvases = CGameObject::FindObjectsByType<CCanvas *>(
         canvasType, FindObjectsInactive::Include, FindObjectsSortMode::None);
@@ -96,7 +96,7 @@ void SetAllRootCanvasesToCameras()
 
 void InitializeRenderResources()
 {
-    auto type_o = CType::FomClass(_("Shader"), _("UnityEngine"));
+    auto type_o = CType::FromClass(_("Shader"), _("UnityEngine"));
 
     _shader = _bundle->LoadAsset<CShader>(_("Assets/AssetBundleData/guish.shader"),
                                           type_o); // LoadAsset(_("DearImGui-Mesh"), shaderType);
@@ -205,7 +205,7 @@ bool ImGui_Impl_Unity_Init()
 
     InitializeRenderResources();
 
-    auto gameobject_type = CType::FomClass(_("GameObject"), _("UnityEngine"));
+    auto gameobject_type = CType::FromClass(_("GameObject"), _("UnityEngine"));
 
     auto gmo =
         _bundle->LoadAsset<CGameObject>(_("Assets/AssetBundleData/UIOBJ.prefab"), gameobject_type);
@@ -214,7 +214,7 @@ bool ImGui_Impl_Unity_Init()
     auto uiCamObj     = CGameObject::Find<CGameObject>("UICamera");
     auto canvasCamObj = CGameObject::Find<CGameObject>("CanvasCamera");
 
-    auto cameraType = CType::FomClass("Camera", "UnityEngine");
+    auto cameraType = CType::FromClass("Camera", "UnityEngine");
 
     // Canvas CAM
     _cameraCanvas = canvasCamObj->GetComponent<CCamera>(cameraType);

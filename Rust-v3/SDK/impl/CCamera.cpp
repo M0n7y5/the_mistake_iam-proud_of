@@ -60,9 +60,8 @@ bool CCamera::WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPo
 
 bool CCamera::WorldToScreen(Vector3 position, Vector2& screenPos, CRect& screen)
 {
-    static auto addr =
-        OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
-    auto vec = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr))(this, position);
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
+    auto        vec  = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr))(this, position);
 
     if (vec.z < _flt(0.001f))
         return false;
@@ -74,30 +73,37 @@ bool CCamera::WorldToScreen(Vector3 position, Vector2& screenPos, CRect& screen)
     return true;
 }
 
-void CCamera::WorldToScreenVec2Ex(std::vector<Vector3>& positions, std::vector<Vec2Ex>& screenPos,
-                                  CRect& screen)
+bool CCamera::WorldToScreenVec2Ex(std::span<Vector3> const& positions, std::span<Vector2> const& screenPos,
+                                  CRect const& screen)
 {
-    static auto addr =
-        OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
 
-    auto call = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr));
+    auto call     = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr));
+    int  offCount = 0;
 
+    int idx = 0;
     for (auto pos : positions)
     {
-        auto vec   = call(this, pos);
-        bool isOff = (vec.z < _flt(0.001f)) || (screen.Contains(vec) == false);
+        auto       vec   = call(this, pos);
+        const bool isOff = (vec.z < _flt(0.001f)) || (screen.Contains(vec) == false);
 
-        Vec2Ex vex = {{vec.x, screen.m_Height - vec.y}, isOff};
-        vec.y      = screen.m_Height - vec.y;
-        screenPos.emplace_back(vex);
+        if (isOff)
+            offCount++;
+
+        Vector2 vex      = {vec.x, screen.m_Height - vec.y};
+        vec.y            = screen.m_Height - vec.y;
+        screenPos[idx++] = vex;
     }
+
+    if (offCount == positions.size())
+        return false;
+
+    return true;
 }
 
-bool CCamera::WorldToScreenVec2Ex(std::array<Vector3, 8>& positions,
-                                  std::array<Vector3, 8>& screenPos, CRect& screen)
+bool CCamera::WorldToScreenVec2Ex(std::array<Vector3, 8>& positions, std::array<Vector3, 8>& screenPos, CRect& screen)
 {
-    static auto addr =
-        OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::WorldToScreenPoint_UnityEngine_Vector3_position);
 
     const auto call     = ((Vector3(__thiscall*)(CCamera*, Vector3))(addr));
     int        offCount = 0;
@@ -121,9 +127,9 @@ bool CCamera::WorldToScreenVec2Ex(std::array<Vector3, 8>& positions,
 
 void CCamera::AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer)
 {
-    static auto addr = OFF(
-        Offsets::UnityEngine_Camera::Methods::
-            AddCommandBuffer_UnityEngine_Rendering_CameraEvent_evt__UnityEngine_Rendering_CommandBuffer_buffer);
+    static auto addr =
+        OFF(Offsets::UnityEngine_Camera::Methods::
+                AddCommandBuffer_UnityEngine_Rendering_CameraEvent_evt__UnityEngine_Rendering_CommandBuffer_buffer);
     ((void(__thiscall*)(CCamera*, CameraEvent, CCommandBuffer*))(addr))(this, event, buffer);
 }
 
@@ -135,8 +141,7 @@ bool CCamera::GetOrtoGraphic()
 
 void CCamera::SetOrtoGraphic(bool isOrto)
 {
-    static auto addr =
-        OFF(Offsets::UnityEngine_Camera::Methods::set_orthographic_System_Boolean_value);
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_orthographic_System_Boolean_value);
     ((void(__thiscall*)(CCamera*, bool))(addr))(this, isOrto);
 }
 
@@ -148,15 +153,13 @@ void CCamera::SetDepth(float depth)
 
 void CCamera::SetCullingMask(Layer layer)
 {
-    static auto addr =
-        OFF(Offsets::UnityEngine_Camera::Methods::set_cullingMask_System_Int32_value);
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_cullingMask_System_Int32_value);
     ((void(__thiscall*)(CCamera*, Layer))(addr))(this, layer);
 }
 
 void CCamera::SetClearFlags(CameraClearFlags flags)
 {
-    static auto addr = OFF(
-        Offsets::UnityEngine_Camera::Methods::set_clearFlags_UnityEngine_CameraClearFlags_value);
+    static auto addr = OFF(Offsets::UnityEngine_Camera::Methods::set_clearFlags_UnityEngine_CameraClearFlags_value);
     ((void(__thiscall*)(CCamera*, CameraClearFlags))(addr))(this, flags);
 }
 

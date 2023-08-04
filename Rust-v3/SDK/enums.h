@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <stdint.h>
+#include "../mrt/bitmask.h"
 
 //
 // Summary:
@@ -33,6 +34,8 @@ enum class MeshUpdateFlags : int32_t
     //     using Mesh.SetSubMesh.
     DontRecalculateBounds = 0x8
 };
+
+SCOPED_ENUM_FLAG(MeshUpdateFlags);
 
 //
 // Summary:
@@ -198,6 +201,8 @@ enum class HideFlags : int32_t
     HideAndDontSave = 0x3D
 };
 
+SCOPED_ENUM_FLAG(HideFlags);
+
 enum class IndexFormat : int32_t
 {
     UInt16,
@@ -280,7 +285,7 @@ enum class TextureFormat : int32_t
     DXT5Crunched
 };
 
-enum class Layer : int32_t
+enum class Layer : uint32_t
 {
     Default                = 0x00000000,
     TransparentFX          = 0x00000001,
@@ -314,6 +319,88 @@ enum class Layer : int32_t
     Prevent_Building       = 0x0000001d,
     Tree                   = 0x0000001e,
     Unused2                = 0x0000001f,
+};
+
+enum class LayerMask : uint32_t
+{
+    Default             = 1,
+    TransparentFX       = 2,
+    Ignore_Raycast      = 4,
+    Reserved1           = 8,
+    Water               = 0x10,
+    UI                  = 0x20,
+    Reserved2           = 0x40,
+    Reserved3           = 0x80,
+    Deployed            = 0x100,
+    Ragdoll             = 0x200,
+    Invisible           = 0x400,
+    AI                  = 0x800,
+    Player_Movement     = 0x1000,
+    Vehicle_Detailed    = 0x2000,
+    Game_Trace          = 0x4000,
+    Vehicle_World       = 0x8000,
+    World               = 0x10000,
+    Player_Server       = 0x20000,
+    Trigger             = 0x40000,
+    Harvestable         = 0x80000,
+    Physics_Projectile  = 0x100000,
+    Construction        = 0x200000,
+    Construction_Socket = 0x400000,
+    Terrain             = 0x800000,
+    Transparent         = 0x1000000,
+    Clutter             = 0x2000000,
+    Debris              = 0x4000000,
+    Vehicle_Large       = 0x8000000,
+    Prevent_Movement    = 0x10000000,
+    Prevent_Building    = 0x20000000,
+    Tree                = 0x40000000,
+    UNUSED              = (1U << (uint32_t)Layer::Unused2),
+};
+
+SCOPED_ENUM_FLAG(LayerMask);
+
+enum class Layers : uint32_t
+{
+    Terrain                    = 0x800000,
+    World                      = 0x10000,
+    Ragdolls                   = 0x200,
+    Construction               = 0x200000,
+    ConstructionSocket         = 0x400000,
+    Craters                    = 1,
+    GameTrace                  = 0x4000,
+    Trigger                    = 0x40000,
+    VehiclesDetailed           = 0x2000,
+    Tree                       = 0x40000000,
+    Harvestable                = 0x80000,
+    RainFall                   = 0x9A10111,
+    Deploy                     = 0x49A10001,
+    DefaultDeployVolumeCheck   = 0x20020000,
+    PreventBuilding            = 0x20000000,
+    BuildLineOfSightCheck      = 0x200000,
+    ProjectileLineOfSightCheck = 0x210000,
+    MeleeLineOfSightCheck      = 0x210000,
+    EyeLineOfSightCheck        = 0x210000,
+    EntityLineOfSightCheck     = 0x48A12001,
+    PlayerBuildings            = 0x9200100,
+    PlannerPlacement           = 0x9A10100,
+    IndustrialPipeObstruction  = 0x210100,
+    Solid                      = 0x48A32901,
+    StaticSolid                = 0x48A10101,
+    VisCulling                 = 0xA10001,
+    HABGroundEffect            = 0x48A10101,
+    AILineOfSight              = 0x48A12101,
+    DismountCheck              = 0x58A10101,
+    AIPlacement                = 0x11A10001,
+    WheelRay                   = 0x49A18101,
+    Water                      = 0x10,
+    Sprays                     = 2
+};
+
+enum class QueryTriggerInteraction
+{
+    UseGlobal,
+    Ignore,
+    Collide
 };
 
 //

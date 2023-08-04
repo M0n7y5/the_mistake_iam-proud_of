@@ -28,3 +28,9 @@ void CTransform::SetRotation(Vector4 rotation)
     static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::set_rotation_UnityEngine_Quaternion_value);
     return ((void(__thiscall*)(CTransform*, Vector4))(addr))(this, rotation);
 }
+Vector3 CTransform::TransformPoint(Vector3 vec)
+{
+    static auto addr = OFF(Offsets::UnityEngine_Transform::Methods::TransformPoint_UnityEngine_Vector3_position);
+    return ((Vector3(__thiscall*)(CTransform*, Vector3))(addr))(this, vec);
+    
+}

@@ -5,6 +5,7 @@
 #include <span>
 #include <stdint.h>
 #include <utility>
+#include <vcruntime.h>
 #include <vector>
 
 #include "../Features/EntityManager.h"
@@ -23,13 +24,10 @@
 using namespace ESP;
 using namespace SettingsData;
 // some locals
-CCamera*     camera                = nullptr;
-float        fontSize              = 0.0f;
-Vector3      currentLocalPosition  = {};
-int          nNetworkablesTotal    = 0;
-int          nNetworkablesFiltered = 0;
-int          nNetworkablesSaved    = 0;
-CBasePlayer* _localPlayer          = 0;
+CCamera*     camera               = nullptr;
+float        fontSize             = 0.0f;
+Vector3      currentLocalPosition = {};
+CBasePlayer* _localPlayer         = 0;
 // types
 
 struct Box
@@ -104,7 +102,8 @@ void RenderTextOutline(ImVec2 pos, ImColor color, ImColor outlineColor, const ch
     g->AddText(font, 0.f, pos, color, text);
 }
 
-void RenderTextCenter(Vector2 centerPos, const char* str, ImColor color = ImColor(255, 255, 255), ImColor outlineColor = ImColor(0, 0, 0))
+void RenderTextCenter(Vector2 centerPos, const char* str, ImColor color = ImColor(255, 255, 255),
+                      ImColor outlineColor = ImColor(0, 0, 0))
 {
     if (!str)
         return;
@@ -114,7 +113,8 @@ void RenderTextCenter(Vector2 centerPos, const char* str, ImColor color = ImColo
     RenderTextOutline(screenPos, color, outlineColor, str);
 }
 
-void RenderTextCenterVH(Vector2 centerPos, const char* str, ImColor color = ImColor(255, 255, 255), ImColor outlineColor = ImColor(0, 0, 0))
+void RenderTextCenterVH(Vector2 centerPos, const char* str, ImColor color = ImColor(255, 255, 255),
+                        ImColor outlineColor = ImColor(0, 0, 0))
 {
     if (!str)
         return;
@@ -153,6 +153,67 @@ void Indicators()
         return;
 
     Vector2 screenCenter = {currentScreenSize.m_Width / _flt(2.f), currentScreenSize.m_Height / _flt(2.f)};
+
+    if (settings->visuals.general.indicators.PredictionLauncher.Enable && Aimbot::launcherInfo.valid)
+    {
+        Vector2    screenPoint, newPosScreen, firstPosScreen{};
+        Vector3    point         = Aimbot::launcherInfo.hitPoint;
+        Quaternion rotation      = Aimbot::launcherInfo.rotation;
+        float      spreadRad     = Aimbot::launcherInfo.travelDist * _flt(0.01963747777f);
+        float      spreadHalfRad = spreadRad * 0.7f;
+
+        // FIXME: use arrays instead + std::span
+        Vector2 drawPoints[32];
+        Vector2 drawPointsGlow[32];
+        Vector3 worldPoints[32];
+        Vector3 worldPointsGlow[32];
+        size_t  idx = 0;
+        for (float a = _flt(0.f); a < _flt(2.f) * M_PI; a += M_PI / _flt(16.f))
+        {
+            Vector3 circlePos = point + Quaternion::QuatMult(rotation, Vector3(std::sin(a) * spreadRad,
+                                                                               std::cos(a) * spreadRad, _flt(0.f)));
+            Vector3 circlePosGlow =
+                point + Quaternion::QuatMult(
+                            rotation, Vector3(std::sin(a) * spreadHalfRad, std::cos(a) * spreadHalfRad, _flt(0.f)));
+            worldPoints[idx]     = circlePos;
+            worldPointsGlow[idx] = circlePosGlow;
+
+            idx++;
+        }
+
+        if (camera->WorldToScreenVec2Ex({worldPoints, idx}, {drawPoints, idx}, currentScreenSize))
+        {
+            camera->WorldToScreenVec2Ex({worldPointsGlow, idx}, {drawPointsGlow, idx}, currentScreenSize);
+            // drawPoints[drawPoints.size() - 1] = drawPoints[0];
+            auto glow = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5, 35, 25, 90);
+            auto col  = settings->visuals.general.indicators.PredictionLauncher.Color;
+            g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col, glow, {});
+
+            auto col2    = col;
+            col2.Value.w = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5.f, 35.f, 0.f, 1.f);
+            g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col2, glow, {});
+
+            // g->AddConvexPolyFilled(reinterpret_cast<ImVec2*>(drawPoints.data()), drawPoints.size(),
+            //                        settings->visuals.general.indicators.VisualPredition.Color);
+
+            if (settings->visuals.general.indicators.PredictionLauncherLine.Enable)
+            {
+                g->AddPolyline(reinterpret_cast<ImVec2*>(&drawPoints), idx,
+                               settings->visuals.general.indicators.PredictionLauncherLine.Color, ImDrawFlags_Closed,
+                               _flt(1.f));
+            }
+        }
+    }
+
+    if (settings->visuals.general.indicators.Prediction.Enable && (Aimbot::PredictedPosition.empty() == false))
+    {
+        Vector2 pos{};
+        if (camera->WorldToScreen(Aimbot::PredictedPosition, pos, currentScreenSize))
+        {
+            g->AddCircleFilled({pos.x, pos.y}, 3.f, settings->visuals.general.indicators.Prediction.Color);
+        }
+    }
+
     if (settings->visuals.general.indicators.Radar)
     {
         float radarX = currentScreenSize.m_Width - _flt(175.f), radarY = _flt(155.f);
@@ -195,7 +256,8 @@ void Indicators()
         auto fovScreenPos1 = Vector2::RotatePoint(fovPoint, {radarX, radarY}, currentFOV / 2.f, false);
         auto fovScreenPos2 = Vector2::RotatePoint(fovPoint, {radarX, radarY}, -currentFOV / 2.f, false);
 
-        g->AddTriangleFilled(ToImVec2(fovScreenPos1), ToImVec2(fovScreenPos2), ImVec2{radarX, radarY}, ImColor(1.f, 1.f, 1.f, .15f));
+        g->AddTriangleFilled(ToImVec2(fovScreenPos1), ToImVec2(fovScreenPos2), ImVec2{radarX, radarY},
+                             ImColor(1.f, 1.f, 1.f, .15f));
 
         g->AddCircleFilled(ImVec2{radarX, radarY}, _flt(3.f), ImColor(1.f, 1.f, 1.f, 0.8f));
 
@@ -203,10 +265,14 @@ void Indicators()
 
         auto curLocalBodyAngles = _localPlayer->input->fields.bodyAngles;
 
-        auto northScreenPos = Vector2::RotatePoint(north, {radarX, radarY}, _flt(360.f) - curLocalBodyAngles.fields.y, false);
-        auto westScreenPos  = Vector2::RotatePoint(north, {radarX, radarY}, _flt(270.f) - curLocalBodyAngles.fields.y, false);
-        auto southScreenPos = Vector2::RotatePoint(north, {radarX, radarY}, _flt(180.f) - curLocalBodyAngles.fields.y, false);
-        auto eastScreenPos  = Vector2::RotatePoint(north, {radarX, radarY}, _flt(90.f) - curLocalBodyAngles.fields.y, false);
+        auto northScreenPos =
+            Vector2::RotatePoint(north, {radarX, radarY}, _flt(360.f) - curLocalBodyAngles.fields.y, false);
+        auto westScreenPos =
+            Vector2::RotatePoint(north, {radarX, radarY}, _flt(270.f) - curLocalBodyAngles.fields.y, false);
+        auto southScreenPos =
+            Vector2::RotatePoint(north, {radarX, radarY}, _flt(180.f) - curLocalBodyAngles.fields.y, false);
+        auto eastScreenPos =
+            Vector2::RotatePoint(north, {radarX, radarY}, _flt(90.f) - curLocalBodyAngles.fields.y, false);
 
         RenderTextCenterVH(northScreenPos, "N", {255, 83, 56});
         RenderTextCenterVH(westScreenPos, "W", {255, 255, 255});
@@ -223,15 +289,11 @@ void Indicators()
 
         RenderTextCenterVH({radarX, 320 + fontSize}, buff, settings->visuals.general.npc.Name.Color);
 
-        // Render players pos on top
-        auto localPosition = _localPlayer->GetOriginPosition();
-
-        for (auto entry : EntityManager::DB::players)
+        for (auto playerData : EntityManager::DB::players)
         {
-            auto player = (CBasePlayer*)entry.second.entity;
+            auto player = (CBasePlayer*)playerData.entity;
 
-            Vector3 position = player->GetOriginPosition();
-            if (position.empty())
+            if (playerData.position.empty())
                 continue;
 
             ImColor dotColor = settings->visuals.general.indicators.RadarEnemies.Color;
@@ -262,7 +324,8 @@ void Indicators()
                 dotColor = settings->visuals.general.indicators.RadarWounded.Color;
             }
 
-            if (std::find(EntityManager::DB::friendlyIDs.begin(), EntityManager::DB::friendlyIDs.end(), userId) != EntityManager::DB::friendlyIDs.end())
+            if (std::find(EntityManager::DB::friendlyIDs.begin(), EntityManager::DB::friendlyIDs.end(), userId) !=
+                EntityManager::DB::friendlyIDs.end())
             {
                 if (!settings->visuals.general.indicators.RadarFriends.Enable)
                     continue;
@@ -270,23 +333,31 @@ void Indicators()
                 dotColor = settings->visuals.general.indicators.RadarFriends.Color;
             }
 
-            if (dotColor == settings->visuals.general.indicators.RadarEnemies.Color && !settings->visuals.general.indicators.RadarEnemies.Enable)
+            if (dotColor == settings->visuals.general.indicators.RadarEnemies.Color &&
+                !settings->visuals.general.indicators.RadarEnemies.Enable)
             {
                 continue;
             }
 
-            Vector2 enemyPosition = {position.x, position.z};
-            enemyPosition         = Vector2{localPosition.x, localPosition.z} - enemyPosition;
+            Vector2 enemyPosition = {playerData.position.x, playerData.position.z};
+            enemyPosition         = Vector2{currentLocalPosition.x, currentLocalPosition.z} - enemyPosition;
 
             float distance = enemyPosition.length();
             enemyPosition  = enemyPosition.normalized();
             distance       = std::min(_flt(145.f), distance);
             enemyPosition *= distance;
-            enemyPosition = Vector2::RotatePoint(enemyPosition, {_flt(0.f), _flt(0.f)}, _flt(360.f) - _localPlayer->input->fields.bodyAngles.fields.y, false);
+            enemyPosition = Vector2::RotatePoint(enemyPosition, {_flt(0.f), _flt(0.f)},
+                                                 _flt(360.f) - _localPlayer->input->fields.bodyAngles.fields.y, false);
 
             float x = currentScreenSize.m_Width - _flt(175.f), y = _flt(155.f);
             g->AddCircleFilled(ImVec2{x - enemyPosition.x, y + enemyPosition.y}, _flt(3.f), dotColor, 8);
         }
+    }
+
+    if (settings->visuals.general.indicators.CrossHair.Enable)
+    {
+        g->AddCircleFilled({screenCenter.x, screenCenter.y}, 4.f, ImColor{0, 0, 0, 255});
+        g->AddCircleFilled({screenCenter.x, screenCenter.y}, 3.f, settings->visuals.general.indicators.CrossHair.Color);
     }
 
     if (settings->ragebot.general.aimbot.FOV.Enable)
@@ -304,7 +375,7 @@ void DrawOres()
         if (!option.Enable)
             return;
 
-        if (item.postition.Invalid())
+        if (item.position.Invalid())
             return;
 
         if (item.distance > vis.general.Distance)
@@ -316,75 +387,37 @@ void DrawOres()
             col.Value.w = Remap(item.distance, 0.f, vis.general.Distance, 1.f, 0.f);
         }
 
-        DrawDefault(name, item.postition, col, item.distance);
+        DrawDefault(name, item.position, col, item.distance);
         clutterIdx++;
     };
 
-    if (vis.general.AntiClutter)
+    for (auto& ore : DB::ores)
     {
-        std::vector<std::pair<uint64_t, OreResource>> lst(DB::ores.begin(), DB::ores.end());
-        std::ranges::sort(lst, {}, [](std::pair<uint64_t, OreResource>& a) -> int { return a.second.distance; });
+        if ((vis.general.AntiClutter) && (clutterIdx > vis.general.MaxAnticlutterCount))
+            return;
 
-        for (auto& pair : lst)
+        switch (ore.prefabId)
         {
-            if (clutterIdx > vis.general.MaxAnticlutterCount)
-                return;
-
-            auto& ore = pair.second;
-            switch (pair.second.prefabId)
-            {
-            case 960501790:  // stone
-            case 4124824587: // stone
-            case 266547145:  // stone
-            case 723721358:  // stone
-                drawOre(_("Stone Ore"), ore, vis.colors.stone);
-                break;
-            case 152562243:  // sulfur
-            case 3058967796: // sulfur
-            case 1227527004: // sulfur
-            case 2204178116: // sulfur
-                drawOre(_("Sulfur Ore"), ore, vis.colors.sulfur);
-                break;
-            case 3327726152: // metal
-            case 3774647716: // metal
-            case 4225479497: // metal
-            case 3345228353: // metal
-                drawOre(_("Metal Ore"), ore, vis.colors.metal);
-                break;
-            default:
-                break;
-            }
-        }
-    }
-    else
-    {
-        for (auto& pair : DB::ores)
-        {
-            auto& ore = pair.second;
-
-            switch (pair.second.prefabId)
-            {
-            case 960501790:  // stone
-            case 4124824587: // stone
-            case 266547145:  // stone
-            case 723721358:  // stone
-                drawOre(_("Stone Ore"), ore, vis.colors.stone);
-                break;
-            case 152562243:  // sulfur
-            case 3058967796: // sulfur
-            case 1227527004: // sulfur
-            case 2204178116: // sulfur
-                drawOre(_("Sulfur Ore"), ore, vis.colors.sulfur);
-                break;
-            case 3327726152: // metal
-            case 3774647716: // metal
-            case 4225479497: // metal
-            case 3345228353: // metal
-                drawOre(_("Metal Ore"), ore, vis.colors.metal);
-                break;
-            default:
-                break;
-            }
+        case 960501790:  // stone
+        case 4124824587: // stone
+        case 266547145:  // stone
+        case 723721358:  // stone
+            drawOre(_("Stone Ore"), ore, vis.colors.stone);
+            break;
+        case 152562243:  // sulfur
+        case 3058967796: // sulfur
+        case 1227527004: // sulfur
+        case 2204178116: // sulfur
+            drawOre(_("Sulfur Ore"), ore, vis.colors.sulfur);
+            break;
+        case 3327726152: // metal
+        case 3774647716: // metal
+        case 4225479497: // metal
+        case 3345228353: // metal
+            drawOre(_("Metal Ore"), ore, vis.colors.metal);
+            break;
+        default:
+            break;
         }
     }
 }
@@ -393,40 +426,35 @@ void DrawAnimals()
 {
     using namespace EntityManager;
 
-    auto& vis = settings->visuals.animals;
+    const auto& vis = settings->visuals.animals;
 
-    auto drawAnimal = [&](Animal& animal, TCO& option) -> void {
+    auto drawAnimal = [&](Animal const& animal, TCO const& option) -> void {
         if (!option.Enable)
             return;
 
-        auto pos = animal.entity->GetOriginPosition();
-
-        if (pos.Invalid())
+        if (animal.position.Invalid())
             return;
 
-        auto dist = pos.distance(currentLocalPosition);
-
-        if (dist > vis.general.Distance)
+        if (animal.distance > vis.general.Distance)
             return;
 
         auto col = option.Color;
         if (vis.general.Fade)
         {
-            col.Value.w = Remap(dist, 0.f, vis.general.Distance, 1.f, 0.f);
+            col.Value.w = Remap(animal.distance, 0.f, vis.general.Distance, 1.f, 0.f);
         }
 
-        DrawDefault(animal.entity->klass->_1.name, pos, col, dist);
+        DrawDefault(animal.entity->klass->_1.name, animal.position, col, animal.distance);
     };
 
     if (!settings->visuals.animals.general.Enabled)
         return;
 
-    for (auto& pair : DB::animals)
+    for (const auto& animal : DB::animals)
     {
         using namespace prefabs;
-        auto& animal = pair.second;
 
-        switch (pair.second.prefabId)
+        switch (animal.prefabId)
         {
         case animals::bear:
             drawAnimal(animal, vis.colors.bear);
@@ -471,16 +499,18 @@ bool Getbox(EntityManager::Player const& player, Box& box)
 
     // index helpers
     constexpr auto _flb = 0;
-    constexpr auto _brt = 1;
-    constexpr auto _blb = 2;
-    constexpr auto _frt = 3;
-    constexpr auto _frb = 4;
-    constexpr auto _brb = 5;
-    constexpr auto _blt = 6;
-    constexpr auto _flt = 7;
+    // constexpr auto _brt = 1;
+    // constexpr auto _blb = 2;
+    // constexpr auto _frt = 3;
+    // constexpr auto _frb = 4;
+    // constexpr auto _brb = 5;
+    // constexpr auto _blt = 6;
+    // constexpr auto _flt = 7;
 
-    std::array<Vector3, 8> points = {Vector3(min.x, min.y, min.z), Vector3(min.x, max.y, min.z), Vector3(max.x, max.y, min.z), Vector3(max.x, min.y, min.z),
-                                     Vector3(max.x, max.y, max.z), Vector3(min.x, max.y, max.z), Vector3(min.x, min.y, max.z), Vector3(max.x, min.y, max.z)};
+    std::array<Vector3, 8> points = {Vector3(min.x, min.y, min.z), Vector3(min.x, max.y, min.z),
+                                     Vector3(max.x, max.y, min.z), Vector3(max.x, min.y, min.z),
+                                     Vector3(max.x, max.y, max.z), Vector3(min.x, max.y, max.z),
+                                     Vector3(min.x, min.y, max.z), Vector3(max.x, min.y, max.z)};
 
     std::array<Vector3, 8> arr{};
 
@@ -550,6 +580,7 @@ bool Getbox(EntityManager::Player const& player, Box& box)
 
 static bool dumped = false;
 
+#ifdef _DEBUG
 void DumpSkeletonToConsole(EntityManager::Player const& player)
 {
     auto model = (CModel*)player.entity->model;
@@ -566,29 +597,27 @@ void DumpSkeletonToConsole(EntityManager::Player const& player)
     }
     dumped = true;
 }
+#endif
 
 void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player const& player, Box const& box)
 {
-
     if (opts.Enabled == false)
         return;
 
     char buf[128];
 
-    auto& vis      = SettingsData::settings->visuals.general;
-    auto  position = player.entity->GetOriginPosition();
-    auto  distance = currentLocalPosition.distance(position);
+    auto& vis = SettingsData::settings->visuals.general;
 
-    if (distance > 350)
+    if (player.distance > 350)
         return;
 
-    if ((player.entity->IsSleeping() == false) && (opts.Sleeping.Enable == false))
+    if ((player.entity->IsSleeping() == true) && (opts.Sleeping.Enable == false))
         return;
 
-    if (dumped == false)
-    {
-        DumpSkeletonToConsole(player);
-    }
+    // if (dumped == false)
+    // {
+    //     DumpSkeletonToConsole(player);
+    // }
 
     if (opts.Box.Enable)
     {
@@ -617,8 +646,11 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
 
         const float healthBarHeight = boxHeight * healthPerc;
 
-        g->AddRectFilled(ImVec2(box.points[0].x - 7, box.points[0].y - 1), ImVec2(box.points[0].x - 3, box.points[0].y + boxHeight + 1), ImColor(0, 0, 0, 120));
-        g->AddRectFilled(ImVec2(box.points[0].x - 6, box.points[0].y + boxHeight - healthBarHeight), ImVec2(box.points[0].x - 4, box.points[0].y + (boxHeight - healthBarHeight) + healthBarHeight), ImColor(col));
+        g->AddRectFilled(ImVec2(box.points[0].x - 7, box.points[0].y - 1),
+                         ImVec2(box.points[0].x - 3, box.points[0].y + boxHeight + 1), ImColor(0, 0, 0, 120));
+        g->AddRectFilled(ImVec2(box.points[0].x - 6, box.points[0].y + boxHeight - healthBarHeight),
+                         ImVec2(box.points[0].x - 4, box.points[0].y + (boxHeight - healthBarHeight) + healthBarHeight),
+                         ImColor(col));
     }
 
     if (opts.Name.Enable)
@@ -688,7 +720,7 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
 
     if (opts.Dist.Enable)
     {
-        snprintf(buf, 128, _("%dm"), (int)distance);
+        snprintf(buf, 128, _("%dm"), player.distance);
 
         ImVec2 textSize   = GetTextSize(buf);
         auto   localPoint = itemNamePoint;
@@ -702,12 +734,11 @@ void DrawPlayers()
 {
     using namespace EntityManager;
     const auto& settings = SettingsData::settings;
+    const auto& vis      = settings->visuals.general;
 
-    auto& vis = settings->visuals.general;
-
-    for (const auto& pair : DB::players)
+    for (const auto& player : DB::players)
     {
-        const auto& player = pair.second;
+        // const auto& player = pair.second;
 
         if (player.entity->GetLifeState() == LifeState::Dead)
             continue;
@@ -739,7 +770,8 @@ void DrawPlayers()
             }
             else
             {
-                if (std::find(EntityManager::DB::friendlyIDs.begin(), EntityManager::DB::friendlyIDs.end(), pair.first) != EntityManager::DB::friendlyIDs.end())
+                if (std::find(EntityManager::DB::friendlyIDs.begin(), EntityManager::DB::friendlyIDs.end(),
+                              player.entity->userID) != EntityManager::DB::friendlyIDs.end())
                 {
                     RenderPlayer(settings->visuals.general.friends, player, box);
                 }
@@ -747,252 +779,6 @@ void DrawPlayers()
             }
         };
     }
-}
-
-// TODO: do we need it?
-#define MinimumUserAddress (uint64_t)0xffffff
-#define MaximumUserAddress (uint64_t)0x00007FFFFFFFFFFF
-
-template <typename T> inline bool IsAddressValid(T address)
-{
-    return ((uint64_t)(address) >= (uint64_t)(MinimumUserAddress) && (uint64_t)(address) <= (uint64_t)(MaximumUserAddress));
-}
-
-bool UpdateEntityList()
-{
-    static auto klass  = (CBaseNetworkable*)il2cpp::InitClass(_("BaseNetworkable"));
-    static auto klass2 = (BaseNetworkable_c*)il2cpp::InitClass(_("BaseNetworkable"));
-
-    auto enityList = klass->StaticFields<BaseNetworkable_StaticFields>();
-    auto cc        = klass2->static_fields->clientEntities;
-
-    if (!IsAddressValid(cc))
-        return false;
-
-    auto items = cc->fields.entityList->fields.vals->fields;
-    auto keys  = cc->fields.entityList->fields.keys->fields;
-
-    std::span itemSpan((CBaseNetworkable**)items.buffer->m_Items, items.count);
-    std::span idSpan((NetworkableId_o**)keys.buffer->m_Items, keys.count);
-
-    using namespace EntityManager;
-
-    // reset shit
-
-    DB::FullClear();
-    nNetworkablesTotal = items.count;
-    int idx            = 0;
-
-    struct tt
-    {
-        CBasePlayer* ent;
-        Layer        layer;
-    };
-
-    std::vector<tt> leftovers{};
-
-    for (auto networkable : itemSpan)
-    {
-        if (networkable->_IsDestroyed_k__BackingField || networkable->m_CachedPtr == 0)
-            continue;
-
-        auto id        = networkable->net->fields.ID.fields.Value;
-        auto classHash = HASH_RUNTIME(networkable->klass->_1.name);
-
-        using namespace prefabs;
-        switch (networkable->prefabID)
-        {
-        case player::player:
-        case player::scientistnpc_arena:
-        case player::scientistnpc_cargo:
-        case player::scientistnpc_cargo_turret_any:
-        case player::scientistnpc_cargo_turret_lr300:
-        case player::scientistnpc_ch47_gunner:
-        case player::scientistnpc_excavator:
-        case player::scientistnpc_full_any:
-        case player::scientistnpc_full_lr300:
-        case player::scientistnpc_full_mp5:
-        case player::scientistnpc_full_pistol:
-        case player::scientistnpc_full_shotgun:
-        case player::scientistnpc_heavy:
-        case player::scientistnpc_junkpile_pistol:
-        case player::scientistnpc_oilrig:
-        case player::scientistnpc_patrol:
-        case player::scientistnpc_peacekeeper:
-        case player::scientistnpc_roam:
-        case player::scientistnpc_roam_nvg_variant:
-        case player::scientistnpc_roamtethered:
-        case player::npc_tunneldweller:
-        case player::npc_bandit_guard:
-        case player::npc_underwaterdweller:
-        {
-            auto entity = (CBasePlayer*)networkable;
-
-            if (entity->IsLocalPlayer())
-                continue;
-
-            auto playerName = ((CString*)entity->_displayName)->str();
-
-            Player player{};
-            if (memcpy_s(player.name, 129, playerName.c_str(), playerName.size()) == 0)
-            {
-                if (entity->playerModel->fields._IsNpc_k__BackingField)
-                {
-                    DB::NPCCount++;
-                }
-                else
-                {
-                    DB::PlayerCount++;
-                }
-
-                player.entity = (CBasePlayer*)networkable;
-                DB::players.insert_or_assign(id, player);
-            }
-
-            continue;
-        }
-        case ore::metal:
-        case ore::metal2:
-        case ore::metal3:
-        case ore::metal4:
-        case ore::sulfur:
-        case ore::sulfur2:
-        case ore::sulfur3:
-        case ore::sulfur4:
-        case ore::stone:
-        case ore::stone2:
-        case ore::stone3:
-        case ore::stone4:
-        {
-            OreResource ore{};
-
-            ore.entity    = (CBaseEntity*)networkable;
-            ore.prefabId  = networkable->prefabID;
-            ore.postition = ore.entity->GetOriginPosition();
-            ore.distance  = currentLocalPosition.distance(ore.postition);
-            DB::ores.insert_or_assign(id, ore);
-
-            continue;
-        }
-        case animals::bear:
-        case animals::polarBear:
-        case animals::boar:
-        case animals::chicken:
-        case animals::stag:
-        case animals::wolf:
-        case animals::zombie:
-        {
-            Animal animal{};
-            animal.classHash = classHash;
-            animal.entity    = (CBaseEntity*)networkable;
-            animal.prefabId  = networkable->prefabID;
-            DB::animals.insert_or_assign(id, animal);
-            continue;
-        }
-        default:
-            continue;
-        }
-
-        // LAYER IS SOMETIMES INCORECTLY SET BY ENGINE WTF?????
-        // NEED TO USE PREFAB ID INSTEAD
-        // auto layer     = ((CGameObject*)networkable)->GetLayer();
-        // auto classHash = HASH_RUNTIME(networkable->klass->_1.name);
-
-        // switch (layer)
-        // {
-        //     // case Layer::Construction:
-        //     // case Layer::UI:
-        //     // case Layer::TransparentFX:
-        //     // case Layer::Trigger:
-        //     // case Layer::Tree:
-        //     // case Layer::Invisible:
-        //     // case Layer::Debris:
-        //     //     // case ELayer::Terrain:
-        //     //     continue;
-
-        // case Layer::Default:
-        // case Layer::AI:
-        // case Layer::Debris:
-        // case Layer::Ragdoll:
-        // case Layer::Player_Server:
-        //     break;
-
-        // default:
-        // {
-        //     continue;
-        // }
-        // }
-
-        // switch (classHash)
-        // {
-        // case HASH_CTIME("BasePlayer"):
-        // case HASH_CTIME("ScientistNPC"):
-        // case HASH_CTIME("BanditGuard"):
-        // case HASH_CTIME("GingerbreadNPC"):
-        // case HASH_CTIME("TunnelDweller"):
-        // case HASH_CTIME("UnderwaterDweller"):
-        // case HASH_CTIME("ScarecrowNPC"):
-        // case HASH_CTIME("NPCShopKeeper"):
-        // {
-        //     auto entity = (CBasePlayer*)networkable;
-
-        //     if (entity->IsLocalPlayer())
-        //         continue;
-
-        //     auto playerName = ((CString*)entity->_displayName)->str();
-
-        //     Player player{};
-        //     if (memcpy_s(player.name, 129, playerName.c_str(), playerName.size()) == 0)
-        //     {
-        //         if (entity->playerModel->fields._IsNpc_k__BackingField)
-        //         {
-        //             player.classHash = classHash;
-        //             DB::NPCCount++;
-        //         }
-        //         else
-        //         {
-        //             DB::PlayerCount++;
-        //         }
-
-        //         player.entity = (CBasePlayer*)networkable;
-        //         DB::players.insert_or_assign(id, player);
-        //     }
-        //     break;
-        // }
-        // case HASH_CTIME("Bear"):
-        // case HASH_CTIME("Boar"):
-        // case HASH_CTIME("Chicken"):
-        // case HASH_CTIME("Polarbear"):
-        // case HASH_CTIME("Stag"):
-        // case HASH_CTIME("Wolf"):
-        // case HASH_CTIME("Zombie"):
-        // {
-        //     Animal animal{};
-
-        //     animal.classHash = classHash;
-        //     animal.entity    = (CBaseEntity*)networkable;
-        //     animal.prefabId  = networkable->prefabID;
-
-        //     DB::animals.insert_or_assign(id, animal);
-        //     break;
-        // }
-        // case HASH_CTIME("OreResourceEntity"):
-        // {
-        //     OreResource ore{};
-
-        //     ore.entity    = (CBaseEntity*)networkable;
-        //     ore.prefabId  = networkable->prefabID;
-        //     ore.postition = ore.entity->GetOriginPosition();
-        //     ore.distance  = currentLocalPosition.distance(ore.postition);
-        //     DB::ores.insert_or_assign(id, ore);
-        //     break;
-        // }
-        // }
-    }
-
-    nNetworkablesSaved = DB::TotalEntities();
-
-    return true;
 }
 
 void ESP::Draw()
@@ -1007,7 +793,8 @@ void ESP::Draw()
 
     if (settings->visuals.general.Watermark)
     {
-        RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f)}, ImColor(255, 255, 255), ImColor(0, 0, 0), _("getrekt.io private"));
+        RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f)}, ImColor(255, 255, 255), ImColor(0, 0, 0),
+                          _("getrekt.io private"));
     }
 
     camera = (CCamera*)main->static_fields->mainCamera;
@@ -1018,7 +805,8 @@ void ESP::Draw()
     auto               localPlayer = CLocalPlayer::GetLocalPlayer();
     auto               loc         = (BasePlayer_o*)localPlayer;
     BasePlayer_Fields& ff          = loc->fields;
-    if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0 || localPlayer->input == nullptr || localPlayer->net == nullptr || localPlayer->eyes == nullptr)
+    if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0 || localPlayer->input == nullptr ||
+        localPlayer->net == nullptr || localPlayer->eyes == nullptr)
         return;
 
     if (localPlayer->_IsDestroyed_k__BackingField)
@@ -1028,12 +816,8 @@ void ESP::Draw()
     currentLocalPosition = localPlayer->GetOriginPosition();
     currentScreenSize    = camera->GetPixelRect();
 
-    nNetworkablesTotal    = 0;
-    nNetworkablesFiltered = 0;
-    nNetworkablesSaved    = 0;
-
-    if (UpdateEntityList() == false)
-        return;
+    // if (UpdateEntityList() == false)
+    //     return;
 
     DrawAnimals();
     DrawOres();
@@ -1043,12 +827,9 @@ void ESP::Draw()
     Indicators();
 
     char buf[48];
-    snprintf(buf, 48, "Total Entities: %d", nNetworkablesTotal);
+    snprintf(buf, 48, "Total Entities: %d", EntityManager::nNetworkablesTotal);
     RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f + fontSize)}, ImColor(255, 249, 97), ImColor(0, 0, 0), buf);
 
-    snprintf(buf, 48, "Filtered Entities: %d", nNetworkablesFiltered);
-    RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f + fontSize * 2)}, ImColor(56, 196, 255), ImColor(0, 0, 0), buf);
-
-    snprintf(buf, 48, "Saved Entities: %d", nNetworkablesSaved);
+    snprintf(buf, 48, "Saved Entities: %d", EntityManager::nNetworkablesSaved);
     RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f + fontSize * 3)}, ImColor(0, 255, 90), ImColor(0, 0, 0), buf);
 }

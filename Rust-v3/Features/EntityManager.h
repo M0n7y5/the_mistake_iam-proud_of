@@ -13,23 +13,20 @@ namespace EntityManager
     {
         T*       entity{};
         uint32_t prefabId{};
+        Vector3  position{};
+        int      distance{};
     };
 
     struct OreResource : Entity<CBaseEntity>
     {
-        Vector3 postition{};
-        int   distance = 0;
     };
 
     struct Animal : Entity<CBaseEntity>
     {
-        uint64_t classHash;
     };
 
-    struct Player
+    struct Player : Entity<CBasePlayer>
     {
-        CBasePlayer* entity{};
-        uint64_t     classHash;
         char name[128 + 1]{}; // 32 chars max, but utf8 (1 to 4 bytes per char) forced by steam
     };
 
@@ -52,53 +49,62 @@ namespace EntityManager
 
     namespace DB
     {
-        inline ankerl::unordered_dense::map<uint64_t, OreResource> ores{};
-        inline ankerl::unordered_dense::map<uint64_t, Animal>      animals{};
-        inline ankerl::unordered_dense::map<uint64_t, Player>      players{};
-        inline ankerl::unordered_dense::map<uint64_t, Collectible> collectibles{};
-        inline ankerl::unordered_dense::map<uint64_t, RadTown>     radtown{};
-        inline ankerl::unordered_dense::map<uint64_t, Vehicle>     vehicles{};
-        inline ankerl::unordered_dense::map<uint64_t, Trap>        traps{};
+        inline std::vector<OreResource> ores{};
+        inline std::vector<Animal>      animals{};
+        inline std::vector<Collectible> collectibles{};
+        inline std::vector<RadTown>     radtown{};
+        inline std::vector<Vehicle>     vehicles{};
+        inline std::vector<Trap>        traps{};
+        inline std::vector<Player>      players{};
+
+        // inline ankerl::unordered_dense::map<uint64_t, Animal>      animals{};
+        //  inline ankerl::unordered_dense::map<uint64_t, Collectible> collectibles{};
+        //  inline ankerl::unordered_dense::map<uint64_t, RadTown>     radtown{};
+        //  inline ankerl::unordered_dense::map<uint64_t, Vehicle>     vehicles{};
+        //  inline ankerl::unordered_dense::map<uint64_t, Trap>        traps{};
+
+        // inline ankerl::unordered_dense::map<uint64_t, Player> players2ID{};
 
         // we need to cache ids of networkables
-        inline ankerl::unordered_dense::map<void*, uint64_t> IDs{};
-        inline std::vector<uint64_t>                         friendlyIDs{};
+        // inline ankerl::unordered_dense::map<void*, uint64_t> IDs{};
+        inline std::vector<uint64_t> friendlyIDs{};
+        inline std::vector<uint64_t> priorityIDs{};
 
         inline int PlayerCount = 0;
         inline int NPCCount    = 0;
 
         inline void ClearAll();
 
-        inline void AddID(void* entity, uint64_t id)
-        {
-            IDs.insert_or_assign(entity, id);
-        }
+        // inline void AddID(void* entity, uint64_t id)
+        // {
+        //     IDs.insert_or_assign(entity, id);
+        // }
 
-        inline uint64_t GetID(void* entity)
-        {
-            auto result = IDs.find(entity);
+        // inline uint64_t GetID(void* entity)
+        // {
+        //     auto result = IDs.find(entity);
 
-            if (result == IDs.end())
-            {
-                return 0;
-            }
+        //     if (result == IDs.end())
+        //     {
+        //         return 0;
+        //     }
 
-            return result->second;
-        }
+        //     return result->second;
+        // }
 
-        inline void RemoveID(uint64_t id)
-        {
-            if (id == 0)
-                return;
+        // inline void RemoveID(uint64_t id)
+        // {
+        //     if (id == 0)
+        //         return;
 
-            ores.erase(id);
-            animals.erase(id);
-            players.erase(id);
-            collectibles.erase(id);
-            radtown.erase(id);
-            vehicles.erase(id);
-            traps.erase(id);
-        }
+        //     ores.erase(id);
+        //     animals.erase(id);
+        //     players.erase(id);
+        //     collectibles.erase(id);
+        //     radtown.erase(id);
+        //     vehicles.erase(id);
+        //     traps.erase(id);
+        // }
 
         inline void FullClear()
         {
@@ -115,9 +121,13 @@ namespace EntityManager
         }
         inline int TotalEntities()
         {
-            return ores.size() + animals.size() + players.size() + collectibles.size() +
-                   radtown.size() + vehicles.size() + traps.size();
+            return ores.size() + animals.size() + players.size() + collectibles.size() + radtown.size() +
+                   vehicles.size() + traps.size();
         }
     }; // namespace DB
 
+    inline int nNetworkablesTotal = 0;
+    inline int nNetworkablesSaved = 0;
+
+    bool UpdateEntityList();
 }; // namespace EntityManager

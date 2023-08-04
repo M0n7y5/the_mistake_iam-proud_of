@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <string>
 #include <vadefs.h>
+#include <span>
 
 #include "enums.h"
 #include "input_data.h"
@@ -65,9 +66,8 @@ typedef wchar_t Il2CppChar;
 typedef struct Il2CppString
 {
     Il2CppObject object;
-    int32_t
-        length; ///< Length of string *excluding* the trailing null (which is included in 'chars').
-    Il2CppChar chars[IL2CPP_ZERO_LEN_ARRAY];
+    int32_t      length; ///< Length of string *excluding* the trailing null (which is included in 'chars').
+    Il2CppChar   chars[IL2CPP_ZERO_LEN_ARRAY];
 
     static Il2CppString* newString(const char* text);
     std::string          str();
@@ -91,8 +91,7 @@ typedef struct Il2CppArray : public Il2CppObject
 struct CArrayBase
 {
     static void* NewInternal(Il2CppClass* klass, il2cpp_array_size_t size);
-    static void* NewInternal(const char* klass, il2cpp_array_size_t size,
-                             const char* namespaze = "");
+    static void* NewInternal(const char* klass, il2cpp_array_size_t size, const char* namespaze = "");
 };
 
 template <typename T> struct CArray : Il2CppArray, CArrayBase
@@ -128,7 +127,7 @@ template <typename T> struct WeakArray
 
 struct CType : Il2CppObject
 {
-    static CType* FomClass(const char* name, const char* namespaze = "");
+    static CType* FromClass(const char* name, const char* namespaze = "");
 };
 
 // template <typename T>
@@ -144,8 +143,7 @@ struct CType : Il2CppObject
 
 struct CAssetBundle
 {
-    static CAssetBundle* LoadFileFromMemory(CArray<uint8_t>* assetBundle, uint32_t CRC,
-                                            uint64_t offset);
+    static CAssetBundle* LoadFileFromMemory(CArray<uint8_t>* assetBundle, uint32_t CRC, uint64_t offset);
 
     // Should be used only for debug
     static CAssetBundle* LoadFileFromFile(const char* path);
@@ -163,6 +161,7 @@ struct CTransform : ILObjectBase<UnityEngine_Transform_Fields>
     Vector3 GetPosition();
     void    SetPosition(Vector3 position);
     void    SetRotation(Vector4 rotation);
+    Vector3 TransformPoint(Vector3 vec);
 };
 
 struct CGameObject : ILObjectBase<UnityEngine_GameObject_Fields>
@@ -206,6 +205,17 @@ struct CGameObject : ILObjectBase<UnityEngine_GameObject_Fields>
     }
 
     CTransform* GetTransform();
+};
+
+struct CComponent
+{
+    CGameObject* GetGameobject();
+};
+
+struct CGameObjectRef
+{
+    void* Get();
+    void* GetEntity();
 };
 
 struct CUnsafeUtility
@@ -261,16 +271,16 @@ struct OBB
 
 struct CRect : UnityEngine_Rect_Fields // native
 {
-    bool Contains(Vector2 point)
+    bool Contains(Vector2 point) const
     {
-        return point.x >= this->m_XMin && point.x < (this->m_Width + this->m_XMin) &&
-               point.y >= this->m_YMin && point.y < (this->m_Height + this->m_YMin);
+        return point.x >= this->m_XMin && point.x < (this->m_Width + this->m_XMin) && point.y >= this->m_YMin &&
+               point.y < (this->m_Height + this->m_YMin);
     }
 
-    bool Contains(Vector3 point)
+    bool Contains(Vector3 point) const
     {
-        return point.x >= this->m_XMin && point.x < (this->m_Width + this->m_XMin) &&
-               point.y >= this->m_YMin && point.y < (this->m_Height + this->m_YMin);
+        return point.x >= this->m_XMin && point.x < (this->m_Width + this->m_XMin) && point.y >= this->m_YMin &&
+               point.y < (this->m_Height + this->m_YMin);
     }
 };
 
@@ -283,8 +293,7 @@ struct CShader : ILObjectBase<UnityEngine_Shader_Fields>
     static uint32_t PropertyToID(const char* name);
 };
 
-struct CPostProcessLayer
-    : ILObjectBase<UnityEngine_Rendering_PostProcessing_PostProcessLayer_Fields>
+struct CPostProcessLayer : ILObjectBase<UnityEngine_Rendering_PostProcessing_PostProcessLayer_Fields>
 {
 };
 //
@@ -309,15 +318,14 @@ struct CMesh : ILObjectBase<UnityEngine_Mesh_Fields>
     void          MarkDynamic();
     void          Clear(bool keepVertexLayout);
     void          SetIndexBufferParams(uint32_t indexCount, IndexFormat format);
-    void          SetVertexBufferParams(int32_t                                        vertexCount,
-                                        const std::vector<CVertexAttributeDescriptor>& attributes);
+    void          SetVertexBufferParams(int32_t vertexCount, const std::vector<CVertexAttributeDescriptor>& attributes);
     void          SetSubMeshes(CSubMeshDescriptor* desc, uint32_t count, MeshUpdateFlags flags);
     void          UploadMeshData(bool markNoLongerReadable);
     void          SetSubmeshCount(uint32_t count);
-    void SetVertexBufferData(int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart,
-                             int32_t count, int32_t elemSize, MeshUpdateFlags flags);
-    void SetIndexBufferData(void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count,
-                            int32_t elemSize, MeshUpdateFlags flags);
+    void SetVertexBufferData(int32_t stream, void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count,
+                             int32_t elemSize, MeshUpdateFlags flags);
+    void SetIndexBufferData(void* data, int32_t dataStart, int32_t meshBufferStart, int32_t count, int32_t elemSize,
+                            MeshUpdateFlags flags);
 };
 
 struct CMaterial : ILObjectBase<UnityEngine_Material_Fields>
@@ -334,8 +342,7 @@ struct CTexture : ILObjectBase<UnityEngine_Texture_Fields>
 
 struct CTexture2D : ILObjectBase<UnityEngine_Texture2D_Fields>
 {
-    void ctor(uint32_t width, uint32_t height, TextureFormat textureFormat, bool mipChain,
-              bool linear);
+    void ctor(uint32_t width, uint32_t height, TextureFormat textureFormat, bool mipChain, bool linear);
 
     WeakArray<uint8_t> GetRawTextureData_byte();
     void               Apply();
@@ -366,8 +373,8 @@ struct CCommandBuffer : ILObjectBase<UnityEngine_Rendering_CommandBuffer_Fields>
     void                   EnableScissorRect(CRect* rect);
     void                   DisableScissorRect();
     void                   Clear();
-    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex,
-                  int32_t shaderPass, CMaterialPropertyBlock* properties);
+    void DrawMesh(CMesh* mesh, Matrix4x4* matrix, CMaterial* material, uint32_t submeshIndex, int32_t shaderPass,
+                  CMaterialPropertyBlock* properties);
 };
 
 struct CInput : ILObjectBase<UnityEngine_Input_Fields>
@@ -428,10 +435,8 @@ struct CCamera : ILObjectBase<UnityEngine_Camera_Fields>
     CRect           GetPixelRect();
     bool            WorldToScreenOld(const Vector3& elementPosition, Vector2& screenPosition);
     bool            WorldToScreen(Vector3 position, Vector2& screenPos, CRect& screen);
-    void  WorldToScreenVec2Ex(std::vector<Vector3>& positions, std::vector<Vec2Ex>& screenPos,
-                              CRect& screen);
-    bool  WorldToScreenVec2Ex(std::array<Vector3, 8>& positions, std::array<Vector3, 8>& screenPos,
-                              CRect& screen);
+    bool            WorldToScreenVec2Ex(std::span<Vector3> const& positions, std::span<Vector2> const& screenPos, CRect const& screen);
+    bool  WorldToScreenVec2Ex(std::array<Vector3, 8>& positions, std::array<Vector3, 8>& screenPos, CRect& screen);
     void  AddCommandBuffer(CameraEvent event, CCommandBuffer* buffer);
     bool  GetOrtoGraphic();
     void  SetOrtoGraphic(bool isOrto);
@@ -539,6 +544,24 @@ struct CHeldEntity : CBaseEntity, HeldEntity_Fields_s
     bool   IsBaseProjectile();
 };
 
+struct CBaseProjectileMagazine : BaseProjectile_Magazine_Fields
+{
+};
+
+struct CItemModProjectile : ILObjectBase<ItemModProjectile_Fields>
+{
+};
+
+struct CItemModProjectileSpawn : ILObjectBase<ItemModProjectileSpawn_Fields>
+{
+};
+
+struct CPlayerEyes : ILObjectBase<PlayerEyes_Fields>
+{
+    Vector3 GetPosition();
+    Vector3 BodyForward();
+};
+
 struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
 {
     uint64_t     GetTeamID();
@@ -589,6 +612,10 @@ struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
     bool IsMelee();
 };
 
+struct CBaseProjectile : CAttackEntity, BaseProjectile_Fields_s
+{
+};
+
 struct CClient : ILObjectBase<Client_Fields>
 {
 };
@@ -596,4 +623,60 @@ struct CClient : ILObjectBase<Client_Fields>
 struct CLocalPlayer : ILObjectBase<LocalPlayer_Fields>
 {
     static CBasePlayer* GetLocalPlayer();
+};
+
+struct CRaycastHit : UnityEngine_RaycastHit_Fields
+{
+};
+
+struct CRay : UnityEngine_Ray_Fields
+{
+};
+
+class CGamePhysics
+{
+  public:
+    static bool Verify(CRaycastHit hitInfo);
+
+    static bool LineOfSightRadius(Vector3 src, Vector3 dst, Layers layerMask, float radius, float padding0,
+                                  float padding1, CBaseEntity* ignoreEntity = nullptr);
+
+    static bool LineOfSightRadius(Vector3 src, Vector3 dst, Layers layerMask, float radius,
+                                  CBaseEntity* ignoreEntity = nullptr);
+
+    static bool LineOfSight(Vector3 src, Vector3 dest, Layers layerMask, float padding = 0.f,
+                            CBaseEntity* ignoreEntity = nullptr);
+
+    static bool Trace(CRay ray, float radius, CRaycastHit* hitInfo, float maxDistance, int32_t layerMask,
+                      QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal);
+
+    static bool Raycast(CRay ray, float maxDistance, int32_t layerMask,
+                        QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal);
+
+    static bool Raycast(CRay ray, CRaycastHit* hitInfo, float maxDistance, int32_t layerMask,
+                        QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal);
+
+    static bool Raycast(Vector3 origin, Vector3 direction, CRaycastHit* hitInfo, float maxDistance, int layerMask);
+
+    static bool SphereCast(CRay ray, float radius, CRaycastHit* hitInfo, float maxDistance, int layerMask,
+                           QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction::Ignore);
+
+    static bool CheckCapsule(Vector3 start, Vector3 end, float radius, int32_t layerMask,
+                             QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal);
+};
+
+struct CProjectile : ILObjectBase<Projectile_Fields>
+{
+};
+
+struct CServerProjectile : ILObjectBase<ServerProjectile_Fields>
+{
+};
+
+struct CProjectileWeaponMod : ILObjectBase<ProjectileWeaponMod_Fields>
+{
+};
+
+struct CBaseMountable : CBaseCombatEntity, BaseMountable_Fields_s
+{
 };

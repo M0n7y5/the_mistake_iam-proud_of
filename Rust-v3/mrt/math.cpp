@@ -1,6 +1,13 @@
 #include "lazy_importer.hpp"
 #include "math.h"
 
+#include <builtins.h>
+
+// extern "C" float __CRTDECL cosf(float _X)
+// {
+//     return __builtin_cosf(_X);
+// }
+
 #ifdef MRT_ENABLED
 
 constexpr auto crtbaseModule = LI_MODULE("ucrtbase.dll");
@@ -11,8 +18,8 @@ extern "C" float __CRTDECL fmodf(float _X, float _Y)
     return fn(_X, _Y);
 }
 
-extern "C" void __cdecl qsort(void *_Base, size_t _NumOfElements, size_t _SizeOfElements,
-    _CoreCrtNonSecureSearchSortCompareFunction _CompareFunction)
+extern "C" void __cdecl qsort(void* _Base, size_t _NumOfElements, size_t _SizeOfElements,
+                              _CoreCrtNonSecureSearchSortCompareFunction _CompareFunction)
 {
     static auto fn = LI_FN(qsort).in_safe(crtbaseModule.get());
     return fn(_Base, _NumOfElements, _SizeOfElements, _CompareFunction);
@@ -85,4 +92,3 @@ extern "C" double __CRTDECL fabs(double _X)
 }
 
 #endif // MRT_ENABLED
-

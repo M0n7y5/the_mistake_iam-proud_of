@@ -2,23 +2,40 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "build",
+			"label": "Build Debug",
 			"type": "shell",
 			"command": "msbuild",
 			"args": [
 				"/property:Configuration=Debug",
 				"/property:GenerateFullPaths=true",
-				// "/t:build",
+				"/t:Rebuild",
+				"-m",
+				"-clp:ShowTimestamp"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "silent"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Build Release",
+			"type": "shell",
+			"command": "msbuild",
+			"args": [
+				"/property:Configuration=Release",
+				"/property:GenerateFullPaths=true",
 				"/t:Rebuild",
 				"-m",
 				"-clp:ShowTimestamp"
 			],
 			"group": "build",
 			"presentation": {
-				// Reveal the output only if unrecognized errors occur.
 				"reveal": "silent"
 			},
-			// Use the standard MS compiler pattern to detect errors, warnings and infos
 			"problemMatcher": "$msCompile"
 		}
 	]

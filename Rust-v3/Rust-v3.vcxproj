@@ -66,6 +66,9 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
+  <PropertyGroup Label="LLVM" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <UseLldLink>true</UseLldLink>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -77,7 +80,7 @@
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/clang:-Wno-microsoft-cast /clang:-Werror=return-type %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mavx %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -97,12 +100,9 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <ExceptionHandling>false</ExceptionHandling>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <ControlFlowGuard>false</ControlFlowGuard>
       <Optimization>MaxSpeed</Optimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,7 +128,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -183,6 +183,7 @@
     <ClCompile Include="SDK\impl\CTime.cpp" />
     <ClCompile Include="SDK\impl\CTransform.cpp" />
     <ClCompile Include="SDK\impl\OBB.cpp" />
+    <ClCompile Include="SDK\impl\CGamePhysics.cpp" />
     <ClCompile Include="SDK\mem.cpp" />
     <ClCompile Include="mrt\core.cpp" />
     <ClCompile Include="mrt\math.cpp" />
@@ -201,6 +202,7 @@
     <ClCompile Include="ui\mui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Features\DesyncManager.h" />
     <ClInclude Include="SDK\input_data.h" />
     <ClInclude Include="SDK\settings.h" />
     <ClInclude Include="SDK\settings_types.h" />

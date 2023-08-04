@@ -1,5 +1,6 @@
 #pragma once
 #include "../mrt/md5.h"
+#include <stdint.h>
 
 namespace prefabs
 {

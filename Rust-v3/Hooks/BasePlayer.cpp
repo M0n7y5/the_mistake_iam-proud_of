@@ -27,13 +27,13 @@ namespace
             return;
         }
 
-        if (_this->IsLocalPlayer() == false)
+        if (_this->m_CachedPtr == 0)
         {
             reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, state, method);
             return;
         }
 
-        if (_this->m_CachedPtr == 0)
+        if (_this->IsLocalPlayer() == false)
         {
             reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, state, method);
             return;

@@ -48,10 +48,8 @@ struct Settings
                 TKO          aim               = TKO(KeyCode::Mouse3);
                 bool         Silent            = false;
                 bool         ShootWhenPossible = true;
-                bool         Humanizer         = true;
                 bool         Prediction        = true;
                 bool         Smoothing         = true;
-                int          HumanizerAmount   = 4;
                 int          Smooth            = 10;
                 TCO          FOV               = {255, 255, 255, 200, true};
                 int          FOVRadius         = 90;
@@ -73,15 +71,18 @@ struct Settings
 
             struct Targeting
             {
-                PlayerBones PlayerHitbox = PlayerBones::head;
-                PlayerBones NPCHitbox    = PlayerBones::head;
-                bool        Players      = true;
-                bool        NPC          = false;
-                bool        Friends      = false;
-                bool        Heli         = false;
-                bool        Traps        = false;
-                bool        VisCheck     = false;
-                bool        TargetLock   = false;
+                PlayerBones PlayerHitbox    = PlayerBones::head;
+                PlayerBones NPCHitbox       = PlayerBones::head;
+                bool        Players         = true;
+                bool        NPC             = false;
+                bool        Friends         = false;
+                bool        Heli            = false;
+                bool        Traps           = false;
+                bool        VisCheck        = false;
+                bool        TargetLock      = false;
+                float       headAdjustmentX = {};
+                float       headAdjustmentY = {};
+                float       headAdjustmentZ = {};
 
             } targeting{};
 
@@ -93,12 +94,23 @@ struct Settings
                 bool        Pierce            = false;
                 bool        InstaHit          = false;
                 bool        BulletRain        = false;
+                bool        FasterBullets     = false;
             } projectile{};
+
+            struct Weapon
+            {
+                bool NoSpread           = false;
+                bool Automatic          = false;
+                bool NoSway             = false;
+                bool NoRecoil           = false;
+                bool RecoilHumanizer    = false;
+                int  RecoilHumanization = 0;
+            } weapon{};
+
         } general{};
 
         struct AntiAim
         {
-
             struct General
             {
                 bool Enabled   = false;
@@ -130,15 +142,18 @@ struct Settings
 
             struct Indicators
             {
-                bool Enabled         = true;
-                bool Radar           = true;
-                int  RadarSize       = 100;
-                TCO  RadarEnemies    = {255, 0, 0, 255, true};
-                TCO  RadarFriends    = {0, 255, 0, 255, true};
-                TCO  RadarSleepers   = {255, 204, 153, 255, true};
-                TCO  RadarWounded    = {255, 179, 25, 255, true};
-                TCO  RadarNPC        = {77, 136, 255, 255, true};
-                TCO  VisualPredition = {255, 0, 0, 255, true};
+                bool Enabled                = true;
+                bool Radar                  = true;
+                int  RadarSize              = 100;
+                TCO  RadarEnemies           = {255, 0, 0, 255, true};
+                TCO  RadarFriends           = {0, 255, 0, 255, true};
+                TCO  RadarSleepers          = {255, 204, 153, 255, true};
+                TCO  RadarWounded           = {255, 179, 25, 255, true};
+                TCO  RadarNPC               = {77, 136, 255, 255, true};
+                TCO  Prediction             = {255, 0, 0, 255, true};
+                TCO  PredictionLauncher     = {0, 83, 196, 255, true};
+                TCO  PredictionLauncherLine = {0, 131, 232, 255, true};
+                TCO  CrossHair              = {196, 0, 171, 255, true};
 
                 // bool Enabled = true;
 
@@ -390,6 +405,18 @@ struct Settings
         } item{};
 
     } visuals{};
+
+    struct Miscellaneous
+    {
+        struct Movement
+        {
+
+        } movement;
+
+        struct Weapon
+        {
+        };
+    } misc;
 };
 
 namespace SettingsData

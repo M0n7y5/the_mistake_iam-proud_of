@@ -10,6 +10,8 @@
 #include "../ui/imgui_backend/imgui_impl_unity.h"
 #include "Hooks.h"
 
+#include "../Features/Aimbot.h"
+
 static uintptr_t LateUpdate_o = 0;
 static uintptr_t Awake_o      = 0;
 static uintptr_t OnDisable_o  = 0;
@@ -42,6 +44,9 @@ static void hk_LateUpdate(CClient* _this)
 
     reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
 
+    EntityManager::UpdateEntityList();
+    Aimbot::LateUpdate();
+
     if (CInput::GetKeyDown(KeyCode::Insert))
     {
         isMenuOpen ^= true;
@@ -52,6 +57,7 @@ static void hk_LateUpdate(CClient* _this)
     if (graceFullExit)
     {
         graceFullExit = false;
+
         ImGui_Impl_Unity_NewFrame(io);
         ImGui::NewFrame();
 

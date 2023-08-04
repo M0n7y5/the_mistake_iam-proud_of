@@ -4073,6 +4073,31 @@ constexpr auto ToggleGestureHide_System_Boolean_state = 10629424; // System.Void
 constexpr auto _cctor = 10631856; // System.Void .cctor()
 }
 }
+namespace ResourceRef_1
+{
+namespace Fields
+{
+constexpr auto guid = 0x0; // System.String
+constexpr auto _cachedObject = 0x0; // unknown
+}
+namespace Methods
+{
+constexpr auto get_isValid = 19053296; // System.Boolean get_isValid()
+constexpr auto Get = 19052848; // T Get()
+constexpr auto get_resourcePath = 19053376; // System.String get_resourcePath()
+constexpr auto get_resourceID = 19053328; // System.UInt32 get_resourceID()
+constexpr auto _ctor = 3522960; // System.Void .ctor()
+}
+}
+namespace GameObjectRef
+{
+namespace Methods
+{
+constexpr auto Instantiate_UnityEngine_Transform_parent___null = 10637712; // UnityEngine.GameObject Instantiate(UnityEngine.Transform parent = null)
+constexpr auto GetEntity = 10637616; // BaseEntity GetEntity()
+constexpr auto _ctor = 10637808; // System.Void .ctor()
+}
+}
 namespace UIDeathScreen
 {
 namespace Fields

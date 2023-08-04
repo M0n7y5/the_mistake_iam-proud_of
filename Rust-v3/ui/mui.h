@@ -59,20 +59,18 @@ namespace mui
             };
 
             builder.AddRanges(rrr);
-            builder.AddRanges(io.Fonts->GetGlyphRangesJapanese()); // Add one of the default ranges
-            builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic()); // Add one of the default ranges
+            builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());                // Add one of the default ranges
+            builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic());                // Add one of the default ranges
             builder.AddRanges(io.Fonts->GetGlyphRangesChineseSimplifiedCommon()); // Add one of the
                                                                                   // default ranges
             builder.BuildRanges(&ranges);
 
-            fonts::defaultFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-                "G:\\fonts\\NotoSans-Regular.ttf", 19.f, &cfg, ranges.Data);
-            fonts::boldFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(
-                "G:\\fonts\\NotoSans-Bold.ttf", 20.f, &cfg, ranges.Data);
-            fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(
-                GrLogoData_base85, 50.f, &cfg);
-            fonts::categoryFont =
-                ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\fontello.ttf", 40.f, &cfg);
+            fonts::defaultFont =
+                ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\NotoSans-Regular.ttf", 19.f, &cfg, ranges.Data);
+            fonts::boldFont =
+                ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\NotoSans-Bold.ttf", 20.f, &cfg, ranges.Data);
+            fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(GrLogoData_base85, 50.f, &cfg);
+            fonts::categoryFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\fontello.ttf", 40.f, &cfg);
 
             io.Fonts->Build();
         }
@@ -190,31 +188,26 @@ namespace mui
             {
                 // left half-plane
             case 0:
-                ImGui::PushClipRect(ImVec2(-FLT_MAX, -FLT_MAX), ImVec2(labelRect.Min.x, FLT_MAX),
-                                    true);
+                ImGui::PushClipRect(ImVec2(-FLT_MAX, -FLT_MAX), ImVec2(labelRect.Min.x, FLT_MAX), true);
                 break;
                 // right half-plane
             case 1:
-                ImGui::PushClipRect(ImVec2(labelRect.Max.x, -FLT_MAX), ImVec2(FLT_MAX, FLT_MAX),
-                                    true);
+                ImGui::PushClipRect(ImVec2(labelRect.Max.x, -FLT_MAX), ImVec2(FLT_MAX, FLT_MAX), true);
                 break;
                 // top
             case 2:
-                ImGui::PushClipRect(ImVec2(labelRect.Min.x, -FLT_MAX),
-                                    ImVec2(labelRect.Max.x, labelRect.Min.y), true);
+                ImGui::PushClipRect(ImVec2(labelRect.Min.x, -FLT_MAX), ImVec2(labelRect.Max.x, labelRect.Min.y), true);
                 break;
                 // bottom
             case 3:
-                ImGui::PushClipRect(ImVec2(labelRect.Min.x, labelRect.Max.y),
-                                    ImVec2(labelRect.Max.x, FLT_MAX), true);
+                ImGui::PushClipRect(ImVec2(labelRect.Min.x, labelRect.Max.y), ImVec2(labelRect.Max.x, FLT_MAX), true);
                 break;
             }
 
             auto& style = ImGui::GetStyle();
 
-            ImGui::GetWindowDrawList()->AddRect(frameRect.Min, frameRect.Max,
-                                                ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)),
-                                                style.ChildRounding);
+            ImGui::GetWindowDrawList()->AddRect(
+                frameRect.Min, frameRect.Max, ImColor(ImGui::GetStyleColorVec4(ImGuiCol_Border)), style.ChildRounding);
 
             ImGui::PopClipRect();
         }
@@ -252,8 +245,7 @@ namespace mui
 
         ImGuiContext& g          = *GImGui;
         float         ANIM_SPEED = 0.20f;
-        if (g.LastActiveId ==
-            g.CurrentWindow->GetID(str_id)) // && g.LastActiveIdTimer < ANIM_SPEED)
+        if (g.LastActiveId == g.CurrentWindow->GetID(str_id)) // && g.LastActiveIdTimer < ANIM_SPEED)
         {
             float t_anim = ImSaturate(g.LastActiveIdTimer / ANIM_SPEED);
             t            = *v ? (t_anim) : (1.0f - t_anim);
@@ -271,21 +263,18 @@ namespace mui
 
         draw_list->AddRectFilled(p, ImVec2(p.x + width, p.y + height), col_bg, height * 0.5f);
 
-        draw_list->AddRect(p, ImVec2(p.x + width, p.y + height),
-                           ImGui::GetColorU32(colors[ImGuiCol_Border]), height * 0.5f, 0, 1.f);
+        draw_list->AddRect(p, ImVec2(p.x + width, p.y + height), ImGui::GetColorU32(colors[ImGuiCol_Border]),
+                           height * 0.5f, 0, 1.f);
 
-        col_bg =
-            ImGui::GetColorU32(ImLerp(colors[ImGuiCol_TextDisabled], ImColor(0, 115, 255, 255), t));
+        col_bg = ImGui::GetColorU32(ImLerp(colors[ImGuiCol_TextDisabled], ImColor(0, 115, 255, 255), t));
 
-        draw_list->AddCircleFilled(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius),
-                                   radius - 1.5f, col_bg);
+        draw_list->AddCircleFilled(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f,
+                                   col_bg);
 
-        col_bg = ImGui::GetColorU32(
-            ImLerp((ImVec4)ImColor(0, 115, 255, 0), ImColor(0, 115, 255, 120), t));
+        col_bg = ImGui::GetColorU32(ImLerp((ImVec4)ImColor(0, 115, 255, 0), ImColor(0, 115, 255, 120), t));
 
-        draw_list->AddShadowCircle(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius),
-                                   radius - 1.5f, col_bg, 35, {},
-                                   ImDrawFlags_ShadowCutOutShapeBackground);
+        draw_list->AddShadowCircle(ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius), radius - 1.5f,
+                                   col_bg, 35, {}, ImDrawFlags_ShadowCutOutShapeBackground);
         // draw_list->AddShadowCircle(
         //     ImVec2(p.x + radius + t * (width - radius * 2.0f), p.y + radius),
         //     radius - 1.5f, col_bg, 35, {},
@@ -341,18 +330,15 @@ namespace mui
         ImGui::Dummy({0, 5});
     }
 
-    inline float Remap(float value, float inputStart, float inputEnd, float outputStart,
-                       float outputEnd)
+    inline float Remap(float value, float inputStart, float inputEnd, float outputStart, float outputEnd)
     {
-        float result = (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) +
-                       outputStart;
+        float result = (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
 
         return result;
     }
 
-    inline bool SliderScalar2(const char* label, ImGuiDataType data_type, void* p_data,
-                              const void* p_min, const void* p_max, const char* format,
-                              ImGuiSliderFlags flags = 0)
+    inline bool SliderScalar2(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min,
+                              const void* p_max, const char* format, ImGuiSliderFlags flags = 0)
     {
         ImGuiWindow* window = ImGui::GetCurrentWindow();
         if (window->SkipItems)
@@ -370,14 +356,12 @@ namespace mui
         // NULL, ImVec2(0.5f, 0.5f)); const ImVec2 label_size = CalcTextSize(
         // value_buf, value_buf_end, true);
 
-        const ImRect frame_bb(window->DC.CursorPos,
-                              window->DC.CursorPos + ImVec2(w, 15 + style.FramePadding.y * 2.0f));
+        const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, 15 + style.FramePadding.y * 2.0f));
         // const ImRect total_bb(frame_bb.Min, frame_bb.Max);
 
         const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
         ImGui::ItemSize(frame_bb, style.FramePadding.y);
-        if (!ImGui::ItemAdd(frame_bb, id, &frame_bb,
-                            temp_input_allowed ? ImGuiItemFlags_Inputable : 0))
+        if (!ImGui::ItemAdd(frame_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemFlags_Inputable : 0))
             return false;
 
         // Default format string when passing NULL
@@ -389,8 +373,7 @@ namespace mui
         const bool active  = ImGui::IsItemActive();
 
         const bool input_requested_by_tabbing =
-            temp_input_allowed &&
-            (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
+            temp_input_allowed && (g.LastItemData.StatusFlags & ImGuiItemStatusFlags_FocusedByTabbing) != 0;
         const bool clicked = (hovered && g.IO.MouseClicked[0]);
         if (input_requested_by_tabbing || clicked || g.NavActivateId == id)
         {
@@ -420,12 +403,10 @@ namespace mui
         ImU32 col_bg;
         if (ImGui::IsItemHovered())
             col_bg = ImGui::GetColorU32(
-                ImLerp(ImGui::GetStyleColorVec4(g.ActiveId == id ? ImGuiCol_FrameBgActive
-                                                                 : ImGuiCol_FrameBg),
+                ImLerp(ImGui::GetStyleColorVec4(g.ActiveId == id ? ImGuiCol_FrameBgActive : ImGuiCol_FrameBg),
                        ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered), t_anim));
         else
-            col_bg =
-                ImGui::GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : ImGuiCol_FrameBg);
+            col_bg = ImGui::GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : ImGuiCol_FrameBg);
 
         // window->DrawList->AddLine(ImVec2(frame_bb.Min.x, frame_bb.GetCenter().y),
         // ImVec2(frame_bb.Max.x, frame_bb.GetCenter().y),
@@ -433,13 +414,12 @@ namespace mui
         // window->DrawList->AddLine(ImVec2(frame_bb.Min.x, frame_bb.GetCenter().y),
         // ImVec2(frame_bb.Max.x, frame_bb.GetCenter().y), col_bg, 2.f);
         window->DrawList->AddRectFilled(ImVec2(frame_bb.Min.x, frame_bb.Min.y + 6.f),
-                                        ImVec2(frame_bb.Max.x, frame_bb.Max.y - 8.f), col_bg,
-                                        style.FrameRounding);
+                                        ImVec2(frame_bb.Max.x, frame_bb.Max.y - 8.f), col_bg, style.FrameRounding);
 
         // Slider behavior
         ImRect     grab_bb;
-        const bool value_changed = ImGui::SliderBehavior(frame_bb, id, data_type, p_data, p_min,
-                                                         p_max, format, flags, &grab_bb);
+        const bool value_changed =
+            ImGui::SliderBehavior(frame_bb, id, data_type, p_data, p_min, p_max, format, flags, &grab_bb);
         if (value_changed)
             ImGui::MarkItemEdited(id);
 
@@ -469,28 +449,25 @@ namespace mui
             float v_increase = (active || hovered) ? 0.40f : 0.2f;
 
             ImVec4 col_2_vec = ImGui::ColorConvertU32ToFloat4(col_1);
-            ImGui::ColorConvertRGBtoHSV(col_2_vec.x, col_2_vec.y, col_2_vec.z, col_2_vec.x,
-                                        col_2_vec.y, col_2_vec.z);
+            ImGui::ColorConvertRGBtoHSV(col_2_vec.x, col_2_vec.y, col_2_vec.z, col_2_vec.x, col_2_vec.y, col_2_vec.z);
             col_2_vec.z = ImMin(col_2_vec.z + h_increase, 1.0f);
             col_2_vec.z = ImMin(col_2_vec.z + v_increase, 1.0f);
-            ImGui::ColorConvertHSVtoRGB(col_2_vec.x, col_2_vec.y, col_2_vec.z, col_2_vec.x,
-                                        col_2_vec.y, col_2_vec.z);
+            ImGui::ColorConvertHSVtoRGB(col_2_vec.x, col_2_vec.y, col_2_vec.z, col_2_vec.x, col_2_vec.y, col_2_vec.z);
             auto col_2 = ImGui::GetColorU32(col_2_vec);
 
             int vert_start_idx = window->DrawList->VtxBuffer.Size;
             window->DrawList->AddRectFilled(Min, Max, col_1, style.FrameRounding);
             int vert_end_idx = window->DrawList->VtxBuffer.Size;
-            ImGui::ShadeVertsLinearColorGradientKeepAlpha(window->DrawList, vert_start_idx,
-                                                          vert_end_idx, Min, ImVec2(Min.x, Max.y),
-                                                          col_2, col_1);
+            ImGui::ShadeVertsLinearColorGradientKeepAlpha(window->DrawList, vert_start_idx, vert_end_idx, Min,
+                                                          ImVec2(Min.x, Max.y), col_2, col_1);
 
             // window->DrawList->AddCircleFilled(ImVec2((grab_bb.Min.x +
             // grab_bb.Max.x) / 2, grab_bb.GetCenter().y), 6.f,
             // GetColorU32(ImGuiCol_Text, t_anim));
             auto centerGrab = ImVec2((grab_bb.Min.x + grab_bb.Max.x) / 2, grab_bb.GetCenter().y);
 
-            auto grabCol = g.ActiveId == id ? IM_COL32(255, 255, 255, 255 * t_anim)
-                                            : IM_COL32(200, 200, 200, 200 * t_anim);
+            auto grabCol =
+                g.ActiveId == id ? IM_COL32(255, 255, 255, 255 * t_anim) : IM_COL32(200, 200, 200, 200 * t_anim);
 
             auto shadowColor = IM_COL32(0, 0, 0, 255 * t_anim);
 
@@ -498,9 +475,8 @@ namespace mui
             // window->DrawList->AddShadowCircle(centerGrab, 6.f, shadowColor, 25,
             // {0, 0});
 
-            window->DrawList->AddCircleFilled(
-                ImVec2((grab_bb.Min.x + grab_bb.Max.x) / 2, grab_bb.GetCenter().y - 1), 7.f,
-                grabCol);
+            window->DrawList->AddCircleFilled(ImVec2((grab_bb.Min.x + grab_bb.Max.x) / 2, grab_bb.GetCenter().y - 1),
+                                              7.f, grabCol);
             //  ImGui::RenderTextClipped(frame_bb.Min, grab_bb.Max, value_buf,
             //  value_buf_end, NULL, ImVec2(0.5f, 0.5f));
         }
@@ -509,8 +485,8 @@ namespace mui
         return value_changed;
     }
 
-    inline bool SliderF(const char* label, float* v, float v_min, float v_max, const char* format,
-                        float min_width, ImGuiSliderFlags flags = 0)
+    inline bool SliderF(const char* label, float* v, float v_min, float v_max, const char* format, float min_width,
+                        ImGuiSliderFlags flags = 0)
     {
         ImGui::LabelText("##nolabel", "%s", label);
         ImGui::SameLine(min_width ? min_width : ImGui::CalcTextSize(label).x);
@@ -529,8 +505,7 @@ namespace mui
         bool entered{}, left{};
 
       public:
-        SimpleAnimation(T fromVal, T to, float timeSec, STween::EasingFunction easing,
-                        std::string testName = "")
+        SimpleAnimation(T fromVal, T to, float timeSec, STween::EasingFunction easing, std::string testName = "")
         {
             val = fromVal;
 
@@ -649,8 +624,7 @@ namespace mui
         KeyButton* key = nullptr;
 
       public:
-        explicit BoolFeature(std::string name, bool* var, KeyButton* key = nullptr)
-            : Feature(std::move(name), var)
+        explicit BoolFeature(std::string name, bool* var, KeyButton* key = nullptr) : Feature(std::move(name), var)
         {
             this->key = key;
         }
@@ -694,10 +668,9 @@ namespace mui
                         ImGui::EndTooltip();
                     }
                 }
-                if (ImGui::BeginPopupContextItem(
-                        0,
-                        ImGuiPopupFlags_MouseButtonRight)) // <-- This is using
-                                                           // IsItemHovered()
+                if (ImGui::BeginPopupContextItem(0,
+                                                 ImGuiPopupFlags_MouseButtonRight)) // <-- This is using
+                                                                                    // IsItemHovered()
                 {
                     bool toggle = key->buttonData.type == TriggerType::TOGGLE;
                     bool hold   = key->buttonData.type == TriggerType::HOLD;
@@ -727,8 +700,7 @@ namespace mui
         bool*  toggle = nullptr;
 
       public:
-        explicit ColorFeature(std::string name, ImColor* var, bool* tog = nullptr)
-            : Feature(std::move(name), var)
+        explicit ColorFeature(std::string name, ImColor* var, bool* tog = nullptr) : Feature(std::move(name), var)
         {
             toggle = tog;
         }
@@ -744,8 +716,8 @@ namespace mui
             {
                 for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
                 {
-                    ImGui::ColorConvertHSVtoRGB((float)n / 87.0f, 0.8f, 0.8f, saved_palette[n].x,
-                                                saved_palette[n].y, saved_palette[n].z);
+                    ImGui::ColorConvertHSVtoRGB((float)n / 87.0f, 0.8f, 0.8f, saved_palette[n].x, saved_palette[n].y,
+                                                saved_palette[n].z);
                     saved_palette[n].w = 1.0f; // Alpha
                 }
                 saved_palette_init = false;
@@ -767,8 +739,7 @@ namespace mui
             auto& color = ((ImColor*)_data)->Value;
 
             ImGui::SetCursorPosY(curY + 5);
-            bool open_popup =
-                ImGui::ColorButton(_("##colbt"), color, ImGuiColorEditFlags_AlphaPreview, {30, 10});
+            bool open_popup = ImGui::ColorButton(_("##colbt"), color, ImGuiColorEditFlags_AlphaPreview, {30, 10});
 
             // {
             //     auto   min  = ImGui::GetItemRectMin();
@@ -793,8 +764,7 @@ namespace mui
                 ImGui::Separator();
 
                 ImGui::ColorPicker4(_("##colpick"), (float*)&color,
-                                    ImGuiColorEditFlags_NoSidePreview |
-                                        ImGuiColorEditFlags_NoSmallPreview |
+                                    ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview |
                                         ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoLabel);
                 ImGui::SameLine();
 
@@ -804,8 +774,7 @@ namespace mui
                 {
                     ImGui::Text("%s", _("Current"));
                     ImGui::ColorButton(_("##colcur"), color,
-                                       ImGuiColorEditFlags_NoPicker |
-                                           ImGuiColorEditFlags_AlphaPreviewHalf,
+                                       ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
                                        ImVec2(90, 20));
                     ImGui::EndGroup();
                 }
@@ -815,8 +784,7 @@ namespace mui
                 {
                     ImGui::Text("%s", _("Previous"));
                     if (ImGui::ColorButton(_("##colprev"), backup_color,
-                                           ImGuiColorEditFlags_NoPicker |
-                                               ImGuiColorEditFlags_AlphaPreviewHalf,
+                                           ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,
                                            ImVec2(90, 20)))
                         color = backup_color;
                     ImGui::EndGroup();
@@ -830,24 +798,19 @@ namespace mui
                     if ((n % 8) != 0)
                         ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
 
-                    ImGuiColorEditFlags palette_button_flags = ImGuiColorEditFlags_NoAlpha |
-                                                               ImGuiColorEditFlags_NoPicker |
-                                                               ImGuiColorEditFlags_NoTooltip;
-                    if (ImGui::ColorButton(_("##pallete"), saved_palette[n], palette_button_flags,
-                                           ImVec2(20, 20)))
-                        color = ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z,
-                                       color.w);
+                    ImGuiColorEditFlags palette_button_flags =
+                        ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip;
+                    if (ImGui::ColorButton(_("##pallete"), saved_palette[n], palette_button_flags, ImVec2(20, 20)))
+                        color = ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z, color.w);
 
                     // Allow user to drop colors into each palette entry. Note that
                     // ColorButton() is already a drag source by default, unless
                     // specifying the ImGuiColorEditFlags_NoDragDrop flag.
                     if (ImGui::BeginDragDropTarget())
                     {
-                        if (const ImGuiPayload* payload =
-                                ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
                             memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3);
-                        if (const ImGuiPayload* payload =
-                                ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
                             memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4);
                         ImGui::EndDragDropTarget();
                     }
@@ -920,8 +883,7 @@ namespace mui
         {
             ImGui::PushID(this);
             // const auto curX = ImGui::GetCursorPosX();
-            ImGui::TextUnformatted(this->name.c_str(),
-                                   ImGui::FindRenderedTextEnd(this->name.c_str()));
+            ImGui::TextUnformatted(this->name.c_str(), ImGui::FindRenderedTextEnd(this->name.c_str()));
             // ImGui::SameLine();
             // ImGui::SetCursorPosX(size.x - 37.f + curX);
 
@@ -943,8 +905,8 @@ namespace mui
 
             if constexpr (std::is_same_v<T, float>)
             {
-                SliderScalar2(_("##sldr"), ImGuiDataType_Float, this->_data, &min, &max, format,
-                              ImGuiSliderFlags_Logarithmic);
+                SliderScalar2(_("##sldrf"), ImGuiDataType_Float, this->_data, &min, &max, format,
+                              ImGuiSliderFlags_Logarithmic | ImGuiSliderFlags_NoRoundToFormat);
             }
 
             ImGui::PopStyleVar();
@@ -959,8 +921,7 @@ namespace mui
         int                      currentItemIndex = 0;
 
       public:
-        ComboFeature(std::string name, T* _target, std::vector<T>& possibleVals,
-                     std::vector<std::string>& stringVals)
+        ComboFeature(std::string name, T* _target, std::vector<T>& possibleVals, std::vector<std::string>& stringVals)
             : Feature<T>(name, _target)
         {
             strings = std::move(stringVals);
@@ -973,8 +934,7 @@ namespace mui
         {
             ImGui::PushID(this);
             const auto curX = ImGui::GetCursorPosX();
-            ImGui::TextUnformatted(this->name.c_str(),
-                                   ImGui::FindRenderedTextEnd(this->name.c_str()));
+            ImGui::TextUnformatted(this->name.c_str(), ImGui::FindRenderedTextEnd(this->name.c_str()));
             ImGui::SameLine();
             ImGui::Dummy({});
             ImGui::SameLine();
@@ -1067,8 +1027,7 @@ namespace mui
             const auto style = ImGui::GetStyle();
             const auto color = style.Colors[ImGuiCol_WindowBg];
 
-            ImGui::GetWindowDrawList()->AddShadowRect(min, max, IM_COL32(0, 0, 0, 255), 45, {0, 0},
-                                                      0, 7);
+            ImGui::GetWindowDrawList()->AddShadowRect(min, max, IM_COL32(0, 0, 0, 255), 45, {0, 0}, 0, 7);
             ImGui::GetWindowDrawList()->AddRectFilled(min, max, ImGui::GetColorU32(color), 7);
 
             // border
@@ -1230,8 +1189,7 @@ namespace mui
             isSelected = sel;
         }
 
-        Category& AddSubCategory(std::string name, std::function<void(SubCategory& sub)> cb,
-                                 bool isSelected = false)
+        Category& AddSubCategory(std::string name, std::function<void(SubCategory& sub)> cb, bool isSelected = false)
         {
             const auto sub = new SubCategory(std::move(name));
 
@@ -1261,8 +1219,7 @@ namespace mui
 
             const auto opacity = (float)(this->hoverAnim);
 
-            auto hoverCol = ImLerp(ImGui::GetStyle().Colors[ImGuiCol_ChildBg],
-                                   ImColor(28, 35, 43).Value, opacity);
+            auto hoverCol = ImLerp(ImGui::GetStyle().Colors[ImGuiCol_ChildBg], ImColor(28, 35, 43).Value, opacity);
 
             g->AddRectFilled(bMin, bMax, ImColor(hoverCol), this->isProfile ? 10.f : 0.f,
                              ImDrawFlags_RoundCornersBottom);
@@ -1321,9 +1278,10 @@ namespace mui
             searchBarGlow.SetEnterValue(100).SetLeaveValue(0);
         }
 
-        Category& AddCategory(std::string name, std::string icon, bool profile = false)
+        Category& AddCategory(std::string name, std::string icon, bool profile = false, bool selected = false)
         {
             auto cat = new Category(std::move(name), std::move(icon), profile);
+            cat->SetSelected(selected);
             categories.emplace_back(cat);
 
             return *cat;
@@ -1345,8 +1303,8 @@ namespace mui
             const ImGuiIO& io            = ImGui::GetIO();
             const ImVec2   vecScreenSize = io.DisplaySize;
 
-            ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f),
-                                    ImGuiCond_Once, ImVec2(0.5f, 0.5f));
+            ImGui::SetNextWindowPos(ImVec2(vecScreenSize.x * 0.5f, vecScreenSize.y * 0.5f), ImGuiCond_Once,
+                                    ImVec2(0.5f, 0.5f));
             ImGui::SetNextWindowSize(ImVec2(750, 550), ImGuiCond_Once);
 
             ImVec2 searchBarGlowStart, searchBarGlowEnd;
@@ -1364,8 +1322,7 @@ namespace mui
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
             ImGui::Begin("___MainWindows", &this->IsOpen,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar |
-                             ImGuiWindowFlags_NoCollapse);
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
             {
                 // PostProcessing::performFullscreenBlur(ImGui::GetWindowDrawList(), 1.f);
 
@@ -1401,8 +1358,7 @@ namespace mui
                         ImGui::SetCursorPosX(region.x - 205);
 
                         ImGui::SetNextItemWidth(200);
-                        ImGui::InputTextWithHint("##MainSearch", "Search feature ...",
-                                                 this->searchText.data(), 128);
+                        ImGui::InputTextWithHint("##MainSearch", "Search feature ...", this->searchText.data(), 128);
                         searchBarGlowStart = ImGui::GetItemRectMin();
                         searchBarGlowEnd   = ImGui::GetItemRectMax();
                         searchActive       = ImGui::IsItemActive();
@@ -1425,8 +1381,7 @@ namespace mui
                             for (const auto sub : subs)
                             {
                                 ImGui::SetNextItemWidth(rx);
-                                if (ImGui::BeginTabItem(sub->GetName().c_str(), 0,
-                                                        ImGuiTabItemFlags_Trailing))
+                                if (ImGui::BeginTabItem(sub->GetName().c_str(), 0, ImGuiTabItemFlags_Trailing))
                                 {
                                     ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(0, 0, 0, 0));
                                     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
@@ -1436,8 +1391,7 @@ namespace mui
                                         ImGui::PopStyleVar();
                                         ImGui::PopStyleColor();
 
-                                        auto s = ImVec2(
-                                            ImGui::GetContentRegionAvail().x * 0.5f - 7.f, 0);
+                                        auto s = ImVec2(ImGui::GetContentRegionAvail().x * 0.5f - 7.f, 0);
                                         s.x -= 11;
 
                                         ImGui::Dummy({0, 7});
@@ -1499,8 +1453,7 @@ namespace mui
                     shadowStart.y += 5.f;
 
                     auto shadowEnd = ImVec2{};
-                    shadowEnd.x +=
-                        startScreenPos.x + static_cast<float>(categoryMenuWidthAnim) - 2.f;
+                    shadowEnd.x += startScreenPos.x + static_cast<float>(categoryMenuWidthAnim) - 2.f;
                     shadowEnd.y += startScreenPos.y + avail.y - 10.f;
 
                     auto bgStart = startScreenPos;
@@ -1522,31 +1475,27 @@ namespace mui
                     // ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(255, 0, 0,
                     // 255));
 
-                    ImGui::BeginChild("__categorySelectWindow",
-                                      {static_cast<float>(categoryMenuWidthAnim) + 15, 0.f},
-                                      ImGuiWindowFlags_NoDecoration |
-                                          ImGuiWindowFlags_NoBackground);
+                    ImGui::BeginChild("__categorySelectWindow", {static_cast<float>(categoryMenuWidthAnim) + 15, 0.f},
+                                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
                     {
                         ImGui::PopStyleColor(2);
                         ImGui::PopStyleVar(2);
 
-                        ImGui::GetWindowDrawList()->AddShadowRect(
-                            categoryShadowStart, categoryShadowEnd, IM_COL32(0, 0, 0, 255), 25,
-                            {5.f, 0}, 0, 10);
+                        ImGui::GetWindowDrawList()->AddShadowRect(categoryShadowStart, categoryShadowEnd,
+                                                                  IM_COL32(0, 0, 0, 255), 25, {5.f, 0}, 0, 10);
 
                         ImGui::GetWindowDrawList()->AddRectFilled(
                             bgStart, bgEnd, ImGui::GetColorU32(style.Colors[ImGuiCol_ChildBg]), 10);
 
-                        ImGui::GetWindowDrawList()->AddRect(
-                            bgStart, bgEnd, ImGui::GetColorU32(style.Colors[ImGuiCol_Border]), 10);
+                        ImGui::GetWindowDrawList()->AddRect(bgStart, bgEnd,
+                                                            ImGui::GetColorU32(style.Colors[ImGuiCol_Border]), 10);
 
                         ImGui::Dummy({0, 5});
 
                         auto availReg      = ImGui::GetContentRegionAvail();
                         auto availableRegX = ImGui::GetContentRegionAvail().x - 15;
 
-                        auto txtOpacity =
-                            (int)Remap((float)categoryMenuWidthAnim, 70.f, 180.f, 0.f, 255.f);
+                        auto txtOpacity = (int)Remap((float)categoryMenuWidthAnim, 70.f, 180.f, 0.f, 255.f);
 
                         auto __startPos = ImGui::GetCursorPosX();
 
@@ -1654,8 +1603,7 @@ namespace mui
             // IM_COL32(255, 255, 255, 255), "Ahoj Jak Se máš!");
 
             if (ImGui::BeginPopupModal(_("Keybind Setup"), NULL,
-                                       ImGuiWindowFlags_AlwaysAutoResize |
-                                           ImGuiWindowFlags_NoTitleBar))
+                                       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar))
             {
                 ImGui::PushFont(fonts::boldFont);
 
@@ -1675,8 +1623,7 @@ namespace mui
 
                 ImGui::Dummy({0, 2});
 
-                ImGui::Text("%s",
-                            _("Press any key to set bind or\npress ESC to delete current one!"));
+                ImGui::Text("%s", _("Press any key to set bind or\npress ESC to delete current one!"));
                 ImGui::Separator();
 
                 for (int i = (int)KeyCode::Backspace; i < (int)KeyCode::Mouse6; i++)
@@ -1727,10 +1674,9 @@ namespace mui
 
             searchBarGlow.Update(io.DeltaTime);
 
-            ImGui::GetForegroundDrawList()->AddShadowRect(
-                searchBarGlowStart, searchBarGlowEnd,
-                IM_COL32(0, 115, 255, static_cast<int>(searchBarGlow)), 50, {},
-                ImDrawFlags_ShadowCutOutShapeBackground, 7);
+            ImGui::GetForegroundDrawList()->AddShadowRect(searchBarGlowStart, searchBarGlowEnd,
+                                                          IM_COL32(0, 115, 255, static_cast<int>(searchBarGlow)), 50,
+                                                          {}, ImDrawFlags_ShadowCutOutShapeBackground, 7);
             // ImGui::GetForegroundDrawList()->AddShadowRect(searchBarGlowStart,
             // searchBarGlowEnd, IM_COL32(0, 115, 255,
             // static_cast<int>(searchBarGlow)), 100, {},
