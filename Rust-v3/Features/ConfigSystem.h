@@ -47,7 +47,7 @@ namespace Config
         uint64_t                              Updated{};
         std::string                           Name{};
         std::unordered_map<uint64_t, ValType> SettingsKV{};
-        std::vector<uint64_t>                 PlayerDB{};
+        std::vector<PlayerData>                 PlayerDB{};
         //skinz maybe?
     };
 

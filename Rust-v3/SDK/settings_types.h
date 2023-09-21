@@ -19,6 +19,9 @@ struct TKO
 {
     bool      Enabled;
     KeyButton key;
+    float     thisFrameTime{};
 
     constexpr TKO(KeyButton _key, bool enabled = false) : Enabled(enabled), key(_key) {}
+
+    bool Active();
 };

@@ -5,6 +5,7 @@
 #include "../ui/ESP.h"
 #include "EntityManager.h"
 #include <algorithm>
+#include <array>
 #include <exception>
 #include <numeric>
 #include <span>
@@ -14,6 +15,88 @@
 #include <ranges>
 
 using namespace SettingsData;
+
+namespace HitScanner
+{
+    Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, Vector3 angles)
+    {
+        return CQuaternion::Euler(angles) * (point - pivot) + pivot;
+    }
+
+    void PointsOnSphere(std::vector<Vector3>& pointsOut, int n = 333)
+    {
+        float inc = M_PI * (3 - sqrtf(5));
+        float off = 2.0f / n;
+        float x   = 0;
+        float y   = 0;
+        float z   = 0;
+        float r   = 0;
+        float phi = 0;
+
+        pointsOut.reserve(n);
+
+        for (int k = 0; k < n; k++)
+        {
+            y   = k * off - 1 + (off / 2);
+            r   = sqrtf(1 - y * y);
+            phi = k * inc;
+            x   = cos(phi) * r;
+            z   = sin(phi) * r;
+
+            auto vec = Vector3(x, y, z);
+            pointsOut.emplace_back(vec);
+        }
+    }
+
+    void GenerateLOSTraceRays(Vector3 position, Quaternion rotation, float maxDistance, uint32_t rayDivider)
+    {
+        if (currentSpherePoints.empty())
+        {
+            PointsOnSphere(currentSpherePoints, defaultDensity);
+        }
+
+        currentTraceRays.clear();
+        currentTraceRays.reserve(100);
+
+        for (auto rayStart : currentSpherePoints)
+        {
+            auto ray = rotation * rayStart;
+
+            auto angle = Vector3::Angle(ray, vec3Up);
+
+            if (angle > angleLimit)
+                continue;
+
+            auto frontAngle   = Vector3::Angle(ray, rotation * vec3Forward);
+            auto backAngle    = Vector3::Angle(ray, rotation * vec3Back);
+            auto leftAngle    = Vector3::Angle(ray, rotation * vec3Left);
+            auto leftUpAngle  = Vector3::Angle(ray, rotation * (vec3Left + vec3Up));
+            auto rightAngle   = Vector3::Angle(ray, rotation * vec3Right);
+            auto rightUpAngle = Vector3::Angle(ray, rotation * (vec3Right + vec3Up));
+
+            auto priorityAngle =
+                std::min<float>({angle, frontAngle, backAngle, leftAngle, leftUpAngle, rightAngle, rightUpAngle});
+
+            if (priorityAngle > sideAngleLimit)
+                continue;
+
+            TraceRay tr{};
+            tr.priority = priorityAngle;
+
+            for (float i = 0; i < rayDivider; i++)
+            {
+                Vector3 vec = ray * ((maxDistance / rayDivider) * i);
+                vec += position;
+
+                tr.points[i] = vec;
+            }
+
+            currentTraceRays.emplace_back(tr);
+        }
+        std::ranges::sort(currentTraceRays, {}, &TraceRay::priority);
+    }
+
+} // namespace HitScanner
 
 namespace Aimbot
 {
@@ -33,6 +116,8 @@ namespace Aimbot
         bool OverrideAimconeWithCurve{};
         bool UseCurves{};
         bool IsBaseLauncher{};
+
+        CBaseProjectile* wep{};
 
         float Aimcone{};
         float HipAimcone{};
@@ -73,13 +158,11 @@ namespace Aimbot
     int32_t               currentlyManagedAmmoID{};
     const AmmoBackupData* currentlyManagedAmmo{};
 
-    uint32_t                currentlyManagedWeaponID{};
-    const WeaponBackupData* currentlyManagedWeapon{};
+    uint32_t          currentlyManagedWeaponID{};
+    WeaponBackupData* currentlyManagedWeapon{};
 
     float currentVelocityScalarModifier = 1.f; // 1 in scalar => no change
 
-    // TargetInfo PreviousTarget;
-    TargetInfo   CurrentTarget{};
     CCamera*     camera      = nullptr;
     CBasePlayer* localPlayer = nullptr;
 
@@ -143,6 +226,9 @@ namespace Aimbot
                 bestPlayer   = &p;
             }
         }
+
+        if (bestPlayer == nullptr || bestDistance == INT_MAX)
+            return false;
 
         if (bestDistance > FOV.GetRadiusPx())
             return false;
@@ -377,7 +463,7 @@ namespace Aimbot
             return targetInfo.TargetPos;
         }
 
-        auto baseProjectile = localPlayer->GetHeldEntity()->As<CBaseProjectile>();
+        //auto baseProjectile = localPlayer->GetHeldEntity()->As<CBaseProjectile>();
 
         Vector3 localPos = ((CPlayerEyes*)localPlayer->eyes)->GetPosition();
         Vector3 velocity = Vector3{0.f, 0.f, 0.f};
@@ -485,7 +571,8 @@ namespace Aimbot
             float coeff = (_flt(1.0f) - smooth) / delta.length() * _flt(4.f);
 
             // fast end
-            // coeff = crt_math::powf_(coeff, 2.f) * 80.f / Settings::AIM::m_flSmooth;
+            // coeff = crt_math::powf_(coeff, 2.f) * 80.f /
+            // Settings::AIM::m_flSmooth;
 
             coeff    = std::min(_flt(1.f), coeff);
             toChange = delta * coeff;
@@ -494,7 +581,7 @@ namespace Aimbot
         angles = localViewAngles + toChange;
     }
 
-    void HandleRecoil(CBaseProjectile* wep)
+    void HandleRecoilData(CBaseProjectile* wep)
     {
         RecoilProperties_o* recoilProp{};
 
@@ -534,8 +621,8 @@ namespace Aimbot
 
     bool LauncherPrediction()
     {
-        // CBaseProjectile* launcher = (CBaseProjectile*)Globals::Local->GetHeldEntity();
-        // if (!launcher)
+        // CBaseProjectile* launcher =
+        // (CBaseProjectile*)Globals::Local->GetHeldEntity(); if (!launcher)
         //     return false;
 
         // if (launcher->GetItem()->m_pItemDefinition->m_dItemID != 442886268)
@@ -548,14 +635,16 @@ namespace Aimbot
         if (gravityModifier == _flt(0.f) || speed == _flt(0.f))
             return false;
 
-        Vector3 startPos = eyes->GetPosition();
-        Vector3 forward  = eyes->BodyForward().Normalized();
+        // auto muzzlePoint = (CTransform*)currentlyManagedWeapon->wep->MuzzlePoint;
 
+        Vector3         startPos = eyes->GetPosition();
+        Vector3         forward  = eyes->BodyForward().Normalized();
         constexpr float stepSize = 0.03125f;
 
         float       num2 = _flt(1.f);
         CRaycastHit hitInfo;
-        if (CGamePhysics::Raycast(startPos, forward, &hitInfo, num2, 1236478737))
+        if (CGamePhysics::Raycast(startPos, forward, &hitInfo, num2,
+                                  /*1236478737*/ 1237003025))
             num2 = hitInfo.m_Distance - _flt(0.1f);
 
         Vector3 currentPos       = startPos + forward * num2;
@@ -573,8 +662,8 @@ namespace Aimbot
 
                 launcherInfo.valid      = true;
                 launcherInfo.hitPoint   = *(Vector3*)&hitInfo.m_Point;
-                launcherInfo.rotation   = Quaternion::QuaternionLookRotation(*(Vector3*)&hitInfo.m_Normal,
-                                                                             Vector3(_flt(0.f), _flt(1.f), _flt(0.f)));
+                launcherInfo.rotation   = Vector4::QuaternionLookRotation(*(Vector3*)&hitInfo.m_Normal,
+                                                                          Vector3(_flt(0.f), _flt(1.f), _flt(0.f)));
                 launcherInfo.travelDist = traveledDistance;
                 launcherInfo.travelTime = currentTime;
 
@@ -588,6 +677,38 @@ namespace Aimbot
         return false;
     }
 
+    void InstantEoka(CBaseProjectile* baseProjectile)
+    {
+        if (settings->ragebot.general.weapon.InstantEoka == false)
+            return;
+
+        if (baseProjectile->GetItem()->info->fields.itemid == -75944661)
+        {
+
+            auto wep                       = (FlintStrikeWeapon_o*)baseProjectile;
+            wep->fields.successFraction    = 1.f;
+            wep->fields._didSparkThisFrame = true;
+        }
+    }
+
+    void InstantCompound(CBaseProjectile* baseProjectile)
+    {
+        if (settings->ragebot.general.weapon.InstantEoka == false)
+            return;
+
+        if (baseProjectile->GetItem()->info->fields.itemid == 884424049)
+        {
+            auto wep = (CompoundBowWeapon_o*)baseProjectile;
+
+            wep->fields.stringHoldDurationMax = 0.f;
+        }
+    }
+
+    [[gnu::used]] static void InitializeGameObjectRef(CGameObjectRef* obj)
+    {
+        obj->GetEntity();
+    }
+
     void LateUpdate()
     {
         static auto main = (MainCamera_c*)il2cpp::InitClass(_("MainCamera"));
@@ -598,343 +719,439 @@ namespace Aimbot
 
         currentVelocityScalarModifier = 1.f; // reset this
 
-        if (camera == nullptr || camera->m_CachedPtr == 0)
-            return;
-
-        FOV.Set(camera, &ESP::currentScreenSize, &settings->ragebot.general.aimbot.FOVRadius);
-
-        localPlayer = CLocalPlayer::GetLocalPlayer();
-
-        if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0)
-            return;
-
-        if (localPlayer->HasFlag(PlayerFlags::Sleeping))
-            return;
-
-        if (localPlayer->inventory == nullptr || localPlayer->inventory->fields.m_CachedPtr == 0)
-            return;
-
-        if (localPlayer->GetHeldEntity() == nullptr || localPlayer->GetHeldEntity()->m_CachedPtr == 0)
-            return;
-
-        if (localPlayer->GetHeldEntity()->IsBaseProjectile() == false)
-            return;
-
-        auto baseProjectile = (CBaseProjectile*)localPlayer->GetHeldEntity();
-
-        auto isLauncher = HASH_CTIME("BaseLauncher") == HASH_RUNTIME(baseProjectile->klass->_1.name);
-
-        // we need to get ammo too
-        auto ammoType         = (CItemDefinition*)baseProjectile->primaryMagazine->fields.ammoType;
-        auto ammoDefComponent = (CComponent*)ammoType;
-        auto ammoGameobject   = ammoDefComponent->GetGameobject();
-
-        static auto itemModProjectileType      = CType::FromClass(_("ItemModProjectile"));
-        static auto itemModProjectileSpawnType = CType::FromClass(_("ItemModProjectileSpawn"));
-
-        /*
-            "itemid": 605467368,
-            "shortname": "ammo.rifle.incendiary",
-            "itemid": 14241751,
-            "shortname": "arrow.fire",
-            "itemid": -1036635990,
-            "shortname": "ammo.shotgun.fire",
-            "itemid": 51984655,
-            "shortname": "ammo.pistol.fire",
-            "itemid": -1321651331,
-            "shortname": "ammo.rifle.explosive",
-        */
-
-        if (currentlyManagedAmmoID != ammoType->itemid)
+        do
         {
-            if (auto ss = ammoBackupData.find(ammoType->itemid); ss != ammoBackupData.end())
+            if (camera == nullptr || camera->m_CachedPtr == 0)
+                break;
+
+            FOV.Set(camera, &ESP::currentScreenSize, &settings->ragebot.general.aimbot.FOVRadius);
+
+            localPlayer = CLocalPlayer::GetLocalPlayer();
+
+            if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0)
+                break;
+
+            if (localPlayer->HasFlag(PlayerFlags::Sleeping))
+                break;
+
+            if (localPlayer->inventory == nullptr || localPlayer->inventory->fields.m_CachedPtr == 0)
+                break;
+
+            if (localPlayer->GetHeldEntity() == nullptr || localPlayer->GetHeldEntity()->m_CachedPtr == 0)
+                break;
+
+            if (localPlayer->GetHeldEntity()->IsBaseProjectile() == false)
+                break;
+
+            auto baseProjectile = (CBaseProjectile*)localPlayer->GetHeldEntity();
+
+            InstantEoka(baseProjectile);
+            InstantCompound(baseProjectile);
+
+            auto isLauncher = HASH_CTIME("BaseLauncher") == HASH_RUNTIME(baseProjectile->klass->_1.name);
+
+            // we need to get ammo too
+            auto ammoType         = (CItemDefinition*)baseProjectile->primaryMagazine->fields.ammoType;
+            auto ammoDefComponent = (CComponent*)ammoType;
+            auto ammoGameobject   = ammoDefComponent->GetGameobject();
+
+            static auto itemModProjectileType      = CType::FromClass(_("ItemModProjectile"));
+            static auto itemModProjectileSpawnType = CType::FromClass(_("ItemModProjectileSpawn"));
+
+            /*
+                "itemid": 605467368,
+                "shortname": "ammo.rifle.incendiary",
+                "itemid": 14241751,
+                "shortname": "arrow.fire",
+                "itemid": -1036635990,
+                "shortname": "ammo.shotgun.fire",
+                "itemid": 51984655,
+                "shortname": "ammo.pistol.fire",
+                "itemid": -1321651331,
+                "shortname": "ammo.rifle.explosive",
+            */
+
+            if (currentlyManagedAmmoID != ammoType->itemid)
             {
-                currentlyManagedAmmo   = &ss->second;
-                currentlyManagedAmmoID = ammoType->itemid;
-            }
-            else
-            {
-
-                static auto projType       = CType::FromClass(_("Projectile"));
-                static auto serverProjType = CType::FromClass(_("ServerProjectile"));
-
-                switch (ammoType->itemid)
+                if (auto ss = ammoBackupData.find(ammoType->itemid); ss != ammoBackupData.end())
                 {
-                // handling ItemModProjectileSpawn
-                case 605467368:
-                case 14241751:
-                case -1036635990:
-                case 51984655:
-                case -1321651331:
-                {
-                    auto mod = ammoGameobject->GetComponent<CItemModProjectileSpawn>(itemModProjectileSpawnType);
-
-                    AmmoBackupData data{};
-
-                    data.mod                = (CItemModProjectile*)mod;
-                    data.ProjectileSpread   = mod->projectileSpread;
-                    data.ProjectileVelocity = mod->projectileVelocity;
-                    data.SpreadAngle        = mod->spreadAngle;
-                    data.SpreadVelocityMax  = mod->spreadVelocityMax;
-                    data.SpreadVelocityMin  = mod->spreadVelocityMin;
-                    data.VelocitySpread     = mod->projectileVelocitySpread;
-                    data.isSpawn            = true;
-
-                    // this will return null, however it will initialize cached object down bellow
-                    auto projEntity = ((CGameObjectRef*)mod->projectileObject)->GetEntity();
-
-                    auto projObject = (CGameObject*)mod->projectileObject->fields._cachedObject;
-
-                    if (projObject == nullptr)
-                        return;
-
-                    if (auto proj = projObject->GetComponent<CServerProjectile>(serverProjType))
-                    {
-                        data.GravityModifier    = proj->gravityModifier;
-                        data.ProjectileVelocity = proj->speed;
-                        data.Drag               = proj->drag;
-                    }
-                    else if (auto proj = projObject->GetComponent<CProjectile>(projType))
-                    {
-                        data.GravityModifier           = proj->gravityModifier;
-                        data.Drag                      = proj->drag;
-                        data.projectileInitialDistance = proj->initialDistance;
-                    }
-                    else
-                    {
-                        return; //?? should not happen, just quit here in case FP forgot something
-                    }
-
-                    ammoBackupData[ammoType->itemid] = data;
-
-                    currentlyManagedAmmo   = &ammoBackupData[ammoType->itemid];
+                    currentlyManagedAmmo   = &ss->second;
                     currentlyManagedAmmoID = ammoType->itemid;
-
-                    break;
-                }
-                default:
-                {
-                    auto mod = ammoGameobject->GetComponent<CItemModProjectile>(itemModProjectileType);
-
-                    AmmoBackupData data{};
-
-                    data.mod                = (CItemModProjectile*)mod;
-                    data.ProjectileSpread   = mod->projectileSpread;
-                    data.VelocitySpread     = mod->projectileVelocitySpread;
-                    data.ProjectileVelocity = mod->projectileVelocity;
-
-                    // this will return null, however it will initialize cached object down bellow
-                    auto projEntity = ((CGameObjectRef*)mod->projectileObject)->GetEntity();
-
-                    auto projObject = (CGameObject*)mod->projectileObject->fields._cachedObject;
-
-                    if (projObject == nullptr)
-                        return;
-
-                    if (auto proj = projObject->GetComponent<CServerProjectile>(serverProjType))
-                    {
-                        data.GravityModifier    = proj->gravityModifier;
-                        data.ProjectileVelocity = proj->speed;
-                        data.Drag               = proj->drag;
-                    }
-                    else if (auto proj = projObject->GetComponent<CProjectile>(projType))
-                    {
-                        data.GravityModifier           = proj->gravityModifier;
-                        data.Drag                      = proj->drag;
-                        data.projectileInitialDistance = proj->initialDistance;
-                    }
-                    else
-                    {
-                        return; //?? should not happen, just quit here in case FP forgot something
-                    }
-
-                    ammoBackupData[ammoType->itemid] = data;
-
-                    currentlyManagedAmmo   = &ammoBackupData[ammoType->itemid];
-                    currentlyManagedAmmoID = ammoType->itemid;
-
-                    break;
-                }
-                }
-            }
-        }
-
-        if (currentlyManagedAmmo->isSpawn)
-        {
-            auto mod = (CItemModProjectileSpawn*)currentlyManagedAmmo->mod;
-            if (settings->ragebot.general.weapon.NoSpread)
-            {
-                mod->projectileSpread         = 0;
-                mod->projectileVelocitySpread = 0;
-                mod->spreadVelocityMax        = 0;
-                mod->spreadVelocityMin        = 0;
-                mod->spreadAngle              = 0;
-            }
-            else
-            {
-                mod->projectileSpread         = currentlyManagedAmmo->ProjectileSpread;
-                mod->projectileVelocitySpread = currentlyManagedAmmo->VelocitySpread;
-                mod->spreadVelocityMax        = currentlyManagedAmmo->SpreadVelocityMax;
-                mod->spreadVelocityMin        = currentlyManagedAmmo->SpreadVelocityMin;
-                mod->spreadAngle              = currentlyManagedAmmo->SpreadAngle;
-            }
-
-            if (settings->ragebot.general.projectile.FasterBullets)
-            {
-                mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity * 1.1f;
-            }
-            else
-            {
-                mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity;
-            }
-        }
-        else
-        {
-            auto mod = currentlyManagedAmmo->mod;
-            if (settings->ragebot.general.weapon.NoSpread)
-            {
-                mod->projectileSpread         = 0;
-                mod->projectileVelocitySpread = 0;
-            }
-            else
-            {
-                mod->projectileSpread         = currentlyManagedAmmo->ProjectileSpread;
-                mod->projectileVelocitySpread = currentlyManagedAmmo->VelocitySpread;
-            }
-
-            if (settings->ragebot.general.projectile.FasterBullets)
-            {
-                mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity * 1.1f;
-            }
-            else
-            {
-                mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity;
-            }
-        }
-
-        auto modListData = baseProjectile->children->fields._items;
-
-        std::span mods((CBaseEntity**)modListData->m_Items, modListData->max_length);
-
-        for (auto ent : mods)
-        {
-            if (HASH_RUNTIME(ent->klass->_1.name) == HASH_CTIME("ProjectileWeaponMod"))
-            {
-                auto mod = (CProjectileWeaponMod*)ent;
-                currentVelocityScalarModifier += mod->projectileVelocity.fields.scalar;
-            }
-        }
-
-        if (baseProjectile->prefabID != currentlyManagedWeaponID)
-        {
-            if (auto ss = weaponBackupData.find(baseProjectile->prefabID); ss != weaponBackupData.end())
-            {
-                currentlyManagedWeapon   = &ss->second;
-                currentlyManagedWeaponID = baseProjectile->prefabID;
-            }
-            else
-            {
-                WeaponBackupData data{};
-                data.Aimcone                 = baseProjectile->aimCone;
-                data.HipAimcone              = baseProjectile->hipAimCone;
-                data.automatic               = baseProjectile->automatic;
-                data.ProjectileVelocityScale = baseProjectile->projectileVelocityScale;
-
-                if (baseProjectile->recoil == nullptr)
-                    return;
-
-                if (baseProjectile->recoil->fields.newRecoilOverride != nullptr)
-                {
-                    auto recoil = baseProjectile->recoil->fields.newRecoilOverride->fields;
-
-                    data.RecoilPitchMin           = recoil.recoilPitchMin;
-                    data.RecoilPitchMax           = recoil.recoilPitchMax;
-                    data.RecoilYawMin             = recoil.recoilYawMin;
-                    data.RecoilYawMax             = recoil.recoilYawMax;
-                    data.MaxRecoilRadius          = recoil.maxRecoilRadius;
-                    data.UseCurves                = recoil.useCurves;
-                    data.OverrideAimconeWithCurve = recoil.overrideAimconeWithCurve;
                 }
                 else
                 {
-                    auto recoil = baseProjectile->recoil->fields;
 
-                    data.RecoilPitchMin           = recoil.recoilPitchMin;
-                    data.RecoilPitchMax           = recoil.recoilPitchMax;
-                    data.RecoilYawMin             = recoil.recoilYawMin;
-                    data.RecoilYawMax             = recoil.recoilYawMax;
-                    data.MaxRecoilRadius          = recoil.maxRecoilRadius;
-                    data.UseCurves                = recoil.useCurves;
-                    data.OverrideAimconeWithCurve = recoil.overrideAimconeWithCurve;
+                    static auto projType       = CType::FromClass(_("Projectile"));
+                    static auto serverProjType = CType::FromClass(_("ServerProjectile"));
+
+                    switch (ammoType->itemid)
+                    {
+                    // handling ItemModProjectileSpawn
+                    case 605467368:
+                    case 14241751:
+                    case -1036635990:
+                    case 51984655:
+                    case -1321651331:
+                    {
+                        auto mod = ammoGameobject->GetComponent<CItemModProjectileSpawn>(itemModProjectileSpawnType);
+
+                        AmmoBackupData data{};
+
+                        data.mod                = (CItemModProjectile*)mod;
+                        data.ProjectileSpread   = mod->projectileSpread;
+                        data.ProjectileVelocity = mod->projectileVelocity;
+                        data.SpreadAngle        = mod->spreadAngle;
+                        data.SpreadVelocityMax  = mod->spreadVelocityMax;
+                        data.SpreadVelocityMin  = mod->spreadVelocityMin;
+                        data.VelocitySpread     = mod->projectileVelocitySpread;
+                        data.isSpawn            = true;
+
+                        // this will return null, however it will initialize cached
+                        // object down bellow
+
+                        InitializeGameObjectRef((CGameObjectRef*)mod->projectileObject);
+
+                        auto projObject = (CGameObject*)mod->projectileObject->fields._cachedObject;
+
+                        if (projObject == nullptr)
+                            break;
+
+                        if (auto proj = projObject->GetComponent<CServerProjectile>(serverProjType))
+                        {
+                            data.GravityModifier    = proj->gravityModifier;
+                            data.ProjectileVelocity = proj->speed;
+                            data.Drag               = proj->drag;
+                        }
+                        else if (auto proj = projObject->GetComponent<CProjectile>(projType))
+                        {
+                            data.GravityModifier           = proj->gravityModifier;
+                            data.Drag                      = proj->drag;
+                            data.projectileInitialDistance = proj->initialDistance;
+                        }
+                        else
+                        {
+                            break; //?? should not happen, just quit here in case
+                                   // FP forgot something
+                        }
+
+                        ammoBackupData[ammoType->itemid] = data;
+
+                        currentlyManagedAmmo   = &ammoBackupData[ammoType->itemid];
+                        currentlyManagedAmmoID = ammoType->itemid;
+
+                        break;
+                    }
+                    default:
+                    {
+                        auto mod = ammoGameobject->GetComponent<CItemModProjectile>(itemModProjectileType);
+
+                        AmmoBackupData data{};
+
+                        data.mod                = (CItemModProjectile*)mod;
+                        data.ProjectileSpread   = mod->projectileSpread;
+                        data.VelocitySpread     = mod->projectileVelocitySpread;
+                        data.ProjectileVelocity = mod->projectileVelocity;
+
+                        // this will return null, however it will initialize cached
+                        // object down bellow
+                        InitializeGameObjectRef((CGameObjectRef*)mod->projectileObject);
+                        auto projObject = (CGameObject*)mod->projectileObject->fields._cachedObject;
+
+                        if (projObject == nullptr)
+                            break;
+
+                        if (auto proj = projObject->GetComponent<CServerProjectile>(serverProjType))
+                        {
+                            data.GravityModifier    = proj->gravityModifier;
+                            data.ProjectileVelocity = proj->speed;
+                            data.Drag               = proj->drag;
+                        }
+                        else if (auto proj = projObject->GetComponent<CProjectile>(projType))
+                        {
+                            data.GravityModifier           = proj->gravityModifier;
+                            data.Drag                      = proj->drag;
+                            data.projectileInitialDistance = proj->initialDistance;
+                        }
+                        else
+                        {
+                            break; //?? should not happen, just quit here in case
+                                   // FP forgot something
+                        }
+
+                        ammoBackupData[ammoType->itemid] = data;
+
+                        currentlyManagedAmmo   = &ammoBackupData[ammoType->itemid];
+                        currentlyManagedAmmoID = ammoType->itemid;
+
+                        break;
+                    }
+                    }
+                }
+            }
+
+            if (currentlyManagedAmmo->isSpawn)
+            {
+                auto mod = (CItemModProjectileSpawn*)currentlyManagedAmmo->mod;
+                if (settings->ragebot.general.weapon.NoSpread)
+                {
+                    mod->projectileSpread         = 0;
+                    mod->projectileVelocitySpread = 0;
+                    mod->spreadVelocityMax        = 0;
+                    mod->spreadVelocityMin        = 0;
+                    mod->spreadAngle              = 0;
+                }
+                else
+                {
+                    mod->projectileSpread         = currentlyManagedAmmo->ProjectileSpread;
+                    mod->projectileVelocitySpread = currentlyManagedAmmo->VelocitySpread;
+                    mod->spreadVelocityMax        = currentlyManagedAmmo->SpreadVelocityMax;
+                    mod->spreadVelocityMin        = currentlyManagedAmmo->SpreadVelocityMin;
+                    mod->spreadAngle              = currentlyManagedAmmo->SpreadAngle;
                 }
 
-                weaponBackupData[baseProjectile->prefabID] = data;
-                currentlyManagedWeapon                     = &weaponBackupData[baseProjectile->prefabID];
-                currentlyManagedWeaponID                   = baseProjectile->prefabID;
-            }
-        }
-
-        HandleRecoil(baseProjectile);
-
-        auto weaponItem = baseProjectile->GetItem();
-
-        // weapon features
-        {
-            if (settings->ragebot.general.weapon.NoSpread)
-            {
-                baseProjectile->aimCone    = -1.f;
-                baseProjectile->hipAimCone = -1.f;
+                if (settings->ragebot.general.projectile.FasterBullets)
+                {
+                    mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity * 1.1f;
+                }
+                else
+                {
+                    mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity;
+                }
             }
             else
             {
-                baseProjectile->aimCone    = currentlyManagedWeapon->Aimcone;
-                baseProjectile->hipAimCone = currentlyManagedWeapon->HipAimcone;
+                auto mod = currentlyManagedAmmo->mod;
+                if (settings->ragebot.general.weapon.NoSpread)
+                {
+                    mod->projectileSpread         = 0;
+                    mod->projectileVelocitySpread = 0;
+                }
+                else
+                {
+                    mod->projectileSpread         = currentlyManagedAmmo->ProjectileSpread;
+                    mod->projectileVelocitySpread = currentlyManagedAmmo->VelocitySpread;
+                }
+
+                if (settings->ragebot.general.projectile.FasterBullets)
+                {
+                    mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity * 1.1f;
+                }
+                else
+                {
+                    mod->projectileVelocity = currentlyManagedAmmo->ProjectileVelocity;
+                }
             }
 
-            if (settings->ragebot.general.weapon.Automatic)
+            auto modListData = baseProjectile->children->fields._items;
+
+            std::span mods((CBaseEntity**)modListData->m_Items, modListData->max_length);
+
+            for (auto ent : mods)
             {
-                baseProjectile->automatic = true;
+                if (ent == nullptr || ent->m_CachedPtr == 0)
+                    continue;
+
+                if (HASH_RUNTIME(ent->klass->_1.name) == HASH_CTIME("ProjectileWeaponMod"))
+                {
+                    auto mod = (CProjectileWeaponMod*)ent;
+                    currentVelocityScalarModifier += mod->projectileVelocity.fields.scalar;
+                }
+            }
+
+            if (baseProjectile->prefabID != currentlyManagedWeaponID)
+            {
+                if (auto ss = weaponBackupData.find(baseProjectile->prefabID); ss != weaponBackupData.end())
+                {
+                    currentlyManagedWeapon      = &ss->second;
+                    currentlyManagedWeaponID    = baseProjectile->prefabID;
+                    currentlyManagedWeapon->wep = baseProjectile;
+                }
+                else
+                {
+                    WeaponBackupData data{};
+                    data.Aimcone                 = baseProjectile->aimCone;
+                    data.HipAimcone              = baseProjectile->hipAimCone;
+                    data.automatic               = baseProjectile->automatic;
+                    data.ProjectileVelocityScale = baseProjectile->projectileVelocityScale;
+
+                    if (baseProjectile->recoil == nullptr)
+                        break;
+
+                    if (baseProjectile->recoil->fields.newRecoilOverride != nullptr)
+                    {
+                        auto recoil = baseProjectile->recoil->fields.newRecoilOverride->fields;
+
+                        data.RecoilPitchMin           = recoil.recoilPitchMin;
+                        data.RecoilPitchMax           = recoil.recoilPitchMax;
+                        data.RecoilYawMin             = recoil.recoilYawMin;
+                        data.RecoilYawMax             = recoil.recoilYawMax;
+                        data.MaxRecoilRadius          = recoil.maxRecoilRadius;
+                        data.UseCurves                = recoil.useCurves;
+                        data.OverrideAimconeWithCurve = recoil.overrideAimconeWithCurve;
+                    }
+                    else
+                    {
+                        auto recoil = baseProjectile->recoil->fields;
+
+                        data.RecoilPitchMin           = recoil.recoilPitchMin;
+                        data.RecoilPitchMax           = recoil.recoilPitchMax;
+                        data.RecoilYawMin             = recoil.recoilYawMin;
+                        data.RecoilYawMax             = recoil.recoilYawMax;
+                        data.MaxRecoilRadius          = recoil.maxRecoilRadius;
+                        data.UseCurves                = recoil.useCurves;
+                        data.OverrideAimconeWithCurve = recoil.overrideAimconeWithCurve;
+                    }
+
+                    weaponBackupData[baseProjectile->prefabID] = data;
+                    currentlyManagedWeapon                     = &weaponBackupData[baseProjectile->prefabID];
+                    currentlyManagedWeapon->wep                = baseProjectile;
+
+                    currentlyManagedWeaponID = baseProjectile->prefabID;
+                }
+            }
+
+            HandleRecoilData(baseProjectile);
+
+            //auto weaponItem = baseProjectile->GetItem();
+
+            // weapon features
+            {
+                if (settings->ragebot.general.weapon.NoSpread)
+                {
+                    baseProjectile->aimCone    = -1.f;
+                    baseProjectile->hipAimCone = -1.f;
+                }
+                else
+                {
+                    baseProjectile->aimCone    = currentlyManagedWeapon->Aimcone;
+                    baseProjectile->hipAimCone = currentlyManagedWeapon->HipAimcone;
+                }
+
+                if (settings->ragebot.general.weapon.Automatic)
+                {
+                    baseProjectile->automatic = true;
+                }
+                else
+                {
+                    baseProjectile->automatic = currentlyManagedWeapon->automatic;
+                }
+
+                if (settings->ragebot.general.weapon.NoSway)
+                {
+                    baseProjectile->aimSway = 0.f;
+                }
+                else
+                {
+                    baseProjectile->aimSway = currentlyManagedWeapon->AimSway;
+                }
+            }
+
+            if (isLauncher)
+            {
+                if (LauncherPrediction() == false)
+                {
+                    launcherInfo.valid = false;
+                }
             }
             else
-            {
-                baseProjectile->automatic = currentlyManagedWeapon->automatic;
-            }
-
-            if (settings->ragebot.general.weapon.NoSway)
-            {
-                baseProjectile->aimSway = 0.f;
-            }
-            else
-            {
-                baseProjectile->aimSway = currentlyManagedWeapon->AimSway;
-            }
-        }
-
-        if (isLauncher)
-        {
-            if (LauncherPrediction() == false)
             {
                 launcherInfo.valid = false;
             }
+
+            if (settings->ragebot.general.aimbot.aim.Enabled == false)
+                break;
+
+            if (settings->ragebot.general.aimbot.aim.Active() && settings->ragebot.general.targeting.TargetLock &&
+                IsPrevTargetValid())
+            {
+            }
+            else
+            {
+                if (GetBestTarget(CurrentTarget) == false)
+                {
+                    break;
+                }
+            }
+
+            PredictedPosition = PredictPosition(CurrentTarget);
+
+            return;
+        } while (false);
+
+        CurrentTarget = {};
+    }
+
+    constexpr LayerMask remove = ~(LayerMask::Default | LayerMask::Water | LayerMask::Deployed | LayerMask::Ragdoll |
+                                   LayerMask::Physics_Projectile | LayerMask::Transparent | LayerMask::Clutter |
+                                   LayerMask::Vehicle_Large | LayerMask::Tree);
+
+    void Desync()
+    {
+        return;
+
+        if (settings->ragebot.general.desync.shoot.Active())
+        {
+            if (localPlayer->input->fields.state->fields.current == nullptr)
+                return;
+
+            if (localPlayer->clientTickInterval == 0.05f)
+            {
+                // we just start desync, set shit up
+
+                localPlayer->input->fields.state->fields.previous->fields.buttons =
+                    localPlayer->input->fields.state->fields.current->fields.buttons;
+            }
+
+            localPlayer->clientTickInterval = 0.99f;
+
+            auto lastEyePos   = *(Vector3*)&localPlayer->lastSentTick->fields.eyePos;
+            auto lastLocalPos = *(Vector3*)&localPlayer->lastSentTick->fields.position;
+            auto rotation     = *(Vector4*)&localPlayer->eyes->fields._rotationLook_k__BackingField;
+
+            Layers mask = Layers::EntityLineOfSightCheck;
+
+            auto mount = (BaseMountable_o*)localPlayer->mounted.fields.ent_cached;
+
+            float parrentMaxVelocity{};
+
+            if (mount != nullptr)
+            {
+                MountPoses pose = (MountPoses)mount->fields.mountPose;
+                if (pose == MountPoses::SitMinicopter_Pilot || pose == MountPoses::SitMinicopter_Passenger ||
+                    pose == MountPoses::Driving || pose == MountPoses::SitGeneric)
+                {
+                    // values             = &Helicopter;
+                    parrentMaxVelocity = _flt(50.f);
+                }
+                else if (pose == MountPoses::SitShootingGeneric || pose == MountPoses::HandMotorBoat ||
+                         pose == MountPoses::StandDrive || pose == MountPoses::Horseback)
+                {
+                    // values             = &Ridable;
+                    parrentMaxVelocity = _flt(7.5f);
+                }
+            }
+
+            float clientFrames = _flt(2.f) / _flt(60.f);
+            float serverFrames = _flt(2.f) * std::max(std::max(CTime::GetDeltaTime(), CTime::GetSmoothDeltaTime()),
+                                                      CTime::GetFixedDeltaTime());
+
+            const float timeSinceLastTick = CTime::GetRealTime() - localPlayer->lastSentTickTime;
+            const float desyncTimeRaw     = std::max(timeSinceLastTick - CTime::GetDeltaTime(), 0.f);
+            const auto  desyncClamped     = std::min(desyncTimeRaw, 1.f);
+            const auto  playerMaxVelocity = localPlayer->MaxVelocity();
+
+            const auto desyncMaxDiff = (desyncClamped + clientFrames + serverFrames) * _flt(1.5f); // forgiveness 1.5
+            const auto maxHorizontalDesyncDistance = localPlayer->BoundsPadding() + desyncMaxDiff * playerMaxVelocity;
+            const auto playerMaxVerticalVelocity   = std::abs(parrentMaxVelocity + localPlayer->GetParentVelocity().y);
+
+            auto maxDesyncAltitude =
+                localPlayer->BoundsPadding() + desyncMaxDiff * playerMaxVerticalVelocity + localPlayer->GetJumpHeight();
+            maxDesyncAltitude -= 0.0001f;
         }
         else
         {
-            launcherInfo.valid = false;
+            localPlayer->clientTickInterval = 0.05f;
         }
-
-        if (settings->ragebot.general.aimbot.aim.Enabled == false)
-            return;
-
-        if ((settings->ragebot.general.targeting.TargetLock && IsPrevTargetValid() &&
-             CInput::Active(settings->ragebot.general.aimbot.aim.key)) == false)
-        {
-            if (GetBestTarget(CurrentTarget) == false)
-            {
-                return;
-            }
-        }
-
-        PredictedPosition = PredictPosition(CurrentTarget);
     }
 
     void ClientInput()
@@ -945,10 +1162,12 @@ namespace Aimbot
         if (localPlayer->HasFlag(PlayerFlags::Sleeping))
             return;
 
+        Desync();
+
         if (PredictedPosition.empty())
             return;
 
-        if (CInput::Active(settings->ragebot.general.aimbot.aim.key) == false)
+        if (settings->ragebot.general.aimbot.aim.Active() == false)
         {
             return;
         }
@@ -1022,30 +1241,34 @@ namespace Aimbot
                 if (!normalize(aimAngles.x, aimAngles.y))
                     return;
 
-                if (aimAngles.Invalid() || aimAngles.x != aimAngles.x || aimAngles.y != aimAngles.y ||
-                    viewOffset.x >= _flt(88.f) || viewOffset.x <= _flt(-88.f) || aimAngles.x <= _flt(-88.f)
+                if (aimAngles.Invalid() || aimAngles.x != aimAngles.x ||
+           aimAngles.y != aimAngles.y || viewOffset.x >= _flt(88.f) ||
+           viewOffset.x <= _flt(-88.f) || aimAngles.x <= _flt(-88.f)
                     || aimAngles.x >= _flt(88.f))
                     return;
 
-                input->m_vecBodyAngles = { aimAngles.x, aimAngles.y, input->m_vecBodyAngles.z };
+                input->m_vecBodyAngles = { aimAngles.x, aimAngles.y,
+           input->m_vecBodyAngles.z };
             }
             else
             {
-                float deltaPitch = input->m_vecBodyAngles.x - input->m_vecOffsetAngles.x;
-                float deltaYaw = input->m_vecBodyAngles.y - input->m_vecOffsetAngles.y;
-                aimAngles.x -= deltaPitch;
-                aimAngles.y -= deltaYaw;
+                float deltaPitch = input->m_vecBodyAngles.x -
+           input->m_vecOffsetAngles.x; float deltaYaw = input->m_vecBodyAngles.y
+           - input->m_vecOffsetAngles.y; aimAngles.x -= deltaPitch; aimAngles.y
+           -= deltaYaw;
 
                 normalize(aimAngles.x, aimAngles.y);
                 smooth_angle(aimAngles, input->m_vecOffsetAngles);
                 if (!normalize(aimAngles.x, aimAngles.y))
                     return;
-                if (aimAngles.Invalid() || aimAngles.x != aimAngles.x || aimAngles.y != aimAngles.y ||
-                    viewOffset.x >= _flt(88.f) || viewOffset.x <= _flt(-88.f) || aimAngles.x <= _flt(-88.f)
+                if (aimAngles.Invalid() || aimAngles.x != aimAngles.x ||
+           aimAngles.y != aimAngles.y || viewOffset.x >= _flt(88.f) ||
+           viewOffset.x <= _flt(-88.f) || aimAngles.x <= _flt(-88.f)
                     || aimAngles.x >= _flt(88.f))
                     return;
 
-                input->m_vecOffsetAngles = { aimAngles.x, aimAngles.y, input->m_vecOffsetAngles.z };
+                input->m_vecOffsetAngles = { aimAngles.x, aimAngles.y,
+           input->m_vecOffsetAngles.z };
             }
         */
     }

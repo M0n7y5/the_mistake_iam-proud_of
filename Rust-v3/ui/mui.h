@@ -4,16 +4,19 @@
 
 #include "imgui/imgui.h"
 #include <functional>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "STween.h"
 // #include "fsm.hpp"
-#include "fonts/grlogofont.hpp"
+// #include "fonts/grlogofont.hpp"
 
 #include "imgui/imgui_internal.h"
 // #include "postprocessing/PostProccessing.h"
 #include "../SDK/settings_types.h"
+#include "../SDK/globals.h"
+#include "../mrt/xorstr.hpp"
 #include <iostream>
 
 namespace mui
@@ -27,6 +30,7 @@ namespace mui
     namespace fonts
     {
         inline ImFont* logo;
+        inline ImFont* esp;
         inline ImFont* defaultFont;
         inline ImFont* boldFont;
         inline ImFont* categoryFont;
@@ -40,7 +44,6 @@ namespace mui
             // cfg.OversampleV = 1;
 
             // cfg.FontBuilderFlags = ImGuiFreeTypeBuilderFlags_ForceAutoHint;
-
             const auto& io = ImGui::GetIO();
 
             static ImVector<ImWchar> ranges;
@@ -64,7 +67,19 @@ namespace mui
             builder.AddRanges(io.Fonts->GetGlyphRangesChineseSimplifiedCommon()); // Add one of the
                                                                                   // default ranges
             builder.BuildRanges(&ranges);
+#if 1
+            fonts::esp = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(G::lanaPixel.data(), G::lanaPixel.size(), 13.f,
+                                                                    &cfg, ranges.Data);
+            fonts::defaultFont = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(
+                G::NotoSans_Regular.data(), G::NotoSans_Regular.size(), 19.f, &cfg, ranges.Data);
+            fonts::boldFont = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(
+                G::NotoSans_Bold.data(), G::NotoSans_Bold.size(), 20.f, &cfg, ranges.Data);
 
+            auto grlogo = std::string(std::string_view((char*)G::GRLogo.data(), G::GRLogo.size()));
+            fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(grlogo.c_str(), 50.f, &cfg);
+            fonts::categoryFont =
+                ImGui::GetIO().Fonts->AddFontFromMemoryTTF(G::fontello.data(), G::fontello.size(), 40.f, &cfg);
+#else
             fonts::defaultFont =
                 ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\NotoSans-Regular.ttf", 19.f, &cfg, ranges.Data);
             fonts::boldFont =
@@ -72,6 +87,8 @@ namespace mui
             fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(GrLogoData_base85, 50.f, &cfg);
             fonts::categoryFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\fontello.ttf", 40.f, &cfg);
 
+#endif
+            io.Fonts->Flags = ImFontAtlasFlags_NoMouseCursors;
             io.Fonts->Build();
         }
 
@@ -488,7 +505,7 @@ namespace mui
     inline bool SliderF(const char* label, float* v, float v_min, float v_max, const char* format, float min_width,
                         ImGuiSliderFlags flags = 0)
     {
-        ImGui::LabelText("##nolabel", "%s", label);
+        ImGui::LabelText(_("##nolabel"), "%s", label);
         ImGui::SameLine(min_width ? min_width : ImGui::CalcTextSize(label).x);
         ImGui::SetNextItemWidth(-1);
         return SliderScalar2(label, ImGuiDataType_Float, v, &v_min, &v_max, format, flags);
@@ -663,8 +680,8 @@ namespace mui
                 {
                     if (ImGui::BeginTooltip())
                     {
-                        auto tooltip = _("Click to setup bind");
-                        ImGui::TextUnformatted(tooltip, ImGui::FindRenderedTextEnd(tooltip));
+                        ImGui::TextUnformatted(_("Click to setup bind"),
+                                               ImGui::FindRenderedTextEnd(_("Click to setup bind")));
                         ImGui::EndTooltip();
                     }
                 }
@@ -674,6 +691,7 @@ namespace mui
                 {
                     bool toggle = key->buttonData.type == TriggerType::TOGGLE;
                     bool hold   = key->buttonData.type == TriggerType::HOLD;
+                    bool always = key->buttonData.type == TriggerType::ALWAYS_ON;
 
                     if (ImGui::Checkbox(_("Hold"), &hold))
                     {
@@ -684,6 +702,11 @@ namespace mui
                     {
                         if (toggle)
                             (*key).buttonData.type = TriggerType::TOGGLE;
+                    }
+                    if (ImGui::Checkbox(_("Always On"), &always))
+                    {
+                        if (toggle)
+                            (*key).buttonData.type = TriggerType::ALWAYS_ON;
                     }
 
                     ImGui::EndPopup();
@@ -808,9 +831,9 @@ namespace mui
                     // specifying the ImGuiColorEditFlags_NoDragDrop flag.
                     if (ImGui::BeginDragDropTarget())
                     {
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(_(IMGUI_PAYLOAD_TYPE_COLOR_3F)))
                             memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3);
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(_(IMGUI_PAYLOAD_TYPE_COLOR_4F)))
                             memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4);
                         ImGui::EndDragDropTarget();
                     }
@@ -887,8 +910,8 @@ namespace mui
             // ImGui::SameLine();
             // ImGui::SetCursorPosX(size.x - 37.f + curX);
 
-            char buf[32]{};
-            sprintf(buf, (const char*)format, *this->_data);
+            char buf[48]{};
+            snprintf(buf, 48, (const char*)format, *this->_data);
 
             auto txtSize = ImGui::CalcTextSize(buf);
             ImGui::SameLine(size.x - txtSize.x);
@@ -978,7 +1001,7 @@ namespace mui
         std::vector<RenderableFeature*> _features;
 
         ImVec2 min{}, max{};
-        bool   gotSize = false;
+        //bool   gotSize = false;
 
       public:
         explicit FeatureSet(std::string name) : _name(std::move(name)) {}
@@ -1000,6 +1023,13 @@ namespace mui
         FeatureSet& AddFeature(std::string name, bool* variable, KeyButton* key = nullptr)
         {
             const auto f = new BoolFeature(std::move(name), variable, key);
+            _features.emplace_back(f);
+            return *this;
+        }
+
+        FeatureSet& AddFeature(std::string name, TKO* variable)
+        {
+            const auto f = new BoolFeature(std::move(name), &variable->Enabled, &variable->key);
             _features.emplace_back(f);
             return *this;
         }
@@ -1085,7 +1115,7 @@ namespace mui
       public:
         SubCategory(std::string name) : _name(std::move(name))
         {
-            _name.append("##__SubCategory");
+            _name.append(_("##__SubCategory"));
             _name.append(std::to_string(UID));
             UID += 37;
         }
@@ -1143,9 +1173,9 @@ namespace mui
         Category(std::string name, std::string icon, bool profile = false)
             : _name(std::move(name)), _icon(std::move(icon))
         {
-            this->_uiName = _name + "##__categoryMain";
+            this->_uiName = _name + std::string(_("##__categoryMain"));
 
-            this->_invButtonName = _name + "##__InvBtn__categoryMain";
+            this->_invButtonName = _name + std::string(_("##__InvBtn__categoryMain"));
 
             this->hoverAnim.SetEnterValue(1).SetLeaveValue(0);
 
@@ -1358,7 +1388,8 @@ namespace mui
                         ImGui::SetCursorPosX(region.x - 205);
 
                         ImGui::SetNextItemWidth(200);
-                        ImGui::InputTextWithHint("##MainSearch", "Search feature ...", this->searchText.data(), 128);
+                        ImGui::InputTextWithHint(_("##MainSearch"), _("Search feature ..."), this->searchText.data(),
+                                                 128);
                         searchBarGlowStart = ImGui::GetItemRectMin();
                         searchBarGlowEnd   = ImGui::GetItemRectMax();
                         searchActive       = ImGui::IsItemActive();
@@ -1386,7 +1417,7 @@ namespace mui
                                     ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(0, 0, 0, 0));
                                     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
 
-                                    ImGui::BeginChild("__SubScrollable##loooooooooool", {}, false);
+                                    ImGui::BeginChild(_("__SubScrollable##loooooooooool"), {}, false);
                                     {
                                         ImGui::PopStyleVar();
                                         ImGui::PopStyleColor();
@@ -1475,7 +1506,8 @@ namespace mui
                     // ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(255, 0, 0,
                     // 255));
 
-                    ImGui::BeginChild("__categorySelectWindow", {static_cast<float>(categoryMenuWidthAnim) + 15, 0.f},
+                    ImGui::BeginChild(_("__categorySelectWindow"),
+                                      {static_cast<float>(categoryMenuWidthAnim) + 15, 0.f},
                                       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
                     {
                         ImGui::PopStyleColor(2);
@@ -1518,7 +1550,7 @@ namespace mui
 
                             curX = ImGui::GetCursorPosX();
 
-                            auto txt = "GETREKT.IO";
+                            auto txt = _("GETREKT.IO");
 
                             txtSize = ImGui::CalcTextSize(txt);
 
@@ -1534,7 +1566,7 @@ namespace mui
 
                         ImGui::Dummy({0, 3});
 
-                        auto deafultFontSizeY = ImGui::CalcTextSize("A").y;
+                        //auto deafultFontSizeY = ImGui::CalcTextSize("A").y;
 
                         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{});
 
@@ -1587,7 +1619,7 @@ namespace mui
                 ImGui::End();
             }
 
-            static bool jjj    = true;
+            //static bool jjj    = true;
             ImVec2      center = ImGui::GetMainViewport()->GetCenter();
             ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 

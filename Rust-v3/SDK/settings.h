@@ -4,6 +4,22 @@
 #include "input_data.h"
 #include "settings_types.h"
 #include <memory>
+#include <vector>
+
+using cbType = void (*)();
+
+inline std::vector<cbType> ResetHandler{};
+
+// Needs to be called everytime we have new game
+// aka switching servers etc.
+// BUG: CALL IT
+inline void ResetAllKeybindStates()
+{
+    for (auto callback : ResetHandler)
+    {
+        callback();
+    }
+}
 
 namespace SettingsDataTypes
 {
@@ -35,6 +51,60 @@ namespace SettingsDataTypes
 
         Chams chams{};
     };
+
+    template <typename T> struct OV
+    {
+        T Value{};
+
+        // observable part
+
+        T PrevValue{};
+
+        void Reset()
+        {
+            PrevValue = {};
+        };
+
+        OV<T>(T defValue)
+        {
+            Value = defValue;
+        };
+
+        // changed this frame
+        bool Changed()
+        {
+            auto changed = Value != PrevValue;
+
+            if (changed)
+            {
+                PrevValue = Value;
+                return true;
+            }
+
+            return false;
+        }
+
+        operator T()
+        {
+            return Value;
+        }
+
+        operator T*()
+        {
+            return &Value;
+        }
+
+        OV<T>&& operator=(T val)
+        {
+            OV<T> ov(val);
+
+            // register reset handler
+            ResetHandler.emplace_back(&ov.Reset);
+
+            return ov;
+        }
+    };
+
 } // namespace SettingsDataTypes
 
 struct Settings
@@ -57,9 +127,9 @@ struct Settings
 
             } aimbot{};
 
-            struct Magic
+            struct Desync
             {
-                TKO  mag       = {KeyCode::Mouse4, true};
+                TKO  shoot     = {KeyCode::Mouse4, true};
                 bool RapidFire = false;
                 // bool                MiniCopter            = false;
                 // bool                HeliCopter            = false;
@@ -67,7 +137,7 @@ struct Settings
                 bool SmartHitscan          = true;
                 int  NumberOfHitscanPoints = 120;
                 int  PointsPerFrame        = 5;
-            } magic{};
+            } desync{};
 
             struct Targeting
             {
@@ -99,10 +169,15 @@ struct Settings
 
             struct Weapon
             {
-                bool NoSpread           = false;
-                bool Automatic          = false;
-                bool NoSway             = false;
-                bool NoRecoil           = false;
+                bool NoSpread        = false;
+                bool Automatic       = false;
+                bool NoSway          = false;
+                bool NoRecoil        = false;
+                bool InstantEoka     = false;
+                bool InstantCompound = false;
+                bool NoRestrictions  = true;
+                bool ForceWeild      = false;
+
                 bool RecoilHumanizer    = false;
                 int  RecoilHumanization = 0;
             } weapon{};
@@ -137,8 +212,9 @@ struct Settings
             bool Sleepers            = false;
             bool TeamAsFriends       = true;
             bool ForceSkeletonUpdate = false;
-            int  SkeletonDistance    = 100.f;
             bool Watermark           = true;
+            bool ShowHotBar          = true;
+            int  SkeletonDistance    = 100.f;
 
             struct Indicators
             {
@@ -247,16 +323,23 @@ struct Settings
 
             struct Colors
             {
-                TCO food     = {130, 104, 38};
-                TCO mushroom = {158, 121, 59};
-                TCO pumpkin  = {130, 104, 38};
-                TCO corn     = {249, 255, 89};
-                TCO potato   = {255, 191, 89};
-                TCO wood     = {125, 89, 42};
-                TCO stone    = {155, 155, 155};
-                TCO metal    = {86, 66, 50};
-                TCO sulfur   = {239, 201, 31};
-                TCO hemp     = {140, 227, 0};
+                TCO food        = {130, 104, 38};
+                TCO mushroom    = {158, 121, 59};
+                TCO pumpkin     = {130, 104, 38};
+                TCO corn        = {249, 255, 89};
+                TCO potato      = {255, 191, 89};
+                TCO wood        = {125, 89, 42};
+                TCO stone       = {155, 155, 155};
+                TCO metal       = {86, 66, 50};
+                TCO sulfur      = {239, 201, 31};
+                TCO hemp        = {140, 227, 0};
+                TCO berryWhite  = {255, 255, 255};
+                TCO berryRed    = {255, 143, 143};
+                TCO berryBlue   = {77, 173, 245};
+                TCO berryBlack  = {30, 30, 30};
+                TCO berryGreen  = {30, 255, 30};
+                TCO berryYellow = {255, 255, 0};
+
             } colors{};
         } collectibles{};
 
@@ -273,15 +356,14 @@ struct Settings
 
             struct Colors
             {
-                TCO barrels      = {153, 221, 255};
-                TCO crates       = {255, 255, 153};
-                TCO military     = {128, 255, 149};
-                TCO heli         = {128, 255, 149};
-                TCO lootbox      = {130, 104, 38};
-                TCO lootboxElite = {128, 255, 149};
-                TCO toolbox      = {255, 204, 179};
-                TCO foodbox      = {209, 193, 19};
-                TCO other        = {255, 255, 255};
+                TCO barrels  = {153, 221, 255};
+                TCO crates   = {255, 255, 153};
+                TCO military = {128, 255, 149};
+                TCO heli     = {128, 255, 149};
+                TCO elite    = {128, 255, 149};
+                TCO toolbox  = {255, 204, 179};
+                TCO foodbox  = {209, 193, 19};
+                TCO airdrop  = {255, 255, 255};
             } colors;
         } radtown{};
 
@@ -291,6 +373,7 @@ struct Settings
             {
                 bool Enabled             = false;
                 bool Fade                = false;
+                bool LineToClosest       = false;
                 bool AntiClutter         = false;
                 int  Distance            = 150;
                 int  MaxAnticlutterCount = 5;
@@ -301,6 +384,7 @@ struct Settings
                 TCO stone  = {155, 155, 155};
                 TCO sulfur = {239, 201, 31};
                 TCO metal  = {86, 66, 50};
+                TCO line   = {255, 255, 255};
             } colors{};
         } ores{};
 
@@ -335,20 +419,24 @@ struct Settings
                 bool PatrolHealth   = false;
                 int  HeliDistance   = 500;
                 int  BoatDistance   = 350;
-                int  PatrolDistance = 150;
+                int  PatrolDistance = 1500;
                 int  OtherDistance  = 350;
             } general{};
 
             struct Colors
             {
-                TCO mini      = {118, 191, 255};
-                TCO scrapHeli = {71, 121, 165};
-                TCO boat      = {145, 103, 48};
-                TCO rhib      = {145, 103, 48};
-                TCO horse     = {88, 217, 255};
-                TCO baloon    = {79, 54, 21};
-                TCO patrol    = {211, 127, 10};
-                TCO bradley   = {211, 127, 10};
+                TCO mini          = {118, 191, 255};
+                TCO scrapHeli     = {71, 121, 165};
+                TCO boat          = {145, 103, 48};
+                TCO rhib          = {145, 103, 48};
+                TCO tugboat       = {145, 103, 48};
+                TCO submarineSolo = {145, 103, 48};
+                TCO submarineDuo  = {145, 103, 48};
+                TCO horse         = {88, 217, 255};
+                TCO baloon        = {79, 54, 21};
+                TCO patrol        = {211, 127, 10};
+                TCO bradley       = {211, 127, 10};
+                TCO chinook       = {211, 127, 10};
             } colors{};
         } vehicles{};
 
@@ -356,9 +444,10 @@ struct Settings
         {
             struct General
             {
-                bool Enabled      = false;
-                bool HideInactive = false;
-                int  Distance     = 100;
+                bool Enabled           = false;
+                bool HideInactive      = false;
+                bool HideAuthedTurrets = false;
+                int  Distance          = 100;
             } general{};
 
             struct Colors
@@ -377,21 +466,21 @@ struct Settings
         {
             struct General
             {
-                ImColor weapons  = {251, 7, 160};
-                ImColor other    = {251, 7, 160};
-                int     Distance = 150;
+                TCO weapons  = {251, 7, 160};
+                TCO other    = {251, 7, 160};
+                int Distance = 150;
             } general{};
 
             struct Backpack
             {
-                TCO option   = {255, 245, 166, 255, true};
+                TCO color    = {255, 245, 166, 255, true};
                 int Distance = 150;
             } backpacks{};
 
             struct Corpse
             {
-                bool Name     = true;
                 TCO  option   = {255, 245, 166, 255, true};
+                bool Name     = true;
                 int  Distance = 150;
             } corpses{};
 
@@ -404,22 +493,107 @@ struct Settings
 
         } item{};
 
+        struct Raid
+        {
+            TCO  Enabled           = TCO(255, 10, 10, 255);
+            bool C4                = false;
+            bool Satchel           = false;
+            bool Rocket            = false;
+            bool RocketIncendiary  = false;
+            bool ExplosiveAmmo     = false;
+            bool Grenades          = false;
+            bool ShowWhenStarted   = false;
+            bool ShowLastExplosion = false;
+            int  GroupByDistance   = 5;
+            int  Distance          = 1000;
+            int  MaxShowTime       = 20;
+        } raid{};
+
     } visuals{};
 
     struct Miscellaneous
     {
         struct Movement
         {
+            bool                        NoFallDamage    = false;
+            bool                        SpiderMan       = true;
+            bool                        InfiniteJump    = false;
+            SettingsDataTypes::OV<bool> Jesus           = true;
+            bool                        OmniSprint      = true;
+            bool                        SilentWalk      = false;
+            SettingsDataTypes::OV<bool> TreeCollision   = false;
+            SettingsDataTypes::OV<bool> PlayerCollision = false;
 
-        } movement;
+            TKO Phase = TKO(KeyCode::V, false);
 
-        struct Weapon
+        } movement{};
+
+        struct FlyHack
         {
-        };
+            TKO                         Flyhack           = TKO(KeyCode::F, true);
+            TKO                         FlyhackForward    = TKO(KeyCode::W, true);
+            TKO                         FlyhackBack       = TKO(KeyCode::S, true);
+            TKO                         FlyhackLeft       = TKO(KeyCode::A, true);
+            TKO                         FlyhackRight      = TKO(KeyCode::D, true);
+            TKO                         FlyhackUp         = TKO(KeyCode::Space, true);
+            TKO                         FlyhackBoost      = TKO(KeyCode::LeftShift, true);
+            TKO                         FlyhackSlow       = TKO(KeyCode::LeftControl, true);
+            int                         FlyHackBoostSpeed = 10; // 10%
+            bool                        AntiFlyKick       = true;
+            bool                        AbsoluteFlyHack   = false;
+            bool                        Noclip            = false;
+            bool                        PreventBan        = true;
+            SettingsDataTypes::OV<bool> WallPhase         = true;
+
+        } flyhack{};
+
+        struct Visibility
+        {
+            bool NoViewModelSway      = true;
+            bool BrightNight          = true;
+            bool BrightCave           = true;
+            bool ForceFOV             = true;
+            bool HideAttireOverlays   = true;
+            bool InteractiveDebugCam  = true;
+            int  BrightNightIntensity = 20; // 10%
+            int  BrightCaveIntensity  = 20; // 10%
+            int  FOV                  = 90;
+            int  GiraffeOffset        = 50; // 50%
+            int  FOVZoom              = 30;
+            TKO  Zoom                 = TKO(KeyCode::V, false);
+            TKO  Giraffe              = TKO(KeyCode::X, false);
+
+        } visibility{};
+
+        // struct Weapon
+        // {
+        //     bool InstantEoka        = false;
+        //     bool InstantCompoundBow = false;
+        //     bool NoRestrictions     = true;
+        //     bool ForceWeild         = false;
+        // } weapon{};
+
+        struct Other
+        {
+            bool                        InstantLoot    = true;
+            bool                        AutoCollect    = false;
+            TKO                         InstantRevive  = TKO(KeyCode::E, false);
+            TKO                         InstantHeal    = TKO(KeyCode::R, false);
+            TKO                         SilentFarm     = TKO(KeyCode::C, false);
+            TKO                         SilentMelee    = TKO(KeyCode::B, false);
+            TKO                         InstantSuicide = TKO(KeyCode::None, false);
+            SettingsDataTypes::OV<bool> AdminFlag      = true;
+        } other{};
     } misc;
+};
+
+struct PlayerBackupData
+{
+    bool adminFlag = false;
 };
 
 namespace SettingsData
 {
-    extern Settings* settings;
-}
+    extern Settings*        settings;
+    inline PlayerBackupData playerbackupData{};
+} // namespace SettingsData

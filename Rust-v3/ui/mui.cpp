@@ -10,36 +10,41 @@ void mui::Setup()
 {
     // setup styles
 #pragma region draw_style
-    ImGuiStyle &style             = ImGui::GetStyle();
-    style.Alpha                   = 1.0f;
-    style.WindowPadding           = ImVec2(8, 8);
-    style.WindowRounding          = 10.0f;
-    style.WindowBorderSize        = 1.0f;
-    style.WindowMinSize           = ImVec2(300, 450);
-    style.WindowTitleAlign        = ImVec2(0.5f, 0.5f);
-    style.ChildRounding           = 10.0f;
-    style.ChildBorderSize         = 1.0f;
-    style.PopupRounding           = 7.0f;
-    style.PopupBorderSize         = 1.0f;
-    style.FramePadding            = ImVec2(5, 3);
-    style.FrameRounding           = 7.0f;
-    style.FrameBorderSize         = 1.0f;
-    style.ItemSpacing             = ImVec2(8, 4);
-    style.ItemInnerSpacing        = ImVec2(4, 4);
-    style.IndentSpacing           = 6.0f;
-    style.ColumnsMinSpacing       = 6.0f;
-    style.ScrollbarSize           = 6.0f;
-    style.ScrollbarRounding       = 9.0f;
-    style.GrabMinSize             = 0.0f;
-    style.GrabRounding            = 7.0f;
-    style.TabRounding             = 7.0f;
-    style.TabBorderSize           = 1.0f;
-    style.ButtonTextAlign         = ImVec2(0.5f, 0.5f);
-    style.SelectableTextAlign     = ImVec2(0.0f, 0.5f);
-    style.MouseCursorScale        = 0.75f;
-    style.WindowShadowOffsetAngle = 1.5f;
-    style.WindowShadowOffsetDist  = 0.f;
-    style.WindowShadowSize        = 50.f;
+    ImGuiStyle& style                = ImGui::GetStyle();
+    style.Alpha                      = 1.0f;
+    style.WindowPadding              = ImVec2(8, 8);
+    style.WindowRounding             = 10.0f;
+    style.WindowBorderSize           = 1.2f;
+    style.WindowMinSize              = ImVec2(300, 450);
+    style.WindowTitleAlign           = ImVec2(0.5f, 0.5f);
+    style.ChildRounding              = 10.0f;
+    style.ChildBorderSize            = 1.2f;
+    style.PopupRounding              = 7.0f;
+    style.PopupBorderSize            = 1.0f;
+    style.FramePadding               = ImVec2(5, 3);
+    style.FrameRounding              = 7.0f;
+    style.FrameBorderSize            = 1.0f;
+    style.ItemSpacing                = ImVec2(8, 4);
+    style.ItemInnerSpacing           = ImVec2(4, 4);
+    style.IndentSpacing              = 6.0f;
+    style.ColumnsMinSpacing          = 6.0f;
+    style.ScrollbarSize              = 6.0f;
+    style.ScrollbarRounding          = 9.0f;
+    style.GrabMinSize                = 0.0f;
+    style.GrabRounding               = 7.0f;
+    style.TabRounding                = 7.0f;
+    style.TabBorderSize              = 1.0f;
+    style.ButtonTextAlign            = ImVec2(0.5f, 0.5f);
+    style.SelectableTextAlign        = ImVec2(0.0f, 0.5f);
+    style.MouseCursorScale           = 0.75f;
+    style.WindowShadowOffsetAngle    = 1.5f;
+    style.WindowShadowOffsetDist     = 0.f;
+    style.WindowShadowSize           = 50.f;
+    style.CircleTessellationMaxError = 0.1f;
+    style.CurveTessellationTol       = 0.1f;
+    style.AntiAliasedFill            = true;
+    style.AntiAliasedLines           = true;
+    style.AntiAliasedLinesUseTex     = true;
 
 #pragma endregion
 

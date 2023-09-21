@@ -3,24 +3,25 @@
 
 #include "xorstr.hpp"
 #include "lazy_importer.hpp"
+#include "cpu_model.h"
 
 #include <Windows.h>
 
 #ifdef MRT_ENABLED
 
-extern "C" __declspec(selectany)  int _fltused = 1;
+extern "C" __declspec(selectany) int _fltused = 1;
 
 extern "C"
 {
-    #pragma section(".CRT$XIA", long, read)
-    #pragma section(".CRT$XIZ", long, read)
-    #pragma section(".CRT$XCA", long, read)
-    #pragma section(".CRT$XCZ", long, read)
-    #pragma section(".CRT$XPA", long, read)
-    #pragma section(".CRT$XPZ", long, read)
-    #pragma section(".CRT$XTA", long, read)
-    #pragma section(".CRT$XTZ", long, read)
-    #pragma comment(linker, "/merge:.CRT=.rdata")
+#pragma section(".CRT$XIA", long, read)
+#pragma section(".CRT$XIZ", long, read)
+#pragma section(".CRT$XCA", long, read)
+#pragma section(".CRT$XCZ", long, read)
+#pragma section(".CRT$XPA", long, read)
+#pragma section(".CRT$XPZ", long, read)
+#pragma section(".CRT$XTA", long, read)
+#pragma section(".CRT$XTZ", long, read)
+#pragma comment(linker, "/merge:.CRT=.rdata")
 
     typedef void (*_PVFV)(void);
     typedef int (*_PIFV)(void);
@@ -51,14 +52,14 @@ typedef struct _ON_EXIT_ENTRY
 } ON_EXIT_ENTRY, *PON_EXIT_ENTRY;
 SLIST_HEADER __onexithead;
 
-const char *_get_cwd()
+const char* _get_cwd()
 {
     return _CRT_CWD;
 }
 
-    #define __crt_countof(_Array) (sizeof(*__countof_helper(_Array)) + 0)
+#define __crt_countof(_Array) (sizeof(*__countof_helper(_Array)) + 0)
 
-void _set_cwd(const char *path)
+void _set_cwd(const char* path)
 {
     strncpy(_CRT_CWD, path, __crt_countof(_CRT_CWD));
 }
@@ -74,7 +75,7 @@ void __cdecl _cinitfs(void)
     _init_cwd();
 }
 
-void _initterm(_PVFV *pfbegin, _PVFV *pfend)
+void _initterm(_PVFV* pfbegin, _PVFV* pfend)
 {
     /*
      * walk the table of function pointers from the bottom up, until
@@ -95,6 +96,7 @@ void _initterm(_PVFV *pfbegin, _PVFV *pfend)
 
 int __cdecl _cinit(void)
 {
+    __cpu_indicator_init();
     static auto _RtlInitializeSListHead = LI_FN(RtlInitializeSListHead).safe();
 
     if (_RtlInitializeSListHead != NULL)
@@ -118,7 +120,7 @@ _PVFV _onexit(_PVFV lpfn)
 {
     static auto _RtlInterlockedPushEntrySList = LI_FN(RtlInterlockedPushEntrySList).safe();
 
-    PON_EXIT_ENTRY _Entry                     = (PON_EXIT_ENTRY)malloc(sizeof(ON_EXIT_ENTRY));
+    PON_EXIT_ENTRY _Entry = (PON_EXIT_ENTRY)malloc(sizeof(ON_EXIT_ENTRY));
 
     if (!_Entry)
         return NULL;
@@ -158,12 +160,14 @@ void __cdecl _cexit(void)
     doexit(0, 0, 1); /* full term, return to caller */
 }
 
-extern "C" void __cdecl _invalid_parameter(wchar_t const *const expression, wchar_t const *const function_name,
-    wchar_t const *const file_name, unsigned int const line_number, uintptr_t const reserved)
-{ }
+extern "C" void __cdecl _invalid_parameter(wchar_t const* const expression,
+                                           wchar_t const* const function_name,
+                                           wchar_t const* const file_name,
+                                           unsigned int const line_number, uintptr_t const reserved)
+{
+}
 
-extern "C" void __cdecl _invalid_parameter_noinfo(void)
-{ }
+extern "C" void __cdecl _invalid_parameter_noinfo(void) {}
 
 extern "C" __declspec(noreturn) void __cdecl _invalid_parameter_noinfo_noreturn(void)
 {
@@ -173,11 +177,30 @@ extern "C" __declspec(noreturn) void __cdecl _invalid_parameter_noinfo_noreturn(
 
 extern "C" int _purecall(void)
 {
+
     return 0;
 }
 
-extern "C" void __chkstk()
-{ }
+// extern "C" __int64 chkstk()
+// {
+//     __asm__ __volatile__("push   %rcx;"
+//                          "push   %rax;"
+//                          "cmp    $0x1000,%rax;"
+//                          "lea    24(%rsp),%rcx;"
+//                          "jb     1f;"
+//                          "2:"
+//                          "sub    $0x1000,%rcx;"
+//                          "test   %rcx,(%rcx);"
+//                          "sub    $0x1000,%rax;"
+//                          "cmp    $0x1000,%rax;"
+//                          "ja     2b;"
+//                          "1:"
+//                          "sub    %rax,%rcx;"
+//                          "test   %rcx,(%rcx);"
+//                          "pop    %rax;"
+//                          "pop    %rcx;"
+//                          "ret;");
+// }
 
 extern "C" void abort()
 {
@@ -187,14 +210,14 @@ extern "C" void abort()
         ;
 }
 
-    #include <functional>
+#include <functional>
 
 namespace std
 {
     _Prhand _Raise_handler;
 }
 
-void __cdecl std::_Xlength_error(char const *)
+void __cdecl std::_Xlength_error(char const*)
 {
     __debugbreak();
 
@@ -209,7 +232,7 @@ void __cdecl std::_Xbad_function_call(void)
         ;
 }
 
-void __cdecl std::_Xout_of_range(char const *)
+void __cdecl std::_Xout_of_range(char const*)
 {
     __debugbreak();
     while (1)
@@ -217,13 +240,16 @@ void __cdecl std::_Xout_of_range(char const *)
 }
 
 EXTERN_C
-_ACRTIMP void __cdecl _invoke_watson(_In_opt_z_ wchar_t const *_Expression, _In_opt_z_ wchar_t const *_FunctionName,
-    _In_opt_z_ wchar_t const *_FileName, _In_ unsigned int _LineNo, _In_ uintptr_t _Reserved)
+_ACRTIMP void __cdecl _invoke_watson(_In_opt_z_ wchar_t const* _Expression,
+                                     _In_opt_z_ wchar_t const* _FunctionName,
+                                     _In_opt_z_ wchar_t const* _FileName, _In_ unsigned int _LineNo,
+                                     _In_ uintptr_t _Reserved)
 {
     //
-    //"The invalid parameter handler dispatch function calls the currently assigned invalid parameter handler. By "
-    //    "default, the invalid parameter calls _invoke_watson, which causes the application to close and generate a "
-    //    "mini-dump."
+    //"The invalid parameter handler dispatch function calls the currently assigned invalid
+    // parameter handler. By "
+    //    "default, the invalid parameter calls _invoke_watson, which causes the application to
+    //    close and generate a " "mini-dump."
     __debugbreak();
     while (1)
         ;

@@ -1,15 +1,19 @@
 #include "ESP.h"
 
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 #include <span>
 #include <stdint.h>
 #include <utility>
 #include <vcruntime.h>
 #include <vector>
+#include <xutility>
+#include <ranges>
 
 #include "../Features/EntityManager.h"
 #include "../Features/Aimbot.h"
+#include "../Features/Movement.h"
 #include "../SDK/math.h"
 #include "../SDK/settings.h"
 #include "../SDK/structs.h"
@@ -154,13 +158,31 @@ void Indicators()
 
     Vector2 screenCenter = {currentScreenSize.m_Width / _flt(2.f), currentScreenSize.m_Height / _flt(2.f)};
 
+    if (settings->visuals.ores.general.LineToClosest)
+    {
+        using namespace EntityManager;
+        if (DB::ores.size() > 0)
+        {
+            const auto& ore = DB::ores[0];
+
+            Vector2 screenPos{};
+            if (camera->WorldToScreen(ore.position, screenPos, currentScreenSize))
+            {
+                g->AddLine(ToImVec2(screenCenter), ToImVec2(screenPos), settings->visuals.ores.colors.line.Color);
+            }
+        }
+    }
+
     if (settings->visuals.general.indicators.PredictionLauncher.Enable && Aimbot::launcherInfo.valid)
     {
-        Vector2    screenPoint, newPosScreen, firstPosScreen{};
-        Vector3    point         = Aimbot::launcherInfo.hitPoint;
-        Quaternion rotation      = Aimbot::launcherInfo.rotation;
-        float      spreadRad     = Aimbot::launcherInfo.travelDist * _flt(0.01963747777f);
-        float      spreadHalfRad = spreadRad * 0.7f;
+        Vector2 screenPoint, newPosScreen, firstPosScreen{};
+        Vector3 point    = Aimbot::launcherInfo.hitPoint;
+        Vector4 rotation = Aimbot::launcherInfo.rotation;
+
+        float spreadRad = // aprox
+            Aimbot::launcherInfo.travelDist * _flt(0.01963747777f);
+
+        float spreadHalfRad = spreadRad * 0.7f;
 
         // FIXME: use arrays instead + std::span
         Vector2 drawPoints[32];
@@ -168,34 +190,38 @@ void Indicators()
         Vector3 worldPoints[32];
         Vector3 worldPointsGlow[32];
         size_t  idx = 0;
+
         for (float a = _flt(0.f); a < _flt(2.f) * M_PI; a += M_PI / _flt(16.f))
         {
-            Vector3 circlePos = point + Quaternion::QuatMult(rotation, Vector3(std::sin(a) * spreadRad,
-                                                                               std::cos(a) * spreadRad, _flt(0.f)));
+            Vector3 circlePos = point + Vector4::QuatMult(rotation, Vector3(std::sin(a) * spreadRad,
+                                                                            std::cos(a) * spreadRad, _flt(0.f)));
             Vector3 circlePosGlow =
-                point + Quaternion::QuatMult(
-                            rotation, Vector3(std::sin(a) * spreadHalfRad, std::cos(a) * spreadHalfRad, _flt(0.f)));
+                point + Vector4::QuatMult(rotation,
+                                          Vector3(std::sin(a) * spreadHalfRad, std::cos(a) * spreadHalfRad, _flt(0.f)));
+
             worldPoints[idx]     = circlePos;
             worldPointsGlow[idx] = circlePosGlow;
 
             idx++;
         }
 
+        if (camera->WorldToScreenVec2Ex({worldPointsGlow, idx}, {drawPointsGlow, idx}, currentScreenSize))
+        {
+            if (settings->visuals.general.indicators.PredictionLauncher.Enable)
+            {
+                auto col  = settings->visuals.general.indicators.PredictionLauncher.Color;
+                auto glow = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5, 35, 25, 50);
+
+                g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col, glow, {});
+
+                auto col2    = col;
+                col2.Value.w = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5.f, 35.f, 0.f, 1.f);
+                g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col2, glow, {});
+            }
+        }
+
         if (camera->WorldToScreenVec2Ex({worldPoints, idx}, {drawPoints, idx}, currentScreenSize))
         {
-            camera->WorldToScreenVec2Ex({worldPointsGlow, idx}, {drawPointsGlow, idx}, currentScreenSize);
-            // drawPoints[drawPoints.size() - 1] = drawPoints[0];
-            auto glow = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5, 35, 25, 90);
-            auto col  = settings->visuals.general.indicators.PredictionLauncher.Color;
-            g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col, glow, {});
-
-            auto col2    = col;
-            col2.Value.w = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5.f, 35.f, 0.f, 1.f);
-            g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col2, glow, {});
-
-            // g->AddConvexPolyFilled(reinterpret_cast<ImVec2*>(drawPoints.data()), drawPoints.size(),
-            //                        settings->visuals.general.indicators.VisualPredition.Color);
-
             if (settings->visuals.general.indicators.PredictionLauncherLine.Enable)
             {
                 g->AddPolyline(reinterpret_cast<ImVec2*>(&drawPoints), idx,
@@ -362,16 +388,174 @@ void Indicators()
 
     if (settings->ragebot.general.aimbot.FOV.Enable)
     {
-        g->AddCircle(ToImVec2(screenCenter), Aimbot::FOV.GetRadiusPx(), settings->ragebot.general.aimbot.FOV.Color);
+        auto radius = Aimbot::FOV.GetRadiusPx();
+        if (radius < 10000.f && radius > 5.f)
+        {
+            g->AddCircle(ToImVec2(screenCenter), radius, settings->ragebot.general.aimbot.FOV.Color, 0, 1.25f);
+        }
     }
+
+    // TODO: Modernize bellow shit
+    float heightModifier = 0.f;
+    auto  screenHeight   = currentScreenSize.m_Height;
+
+    if (settings->misc.flyhack.Flyhack.Active() && settings->misc.flyhack.AntiFlyKick)
+    {
+        float percentage1 = Movement::flyhackDistanceHorizontal / _flt(6.5f);
+        float percentage2 = Movement::flyhackDistanceVertical / _flt(3.f);
+
+        int red1   = (int)((percentage1 * _flt(100.f)) * _flt(2.55f));
+        int green1 = 255 - red1;
+
+        int red2   = (int)((percentage2 * _flt(100.f)) * _flt(2.55f));
+        int green2 = 255 - red2;
+
+        ImVec2 boxLength = ImGui::CalcTextSize(_("FLYHACK"));
+        RenderTextOutline(ImVec2{_flt(5.f), screenHeight / _flt(2.f) - _flt(17.f)}, ImColor{red1, green1, 0},
+                          ImColor{0, 0, 0}, _("FLYHACK"));
+        g->AddRectFilled({_flt(5.f), screenHeight / _flt(2.f) - _flt(3.f)},
+                         {_flt(5.f) + boxLength[0] + _flt(1.f), screenHeight / _flt(2.f) + _flt(3.f)},
+                         ImColor(0, 0, 0));
+        g->AddRectFilled(
+            {_flt(6.f), screenHeight / _flt(2.f) - _flt(2.f)},
+            {std::max(_flt(6.f) + std::max(boxLength[0] * (_flt(1.f) - percentage1) - _flt(1.f), _flt(6.f)), 0.f),
+             screenHeight / 2.f + 2.f},
+            ImColor(red1, green1, 0));
+
+        g->AddRectFilled({_flt(5.f), screenHeight / 2.f + _flt(4.f)},
+                         {_flt(5.f) + boxLength[0] + 1.f, screenHeight / 2.f + _flt(10.f)}, ImColor(0, 0, 0));
+        g->AddRectFilled({_flt(6.f), screenHeight / 2.f + _flt(5.f)},
+                         {std::max(6.f + std::max(boxLength[0] * (1.f - percentage2) - 1.f, _flt(6.f)), 0.f),
+                          screenHeight / 2.f + _flt(9.f)},
+                         ImColor(red2, green2, 0));
+        heightModifier += _flt(12.f);
+    }
+
+    if (settings->misc.other.SilentFarm.Active())
+    {
+        RenderTextOutline(ImVec2{_flt(5.f), screenHeight / _flt(2.f) + heightModifier}, ImColor{138, 245, 66},
+                          ImColor{0, 0, 0}, _("FARM"));
+        heightModifier += _flt(12.f);
+    }
+    if (settings->misc.other.SilentMelee.Active())
+    {
+        RenderTextOutline(ImVec2{_flt(5.f), screenHeight / _flt(2.f) + heightModifier}, ImColor{138, 245, 66},
+                          ImColor{0, 0, 0}, _("MELEE"));
+        heightModifier += _flt(12.f);
+    }
+
+    if (settings->visuals.general.ShowHotBar)
+    {
+
+        static auto gameHotBar = CGameObject::Find<CGameObject>(_("GameUI.Hud.BeltBar"));
+        static auto gameHotBarRectTransform =
+            gameHotBar->GetComponent<CRectTransform>(CType::FromClass(_("RectTransform"), _("UnityEngine")));
+
+        auto gameUipos = gameHotBarRectTransform->GetPosition();
+
+        auto beltUiScale = gameHotBarRectTransform->GetLossyScale().x;
+        auto beltUIPos   = ScreenToImgui({gameUipos.x, gameUipos.y});
+
+        constexpr static float itemSize       = 75.f;
+        constexpr static float itemSizeHalf   = itemSize / 2.f;
+        constexpr static float margin         = 5.f;
+        constexpr static float totalWidth     = 6.f * (itemSize + margin) - margin;
+        constexpr static float totalWidthHalf = totalWidth / 2.f;
+
+        auto screenPos = Vector2{screenCenter.x - totalWidthHalf, beltUIPos.y - 64.f * beltUiScale - 10.f - itemSize};
+
+        float currX = screenPos.x;
+
+        if (Aimbot::CurrentTarget.type == Aimbot::TargetType::Player)
+        {
+            auto target = (CBasePlayer*)Aimbot::CurrentTarget.entity->entity;
+
+            auto belt = (CPlayerBelt*)target->Belt;
+
+            auto activeItem = target->GetActiveItem();
+
+            auto playerNameID = EntityManager::DB::GetPlayerName(target);
+            auto playerName   = EntityManager::DB::GetString(playerNameID);
+
+            RenderTextCenter({screenCenter.x, screenPos.y - fontSize - 3.f}, playerName->c_str());
+
+            // some design stuff
+            g->AddRectFilled({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
+                             ImColor(20, 25, 31, 180), 7.f);
+            g->AddRect({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
+                       ImColor(25, 33, 42, 180), 7.f, 0, 1.35f);
+
+            for (int i = 0; i < 6; i++)
+            {
+                auto currentItem = belt->GetItemInSlot(i);
+
+                auto rectMin = ImVec2{currX, screenPos.y};
+                auto rectMax = ImVec2{currX + itemSize, screenPos.y + itemSize};
+
+                // debug rect
+                // g->AddRect(rectMin, rectMax, ImColor(255, 0, 0), 7.f, 0, 1.55f);
+
+                // g->AddCircleFilled({currX, screenPos.y}, itemSize, ImColor(20, 25, 31));
+                // g->AddCircle({currX, screenPos.y}, itemSize, ImColor(25, 33, 42));
+
+                if (currentItem == nullptr)
+                {
+                    g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                                       ImColor(255, 255, 255, 50), 75, {});
+                }
+                else
+                {
+                    auto sprite = (CSprite*)currentItem->info->fields.iconSprite;
+                    auto tex    = sprite->GetTexture();
+
+                    // auto offsetCond = Remap(currentItem->_condition, 0, currentItem->_maxCondition, itemSize, 0);
+
+                    // g->PushClipRect({rectMin.x, rectMin.y}, {rectMin.x + 5.f, rectMin.y + itemSize});
+                    // g->AddRectFilled(rectMin, rectMax, ImColor(111, 136, 66), 7.f);
+                    // g->PopClipRect();
+
+                    // auto imgPos    = ImVec2{currX - itemSize / 2.f - margin, screenPos.y - itemSize / 2.f - margin};
+                    // auto imgPosEnd = ImVec2{imgPos.x + 50.f, imgPos.y + 50.f};
+
+                    if (activeItem != nullptr)
+                    {
+                        if (activeItem == currentItem)
+                        {
+                            g->AddRectFilled(rectMin, rectMax, ImColor(255, 0, 0, 150), 7.f, 0);
+                        }
+
+                        g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                                           ImColor(255, 255, 255, 220), 85.f, {});
+
+                        g->AddImage((ImTextureID)tex, rectMin, rectMax);
+                    }
+                    else
+                    {
+                        g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                                           ImColor(255, 255, 255, 220), 85, {});
+                        g->AddImage((ImTextureID)tex, rectMin, rectMax);
+                    }
+                }
+
+                currX += margin + itemSize;
+            }
+        }
+    }
+
+    // g->AddImage(ImTextureID user_texture_id, const ImVec2 &p_min, const ImVec2 &p_max)
 }
 
 void DrawOres()
 {
     using namespace EntityManager;
-    int   clutterIdx = 0;
-    auto& vis        = settings->visuals.ores;
-    auto  drawOre    = [&](const char* name, OreResource& item, TCO& option) -> void {
+
+    auto& vis = settings->visuals.ores;
+
+    if (vis.general.Enabled == false)
+        return;
+
+    int  clutterIdx = 0;
+    auto drawOre    = [&](const char* name, OreResource& item, TCO& option) -> void {
         if (!option.Enable)
             return;
 
@@ -391,33 +575,66 @@ void DrawOres()
         clutterIdx++;
     };
 
-    for (auto& ore : DB::ores)
+    if (vis.general.AntiClutter)
     {
-        if ((vis.general.AntiClutter) && (clutterIdx > vis.general.MaxAnticlutterCount))
-            return;
-
-        switch (ore.prefabId)
+        for (auto& ore : DB::ores)
         {
-        case 960501790:  // stone
-        case 4124824587: // stone
-        case 266547145:  // stone
-        case 723721358:  // stone
-            drawOre(_("Stone Ore"), ore, vis.colors.stone);
-            break;
-        case 152562243:  // sulfur
-        case 3058967796: // sulfur
-        case 1227527004: // sulfur
-        case 2204178116: // sulfur
-            drawOre(_("Sulfur Ore"), ore, vis.colors.sulfur);
-            break;
-        case 3327726152: // metal
-        case 3774647716: // metal
-        case 4225479497: // metal
-        case 3345228353: // metal
-            drawOre(_("Metal Ore"), ore, vis.colors.metal);
-            break;
-        default:
-            break;
+            if (clutterIdx > vis.general.MaxAnticlutterCount)
+                return;
+
+            switch (ore.prefabId)
+            {
+            case 960501790:  // stone
+            case 4124824587: // stone
+            case 266547145:  // stone
+            case 723721358:  // stone
+                drawOre(_("Stone Ore"), ore, vis.colors.stone);
+                break;
+            case 152562243:  // sulfur
+            case 3058967796: // sulfur
+            case 1227527004: // sulfur
+            case 2204178116: // sulfur
+                drawOre(_("Sulfur Ore"), ore, vis.colors.sulfur);
+                break;
+            case 3327726152: // metal
+            case 3774647716: // metal
+            case 4225479497: // metal
+            case 3345228353: // metal
+                drawOre(_("Metal Ore"), ore, vis.colors.metal);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    else
+    {
+        std::ranges::reverse_view rv{DB::ores};
+        for (auto& ore : rv)
+        {
+            switch (ore.prefabId)
+            {
+            case 960501790:  // stone
+            case 4124824587: // stone
+            case 266547145:  // stone
+            case 723721358:  // stone
+                drawOre(_("Stone Ore"), ore, vis.colors.stone);
+                break;
+            case 152562243:  // sulfur
+            case 3058967796: // sulfur
+            case 1227527004: // sulfur
+            case 2204178116: // sulfur
+                drawOre(_("Sulfur Ore"), ore, vis.colors.sulfur);
+                break;
+            case 3327726152: // metal
+            case 3774647716: // metal
+            case 4225479497: // metal
+            case 3345228353: // metal
+                drawOre(_("Metal Ore"), ore, vis.colors.metal);
+                break;
+            default:
+                break;
+            }
         }
     }
 }
@@ -427,6 +644,9 @@ void DrawAnimals()
     using namespace EntityManager;
 
     const auto& vis = settings->visuals.animals;
+
+    if (vis.general.Enabled == false)
+        return;
 
     auto drawAnimal = [&](Animal const& animal, TCO const& option) -> void {
         if (!option.Enable)
@@ -450,7 +670,9 @@ void DrawAnimals()
     if (!settings->visuals.animals.general.Enabled)
         return;
 
-    for (const auto& animal : DB::animals)
+    std::ranges::reverse_view rv{DB::animals};
+
+    for (const auto& animal : rv)
     {
         using namespace prefabs;
 
@@ -480,6 +702,783 @@ void DrawAnimals()
         default:
             break;
         }
+    }
+}
+
+void DrawRaids()
+{
+    if (settings->visuals.raid.Enabled.Enable == false)
+        return;
+
+    char    tmpStr[64]{};
+    Vector2 screenPos{};
+
+    for (const auto raid : EntityManager::DB::raids)
+    {
+        auto dist = currentLocalPosition.distance(raid.position);
+
+        if (dist > settings->visuals.raid.Distance)
+            continue;
+
+        if (camera->WorldToScreen(raid.position, screenPos, currentScreenSize) == false)
+            continue;
+
+        snprintf(tmpStr, 64, _("%dm"), (int)dist);
+        RenderTextOutline({screenPos.x, screenPos.y - fontSize}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
+                          tmpStr);
+        RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
+                          _("Raid"));
+
+        auto opt = settings->visuals.raid;
+
+        for (int i = 0; i < (int)EffectType::Count; i++)
+        {
+            int effectCount = raid.effects[i].count;
+            if (effectCount < 1)
+                continue;
+
+            std::string effectTypeName;
+            switch ((EffectType)i)
+            {
+            case EffectType::C4:
+                if (!opt.C4)
+                    continue;
+
+                effectTypeName = _("C4");
+                break;
+
+            case EffectType::Satchel:
+                if (!opt.Satchel)
+                    continue;
+
+                effectTypeName = _("Satchel");
+                break;
+
+            case EffectType::Rocket:
+                if (!opt.Rocket)
+                    continue;
+
+                effectTypeName = _("Rocket");
+                break;
+            case EffectType::RocketIncen:
+                if (!opt.RocketIncendiary)
+                    continue;
+
+                effectTypeName = _("Incen Rocket");
+                break;
+            case EffectType::ExplosiveAmmo:
+                if (!opt.ExplosiveAmmo)
+                    continue;
+
+                effectTypeName = _("Explo Ammo");
+                break;
+            case EffectType::ExplosiveGrenade:
+                if (!opt.Grenades)
+                    continue;
+                effectTypeName = _("Grenade");
+                break;
+
+            default:
+                return;
+            }
+
+            screenPos.y += fontSize;
+
+            snprintf(tmpStr, 64, _("%s %dx"), effectTypeName.c_str(), effectCount);
+            RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
+                              tmpStr);
+
+            if (opt.ShowWhenStarted)
+            {
+                float secondsSinceStart  = CTime::GetRealTime() - raid.startTime;
+                int   nSecondsSinceStart = (int)secondsSinceStart;
+
+                int seconds = nSecondsSinceStart % 60;
+                int minutes = (nSecondsSinceStart - seconds) / 60;
+
+                snprintf(tmpStr, 64, _("Start: %dm%ds"), minutes, seconds);
+                screenPos.y += fontSize;
+                RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
+                                  tmpStr);
+            }
+
+            if (opt.ShowLastExplosion)
+            {
+                float secondsSinceLastExpl  = CTime::GetRealTime() - raid.lastExplosionTime;
+                int   nSecondsSinceLastExpl = (int)secondsSinceLastExpl;
+
+                int seconds = nSecondsSinceLastExpl % 60;
+                int minutes = (nSecondsSinceLastExpl - seconds) / 60;
+
+                snprintf(tmpStr, 64, _("Last: %dm%ds"), minutes, seconds);
+                screenPos.y += fontSize;
+                RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
+                                  tmpStr);
+            }
+        }
+    }
+}
+
+void DrawCollectibles()
+{
+    using namespace EntityManager;
+    int         clutterIdx = 0;
+    const auto& vis        = settings->visuals.collectibles;
+
+    if (vis.general.Enabled == false)
+        return;
+
+    auto drawCollectible = [&](const char* name, Collectible& item, const TCO& option) -> void {
+        if (!option.Enable)
+            return;
+
+        if (item.position.Invalid())
+            return;
+
+        if (item.distance > vis.general.Distance)
+            return;
+
+        auto col = option.Color;
+        if (vis.general.Fade)
+        {
+            col.Value.w = Remap(item.distance, 0.f, vis.general.Distance, 1.f, 0.f);
+        }
+
+        DrawDefault(name, item.position, col, item.distance);
+        clutterIdx++;
+    };
+
+    if (vis.general.AntiClutter)
+    {
+        for (auto& collectible : DB::collectibles)
+        {
+            using namespace prefabs;
+
+            if ((clutterIdx > vis.general.MaxAnticlutterCount))
+                return;
+
+            switch (collectible.prefabId)
+            {
+            case collectable::berry_black:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryBlack);
+                break;
+            case collectable::berry_blue:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryBlue);
+                break;
+            case collectable::berry_green:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryGreen);
+                break;
+            case collectable::berry_red:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryRed);
+                break;
+            case collectable::berry_white:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryWhite);
+                break;
+            case collectable::berry_yellow:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryYellow);
+                break;
+            case collectable::collectMetal:
+                drawCollectible(_("Metal"), collectible, vis.colors.metal);
+                break;
+            case collectable::collectStone:
+                drawCollectible(_("Stone"), collectible, vis.colors.stone);
+                break;
+            case collectable::collectSulfur:
+                drawCollectible(_("Sulfur"), collectible, vis.colors.sulfur);
+                break;
+            case collectable::collectWood:
+                drawCollectible(_("Wood"), collectible, vis.colors.wood);
+                break;
+            case collectable::corn:
+                drawCollectible(_("Corn"), collectible, vis.colors.corn);
+                break;
+            case collectable::potato:
+                drawCollectible(_("Potato"), collectible, vis.colors.potato);
+                break;
+            case collectable::pumpkin:
+                drawCollectible(_("Pumpkin"), collectible, vis.colors.pumpkin);
+                break;
+            case collectable::hemp:
+                drawCollectible(_("Hemp"), collectible, vis.colors.hemp);
+                break;
+            case collectable::mushroom1:
+            case collectable::mushroom2:
+                drawCollectible(_("Mushroom"), collectible, vis.colors.mushroom);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    else
+    {
+        std::ranges::reverse_view rv{DB::collectibles};
+
+        for (auto& collectible : rv)
+        {
+            using namespace prefabs;
+
+            switch (collectible.prefabId)
+            {
+            case collectable::berry_black:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryBlack);
+                break;
+            case collectable::berry_blue:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryBlue);
+                break;
+            case collectable::berry_green:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryGreen);
+                break;
+            case collectable::berry_red:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryRed);
+                break;
+            case collectable::berry_white:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryWhite);
+                break;
+            case collectable::berry_yellow:
+                drawCollectible(_("Berry"), collectible, vis.colors.berryYellow);
+                break;
+            case collectable::collectMetal:
+                drawCollectible(_("Metal"), collectible, vis.colors.metal);
+                break;
+            case collectable::collectStone:
+                drawCollectible(_("Stone"), collectible, vis.colors.stone);
+                break;
+            case collectable::collectSulfur:
+                drawCollectible(_("Sulfur"), collectible, vis.colors.sulfur);
+                break;
+            case collectable::collectWood:
+                drawCollectible(_("Wood"), collectible, vis.colors.wood);
+                break;
+            case collectable::corn:
+                drawCollectible(_("Corn"), collectible, vis.colors.corn);
+                break;
+            case collectable::potato:
+                drawCollectible(_("Potato"), collectible, vis.colors.potato);
+                break;
+            case collectable::pumpkin:
+                drawCollectible(_("Pumpkin"), collectible, vis.colors.pumpkin);
+                break;
+            case collectable::hemp:
+                drawCollectible(_("Hemp"), collectible, vis.colors.hemp);
+                break;
+            case collectable::mushroom1:
+            case collectable::mushroom2:
+                drawCollectible(_("Mushroom"), collectible, vis.colors.mushroom);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void DrawRadTown()
+{
+    using namespace EntityManager;
+    int         clutterIdx = 0;
+    const auto& vis        = settings->visuals.radtown;
+
+    if (vis.general.Enabled == false)
+        return;
+
+    auto drawRadTown = [&](const char* name, RadTown& item, const TCO& option, bool limitDist = true) -> void {
+        if (!option.Enable)
+            return;
+
+        if (item.position.Invalid())
+            return;
+
+        if (limitDist)
+        {
+            if (item.distance > vis.general.Distance)
+                return;
+        }
+
+        auto col = option.Color;
+        if (vis.general.Fade)
+        {
+            col.Value.w = Remap(item.distance, 0.f, vis.general.Distance, 1.f, 0.f);
+        }
+
+        DrawDefault(name, item.position, col, item.distance);
+        clutterIdx++;
+    };
+
+    if (vis.general.AntiClutter)
+    {
+        for (auto& radtown : DB::radtown)
+        {
+            using namespace prefabs;
+
+            if ((clutterIdx > vis.general.MaxAnticlutterCount))
+                return;
+
+            switch (radtown.prefabId)
+            {
+            case radtown::barrel1:
+            case radtown::barrel2:
+            case radtown::barrel_1:
+            case radtown::barrel_2:
+            case radtown::barrel_oil:
+                drawRadTown(_("Barrel"), radtown, vis.colors.barrels);
+                break;
+            case radtown::crate_basic:
+            case radtown::crate_underwater_basic:
+            case radtown::crate_normal2:
+            case radtown::crate_normal_medical:
+                drawRadTown(_("Crate"), radtown, vis.colors.crates);
+                break;
+            case radtown::crate_mili:
+                drawRadTown(_("Crate Military"), radtown, vis.colors.military);
+                break;
+            case radtown::crate_heli:
+                drawRadTown(_("Crate Heli"), radtown, vis.colors.heli);
+                break;
+            case radtown::crate_elite:
+            case radtown::crate_underwater_advanced:
+                drawRadTown(_("Crate Elite"), radtown, vis.colors.elite);
+                break;
+            case radtown::crate_tools:
+                drawRadTown(_("Crate Tools"), radtown, vis.colors.toolbox);
+                break;
+            case radtown::crate_food:
+            case radtown::crate_normal_food:
+                drawRadTown(_("Crate Food"), radtown, vis.colors.foodbox);
+                break;
+            case radtown::airdrop:
+                drawRadTown(_("Airdrop"), radtown, vis.colors.airdrop, false);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    else
+    {
+        std::ranges::reverse_view rv{DB::radtown};
+
+        for (auto& radtown : rv)
+        {
+            using namespace prefabs;
+
+            switch (radtown.prefabId)
+            {
+            case radtown::barrel1:
+            case radtown::barrel2:
+            case radtown::barrel_1:
+            case radtown::barrel_2:
+            case radtown::barrel_oil:
+                drawRadTown(_("Barrel"), radtown, vis.colors.barrels);
+                break;
+            case radtown::crate_basic:
+            case radtown::crate_underwater_basic:
+            case radtown::crate_normal2:
+            case radtown::crate_normal_medical:
+                drawRadTown(_("Crate"), radtown, vis.colors.crates);
+                break;
+            case radtown::crate_mili:
+                drawRadTown(_("Crate Military"), radtown, vis.colors.military);
+                break;
+            case radtown::crate_heli:
+                drawRadTown(_("Crate Heli"), radtown, vis.colors.heli);
+                break;
+            case radtown::crate_elite:
+            case radtown::crate_underwater_advanced:
+                drawRadTown(_("Crate Elite"), radtown, vis.colors.elite);
+                break;
+            case radtown::crate_tools:
+                drawRadTown(_("Crate Tools"), radtown, vis.colors.toolbox);
+                break;
+            case radtown::crate_food:
+            case radtown::crate_normal_food:
+                drawRadTown(_("Crate Food"), radtown, vis.colors.foodbox);
+                break;
+            case radtown::airdrop:
+                drawRadTown(_("Airdrop"), radtown, vis.colors.airdrop, false);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void DrawVehicles()
+{
+    using namespace EntityManager;
+
+    const auto& vis = settings->visuals.vehicles;
+
+    if (vis.general.Enabled == false)
+        return;
+
+    auto drawVehicle = [&](const char* name, const Vehicle& item, const TCO& option, float maxDistance) -> void {
+        if (!option.Enable)
+            return;
+
+        if (item.position.Invalid())
+            return;
+
+        if (item.distance > maxDistance)
+            return;
+
+        auto col = option.Color;
+        if (vis.general.Fade)
+        {
+            col.Value.w = Remap(item.distance, 0.f, maxDistance, 1.f, 0.f);
+        }
+
+        DrawDefault(name, item.position, col, item.distance);
+    };
+
+    std::ranges::reverse_view rv{DB::vehicles};
+
+    for (const auto& vehicle : rv)
+    {
+        using namespace prefabs;
+
+        switch (vehicle.prefabId)
+        {
+        case vehicles::mini:
+            drawVehicle(_("Minicopter"), vehicle, vis.colors.mini, vis.general.HeliDistance);
+            break;
+        case vehicles::scrap:
+            drawVehicle(_("Scrap Heli"), vehicle, vis.colors.scrapHeli, vis.general.HeliDistance);
+            break;
+        case vehicles::rowboat:
+            drawVehicle(_("Boat"), vehicle, vis.colors.boat, vis.general.BoatDistance);
+            break;
+        case vehicles::rhib:
+            drawVehicle(_("RHIB"), vehicle, vis.colors.rhib, vis.general.BoatDistance);
+            break;
+        case vehicles::tugboat:
+            drawVehicle(_("Tugboat"), vehicle, vis.colors.tugboat, vis.general.BoatDistance);
+            break;
+        case vehicles::submarinesolo:
+            drawVehicle(_("Submarine Solo"), vehicle, vis.colors.submarineSolo, vis.general.BoatDistance);
+            break;
+        case vehicles::submarineduo:
+            drawVehicle(_("Submarine Duo"), vehicle, vis.colors.submarineDuo, vis.general.BoatDistance);
+            break;
+        case vehicles::horse:
+            drawVehicle(_("Horse"), vehicle, vis.colors.horse, vis.general.OtherDistance);
+            break;
+        case vehicles::airballoon:
+            drawVehicle(_("Air Balloon"), vehicle, vis.colors.baloon, vis.general.OtherDistance);
+            break;
+        case vehicles::patrolheli:
+            drawVehicle(_("Patrol Heli"), vehicle, vis.colors.patrol, vis.general.PatrolDistance);
+
+            {
+                const auto& option = vis.colors.patrol;
+                const auto& item   = vehicle;
+
+                if (!option.Enable)
+                    return;
+
+                if (item.position.Invalid())
+                    return;
+
+                if (item.distance > vis.general.PatrolDistance)
+                    return;
+
+                Vector2 screenPos;
+                if (camera->WorldToScreen(item.position, screenPos, currentScreenSize))
+                {
+                    char distBuff[8];
+
+                    RenderTextCenter(screenPos, _("Patrol Heli"), option.Color);
+                    snprintf(distBuff, 8, _("%dm"), (int)item.distance);
+                    screenPos.y += fontSize;
+                    RenderTextCenter(screenPos, distBuff, option.Color);
+                }
+                else
+                {
+                    continue;
+                }
+
+                auto heli = reinterpret_cast<PatrolHelicopter_o*>(item.entity);
+
+                auto weakspots = heli->fields.weakspots;
+
+                if (weakspots == nullptr)
+                    break;
+
+                int size = weakspots->max_length;
+                if (size < 1)
+                    break;
+
+                float tailHealth    = _flt(0.f);
+                float mainHealth    = _flt(0.f);
+                float tailMaxHealth = _flt(0.f);
+                float mainMaxHealth = _flt(0.f);
+
+                for (int i = 0; i < size; i++)
+                {
+                    auto weakspot = weakspots->m_Items[i];
+                    if (weakspot == nullptr)
+                        break;
+
+                    if (i == 0)
+                    {
+                        mainHealth    = weakspot->fields.health;
+                        mainMaxHealth = weakspot->fields.maxHealth;
+                    }
+                    else
+                    {
+                        tailHealth    = weakspot->fields.health;
+                        tailMaxHealth = weakspot->fields.maxHealth;
+                        break;
+                    }
+                }
+
+                if (mainHealth <= _flt(1.f) && tailHealth == _flt(22.f))
+                    break;
+
+                float percentage1 = mainHealth / mainMaxHealth;
+                float percentage2 = tailHealth / tailMaxHealth;
+
+                int green1 = (int)((percentage1 * _flt(100.f)) * _flt(2.55f));
+                int red1   = 255 - green1;
+
+                int green2 = (int)((percentage2 * _flt(100.f)) * _flt(2.55f));
+                int red2   = 255 - green2;
+
+                static ImVec2 boxLength    = ImGui::CalcTextSize(_("Patrol Heli"));
+                const float   centerPointX = boxLength.x / _flt(2.f);
+                const float   centerPointY = boxLength.y / _flt(2.f);
+
+                const float _x = screenPos.x - centerPointX;
+                const float _y = screenPos.y + boxLength.y + centerPointY;
+
+                percentage1 = std::clamp(percentage1, 0.f, _flt(1.f));
+                percentage2 = std::clamp(percentage2, 0.f, _flt(1.f));
+
+                g->AddRectFilled({_x, _y - _flt(3.f)}, {_x + boxLength[0] + _flt(1.f), _y + _flt(3.f)},
+                                 ImColor(0, 0, 0));
+                g->AddRectFilled(
+                    {_x + _flt(1.f), _y - _flt(2.f)},
+                    {std::max(_x + _flt(1.f) + std::max(boxLength[0] * percentage1 - _flt(1.f), _flt(1.f)), _flt(0.f)),
+                     _y + _flt(2.f)},
+                    ImColor(red1, green1, 0));
+
+                g->AddRectFilled({_x, _y + _flt(4.f)}, {_x + boxLength[0] + _flt(1.f), _y + _flt(10.f)},
+                                 ImColor(0, 0, 0));
+                g->AddRectFilled(
+                    {_x + _flt(1.f), _y + _flt(5.f)},
+                    {std::max(_x + _flt(1.f) + std::max(boxLength[0] * percentage2 - _flt(1.f), _flt(1.f)), _flt(0.f)),
+                     _y + _flt(9.f)},
+                    ImColor(red2, green2, 0));
+
+                break;
+            }
+
+            break;
+        case vehicles::chinook:
+            drawVehicle(_("Chinook"), vehicle, vis.colors.chinook, vis.general.PatrolDistance);
+            break;
+        case vehicles::bradleyapc:
+            drawVehicle(_("Bradley APC"), vehicle, vis.colors.bradley, vis.general.PatrolDistance);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void DrawTraps()
+{
+    using namespace EntityManager;
+    //int         clutterIdx = 0;
+    const auto& vis        = settings->visuals.traps;
+
+    if (vis.general.Enabled == false)
+        return;
+
+    auto drawTrap = [&](const char* name, Trap& item, const TCO& option) -> void {
+        if (!option.Enable)
+            return;
+
+        if (item.position.Invalid())
+            return;
+
+        if (item.distance > vis.general.Distance)
+            return;
+
+        auto col = option.Color;
+
+        DrawDefault(name, item.position, col, item.distance);
+    };
+
+    std::ranges::reverse_view rv{DB::traps};
+
+    char buf[32];
+    for (auto& trap : rv)
+    {
+        using namespace prefabs;
+
+        switch (trap.prefabId)
+        {
+        case traps::beartrap:
+        {
+            auto ent = (CBaseCombatEntity*)trap.entity;
+
+            auto isOn = ent->HasFlag(BaseEntityFlags::On);
+            if (isOn == false && vis.general.HideInactive)
+                break;
+
+            drawTrap(_("Bear Trap"), trap, vis.colors.bearTrap);
+            break;
+        }
+        case traps::landdmine:
+            drawTrap(_("Landmine"), trap, vis.colors.landmine);
+            break;
+        case traps::flameturret:
+        {
+            auto       ent           = (CBaseCombatEntity*)trap.entity;
+            const auto currentHealth = ent->_health;
+            const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
+
+            snprintf(buf, 32, _("Flame Turret [%d %%HP]"), healthPercent);
+
+            drawTrap(buf, trap, vis.colors.flameTurret);
+            break;
+        }
+        case traps::guntrap:
+        {
+            auto       ent           = (CBaseCombatEntity*)trap.entity;
+            const auto currentHealth = ent->_health;
+            const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
+
+            snprintf(buf, 32, _("Shotgun Trap [%d %%HP]"), healthPercent);
+
+            drawTrap(buf, trap, vis.colors.flameTurret);
+            break;
+        }
+        case traps::samsite:
+        {
+            auto ent = (CBaseCombatEntity*)trap.entity;
+
+            auto isOn = ent->HasFlag(BaseEntityFlags::Reserved8);
+            if (isOn == false && vis.general.HideInactive)
+                break;
+
+            const auto currentHealth = ent->_health;
+            const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
+
+            snprintf(buf, 32, _("[%s] SAM Site [%d %%HP]"), (isOn ? _("ON") : _("OFF")), healthPercent);
+
+            drawTrap(buf, trap, vis.colors.samSite);
+            break;
+        }
+
+        case traps::autoturret:
+        {
+            auto ent = (CBaseCombatEntity*)trap.entity;
+
+            auto isOn = ent->HasFlag(BaseEntityFlags::On) && ent->HasFlag(BaseEntityFlags::Reserved3);
+            if (isOn == false && vis.general.HideInactive)
+                break;
+
+            auto turret   = (AutoTurret_o*)ent;
+            auto auth     = turret->fields.authorizedPlayers;
+            bool isAuthed = false;
+
+            for (auto id : std::span(auth->fields._items->m_Items, auth->fields._items->max_length))
+            {
+                if (id->fields.userid == _localPlayer->userID)
+                {
+                    isAuthed = true;
+                    break;
+                }
+            }
+
+            if (vis.general.HideAuthedTurrets && isAuthed)
+                break;
+
+            const auto currentHealth = ent->_health;
+            const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
+
+            snprintf(buf, 32, _("[%s] Auto Turret [%d %%HP]"), (isOn ? _("ON") : _("OFF")), healthPercent);
+
+            drawTrap(buf, trap, isAuthed ? vis.colors.autoTurretAuthed : vis.colors.autoTurret);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+}
+
+void RenderItems()
+{
+    char buf[48];
+    using namespace EntityManager;
+
+    const auto& vis = settings->visuals.item;
+
+    for (const auto& item : DB::items)
+    {
+        using namespace prefabs;
+
+        auto name = DB::GetString(item.namePoolID);
+
+        if (item.amount > 1)
+        {
+            snprintf(buf, 48, "%s (%dx)", name->c_str(), item.amount);
+            DrawDefault(buf, item.position,
+                        (item.category == ItemCategory::Weapon ? vis.general.weapons.Color : vis.general.other.Color),
+                        item.distance);
+        }
+        else
+        {
+            DrawDefault(name->c_str(), item.position,
+                        (item.category == ItemCategory::Weapon ? vis.general.weapons.Color : vis.general.other.Color),
+                        item.distance);
+        }
+    }
+
+    for (const auto& backpack : DB::backpacks)
+    {
+        using namespace prefabs;
+
+        DrawDefault(_("Backpack"), backpack.position, vis.backpacks.color.Color, backpack.distance);
+    }
+
+    for (const auto& corpse : DB::corpses)
+    {
+        using namespace prefabs;
+
+        if (vis.corpses.Name)
+        {
+            // TODO: CACHE THOSE NAMES!! ALL NEEDED INFO IN PLAYER CORPSE
+            auto cc   = (PlayerCorpse_o*)corpse.entity;
+            auto strr = (CString*)cc->fields._playerName;
+
+            snprintf(buf, 48, "Corpse %s", strr->str().c_str());
+
+            DrawDefault(buf, corpse.position, vis.corpses.option.Color, corpse.distance);
+        }
+        else
+        {
+            DrawDefault(_("Corpse"), corpse.position, vis.corpses.option.Color, corpse.distance);
+        }
+    }
+
+    for (const auto& stash : DB::stashes)
+    {
+        using namespace prefabs;
+
+        auto isOpen = !stash.entity->HasFlag(BaseEntityFlags::Reserved5);
+
+        if (settings->visuals.item.stashes.HideOpenStashes && isOpen)
+            continue;
+
+        if (isOpen)
+            DrawDefault(_("[Open] Stash"), stash.position, vis.backpacks.color.Color, stash.distance);
+        else
+            DrawDefault(_("[Hidden] stash"), stash.position, vis.backpacks.color.Color, stash.distance);
     }
 }
 
@@ -541,7 +1540,7 @@ bool Getbox(EntityManager::Player const& player, Box& box)
     bottom = std::roundf(bottom);
 
     const float height = bottom - top;
-    const float width  = right - left;
+//    const float width  = right - left;
 
     if (player.entity->IsWounded() || player.entity->IsSleeping())
         top = bottom - height * 0.4f;
@@ -673,17 +1672,17 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
         ImVec2 flagPosition{box.points[1].x + 2.f, box.points[0].y - 2.f};
 
         if (player.entity->InSafeZone())
-            DrawPlayerFlag(flagPosition, _("S"));
+            DrawPlayerFlag(flagPosition, "S");
 
         if (player.entity->IsWounded())
-            DrawPlayerFlag(flagPosition, _("W"));
+            DrawPlayerFlag(flagPosition, "W");
 
         if (opts.TeamID.Enable)
         {
             auto tid = player.entity->GetTeamID();
             if (tid != 0u)
             {
-                snprintf(buf, 48, "TID %llu", tid);
+                snprintf(buf, 48, _("TID %llu"), tid);
                 DrawPlayerFlag(flagPosition, buf);
             }
         }
@@ -720,7 +1719,7 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
 
     if (opts.Dist.Enable)
     {
-        snprintf(buf, 128, _("%dm"), player.distance);
+        snprintf(buf, 128, _("%dm"), (int)player.distance);
 
         ImVec2 textSize   = GetTextSize(buf);
         auto   localPoint = itemNamePoint;
@@ -736,7 +1735,9 @@ void DrawPlayers()
     const auto& settings = SettingsData::settings;
     const auto& vis      = settings->visuals.general;
 
-    for (const auto& player : DB::players)
+    std::ranges::reverse_view rv{DB::players};
+
+    for (const auto& player : rv)
     {
         // const auto& player = pair.second;
 
@@ -753,7 +1754,6 @@ void DrawPlayers()
         }
         else
         {
-
             // todo: Handle friends
             if (vis.TeamAsFriends)
             {
@@ -794,7 +1794,7 @@ void ESP::Draw()
     if (settings->visuals.general.Watermark)
     {
         RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f)}, ImColor(255, 255, 255), ImColor(0, 0, 0),
-                          _("getrekt.io private"));
+                          _("getrekt.io V3 beta"));
     }
 
     camera = (CCamera*)main->static_fields->mainCamera;
@@ -805,6 +1805,7 @@ void ESP::Draw()
     auto               localPlayer = CLocalPlayer::GetLocalPlayer();
     auto               loc         = (BasePlayer_o*)localPlayer;
     BasePlayer_Fields& ff          = loc->fields;
+
     if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0 || localPlayer->input == nullptr ||
         localPlayer->net == nullptr || localPlayer->eyes == nullptr)
         return;
@@ -821,8 +1822,14 @@ void ESP::Draw()
 
     DrawAnimals();
     DrawOres();
-
+    DrawRaids();
+    DrawCollectibles();
+    DrawRadTown();
+    DrawVehicles();
+    DrawTraps();
+    RenderItems();
     DrawPlayers();
+
     // TOPMOST
     Indicators();
 

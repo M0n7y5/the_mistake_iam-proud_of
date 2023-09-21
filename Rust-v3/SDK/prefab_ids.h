@@ -14,102 +14,162 @@ namespace prefabs
         return ToInt32(md5::compute(str));
     }
 
+#define PREFABID(name, x) constexpr auto name = STRHASH(x)
+
+    namespace other
+    {
+        PREFABID(treeMarker1, "assets/content/nature/treesprefabs/trees/effects/tree_marking_nospherecast.prefab");
+        PREFABID(treeMarker2, "assets/content/nature/treesprefabs/trees/effects/tree_marking.prefab");
+    } // namespace other
+
+    // namespace tools
+    // {
+    //     PREFABID(chainsaw, "assets/prefabs/weapons/chainsaw/chainsaw.entity.prefab");
+    //     PREFABID(jackhammer, "assets/prefabs/tools/jackhammer/jackhammer.worldmodel.prefab");
+    // }
+
+    namespace vehicles
+    {
+        PREFABID(rhib, "assets/content/vehicles/boats/rhib/rhib.prefab");
+        PREFABID(rowboat, "assets/content/vehicles/boats/rowboat/rowboat.prefab");
+        PREFABID(tugboat, "assets/content/vehicles/boats/tugboat/tugboat.prefab");
+        PREFABID(horse, "assets/rust.ai/agents/horse/horse.prefab");
+        PREFABID(mini, "assets/content/vehicles/minicopter/minicopter.entity.prefab");
+        PREFABID(scrap, "assets/content/vehicles/scrap heli carrier/scraptransporthelicopter.prefab");
+        PREFABID(airballoon, "assets/prefabs/deployable/hot air balloon/hotairballoon.prefab");
+        PREFABID(submarinesolo, "assets/content/vehicles/submarine/submarinesolo.entity.prefab");
+        PREFABID(submarineduo, "assets/content/vehicles/submarine/submarineduo.entity.prefab");
+        PREFABID(bradleyapc, "assets/prefabs/npc/m2bradley/bradleyapc.prefab");
+        PREFABID(patrolheli, "assets/prefabs/npc/patrol helicopter/patrolhelicopter.prefab");
+        PREFABID(chinook, "assets/prefabs/npc/ch47/ch47scientists.entity.prefab");
+    } // namespace vehicles
+
     namespace player
     {
-        constexpr auto player_model                    = STRHASH("assets/prefabs/player/player_model.prefab");
-        constexpr auto player                          = STRHASH("assets/prefabs/player/player.prefab");
-        constexpr auto scientistnpc_arena              = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_arena.prefab");
-        constexpr auto scientistnpc_cargo              = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_cargo.prefab");
-        constexpr auto scientistnpc_cargo_turret_any   = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_cargo_turret_any.prefab");
-        constexpr auto scientistnpc_cargo_turret_lr300 = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_cargo_turret_lr300.prefab");
-        constexpr auto scientistnpc_ch47_gunner        = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_ch47_gunner.prefab");
-        constexpr auto scientistnpc_excavator          = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_excavator.prefab");
-        constexpr auto scientistnpc_full_any           = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_any.prefab");
-        constexpr auto scientistnpc_full_lr300         = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_lr300.prefab");
-        constexpr auto scientistnpc_full_mp5           = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_mp5.prefab");
-        constexpr auto scientistnpc_full_pistol        = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_pistol.prefab");
-        constexpr auto scientistnpc_full_shotgun       = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_shotgun.prefab");
-        constexpr auto scientistnpc_heavy              = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_heavy.prefab");
-        constexpr auto scientistnpc_junkpile_pistol    = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_junkpile_pistol.prefab");
-        constexpr auto scientistnpc_oilrig             = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_oilrig.prefab");
-        constexpr auto scientistnpc_patrol             = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_patrol.prefab");
-        constexpr auto scientistnpc_peacekeeper        = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_peacekeeper.prefab");
-        constexpr auto scientistnpc_roam               = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_roam.prefab");
-        constexpr auto scientistnpc_roam_nvg_variant   = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_roam_nvg_variant.prefab");
-        constexpr auto scientistnpc_roamtethered       = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_roamtethered.prefab");
-        constexpr auto npc_tunneldweller               = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/tunneldweller/npc_tunneldweller.prefab");
-        constexpr auto npc_bandit_guard                = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/banditguard/npc_bandit_guard.prefab");
-        constexpr auto npc_underwaterdweller           = STRHASH("assets/rust.ai/agents/npcplayer/humannpc/underwaterdweller/npc_underwaterdweller.prefab");
+        PREFABID(player_model, "assets/prefabs/player/player_model.prefab");
+        PREFABID(player, "assets/prefabs/player/player.prefab");
+        PREFABID(scientistnpc_arena, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_arena.prefab");
+        PREFABID(scientistnpc_cargo, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_cargo.prefab");
+        PREFABID(scientistnpc_cargo_turret_any, "assets/rust.ai/agents/npcplayer/humannpc/"
+                                                "scientist/scientistnpc_cargo_turret_any.prefab");
+        PREFABID(scientistnpc_cargo_turret_lr300, "assets/rust.ai/agents/npcplayer/humannpc/scientist/"
+                                                  "scientistnpc_cargo_turret_lr300.prefab");
+        PREFABID(scientistnpc_ch47_gunner,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_ch47_gunner.prefab");
+        PREFABID(scientistnpc_excavator,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_excavator.prefab");
+        PREFABID(scientistnpc_full_any,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_any.prefab");
+        PREFABID(scientistnpc_full_lr300,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_lr300.prefab");
+        PREFABID(scientistnpc_full_mp5,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_mp5.prefab");
+        PREFABID(scientistnpc_full_pistol,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_pistol.prefab");
+        PREFABID(scientistnpc_full_shotgun,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_full_shotgun.prefab");
+        PREFABID(scientistnpc_heavy, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_heavy.prefab");
+        PREFABID(scientistnpc_junkpile_pistol, "assets/rust.ai/agents/npcplayer/humannpc/scientist/"
+                                               "scientistnpc_junkpile_pistol.prefab");
+        PREFABID(scientistnpc_oilrig, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_oilrig.prefab");
+        PREFABID(scientistnpc_patrol, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_patrol.prefab");
+        PREFABID(scientistnpc_peacekeeper,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_peacekeeper.prefab");
+        PREFABID(scientistnpc_roam, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_roam.prefab");
+        PREFABID(scientistnpc_roam_nvg_variant, "assets/rust.ai/agents/npcplayer/humannpc/"
+                                                "scientist/scientistnpc_roam_nvg_variant.prefab");
+        PREFABID(scientistnpc_roamtethered,
+                 "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_roamtethered.prefab");
+        PREFABID(npc_tunneldweller, "assets/rust.ai/agents/npcplayer/humannpc/tunneldweller/npc_tunneldweller.prefab");
+        PREFABID(npc_bandit_guard, "assets/rust.ai/agents/npcplayer/humannpc/banditguard/npc_bandit_guard.prefab");
+        PREFABID(npc_underwaterdweller, "assets/rust.ai/agents/npcplayer/humannpc/"
+                                        "underwaterdweller/npc_underwaterdweller.prefab");
     } // namespace player
 
     namespace ore
     {
-        constexpr auto metal   = STRHASH("assets/bundled/prefabs/autospawn/resource/ores/metal-ore.prefab");
-        constexpr auto metal2  = STRHASH("assets/bundled/prefabs/autospawn/resource/ores_snow/metal-ore.prefab");
-        constexpr auto metal3  = STRHASH("assets/bundled/prefabs/autospawn/resource/ores_sand/metal-ore.prefab");
-        constexpr auto metal4  = STRHASH("assets/bundled/prefabs/radtown/ore_metal.prefab");
-        constexpr auto sulfur  = STRHASH("assets/bundled/prefabs/autospawn/resource/ores/sulfur-ore.prefab");
-        constexpr auto sulfur2 = STRHASH("assets/bundled/prefabs/radtown/ore_sulfur.prefab");
-        constexpr auto sulfur3 = STRHASH("assets/bundled/prefabs/autospawn/resource/ores_snow/sulfur-ore.prefab");
-        constexpr auto sulfur4 = STRHASH("assets/bundled/prefabs/autospawn/resource/ores_sand/sulfur-ore.prefab");
-        constexpr auto stone   = STRHASH("assets/bundled/prefabs/autospawn/resource/ores/stone-ore.prefab");
-        constexpr auto stone2  = STRHASH("assets/bundled/prefabs/radtown/ore_stone.prefab");
-        constexpr auto stone3  = STRHASH("assets/bundled/prefabs/autospawn/resource/ores_snow/stone-ore.prefab");
-        constexpr auto stone4  = STRHASH("assets/bundled/prefabs/autospawn/resource/ores_sand/stone-ore.prefab");
+        PREFABID(metal, "assets/bundled/prefabs/autospawn/resource/ores/metal-ore.prefab");
+        PREFABID(metal2, "assets/bundled/prefabs/autospawn/resource/ores_snow/metal-ore.prefab");
+        PREFABID(metal3, "assets/bundled/prefabs/autospawn/resource/ores_sand/metal-ore.prefab");
+        PREFABID(metal4, "assets/bundled/prefabs/radtown/ore_metal.prefab");
+        PREFABID(sulfur, "assets/bundled/prefabs/autospawn/resource/ores/sulfur-ore.prefab");
+        PREFABID(sulfur2, "assets/bundled/prefabs/radtown/ore_sulfur.prefab");
+        PREFABID(sulfur3, "assets/bundled/prefabs/autospawn/resource/ores_snow/sulfur-ore.prefab");
+        PREFABID(sulfur4, "assets/bundled/prefabs/autospawn/resource/ores_sand/sulfur-ore.prefab");
+        PREFABID(stone, "assets/bundled/prefabs/autospawn/resource/ores/stone-ore.prefab");
+        PREFABID(stone2, "assets/bundled/prefabs/radtown/ore_stone.prefab");
+        PREFABID(stone3, "assets/bundled/prefabs/autospawn/resource/ores_snow/stone-ore.prefab");
+        PREFABID(stone4, "assets/bundled/prefabs/autospawn/resource/ores_sand/stone-ore.prefab");
     } // namespace ore
 
     /* COLLECTABLES*/
     namespace collectable
     {
-        constexpr auto hemp          = STRHASH("assets/bundled/prefabs/autospawn/collectable/hemp/hemp-collectable.prefab");
-        constexpr auto mushroom      = STRHASH("assets/bundled/prefabs/autospawn/collectable/mushrooms/mushroom-cluster-6.prefab");
-        constexpr auto pumpkin       = STRHASH("assets/bundled/prefabs/autospawn/collectable/pumpkin/pumpkin-collectable.prefab");
-        constexpr auto corn          = STRHASH("assets/bundled/prefabs/autospawn/collectable/corn/corn-collectable.prefab");
-        constexpr auto berry_white   = STRHASH("assets/bundled/prefabs/autospawn/collectable/berry-white/berry-white-collectable.prefab");
-        constexpr auto berry_black   = STRHASH("assets/bundled/prefabs/autospawn/collectable/berry-black/berry-black-collectable.prefab");
-        constexpr auto berry_blue    = STRHASH("assets/bundled/prefabs/autospawn/collectable/berry-blue/berry-blue-collectable.prefab");
-        constexpr auto berry_yellow  = STRHASH("assets/bundled/prefabs/autospawn/collectable/berry-yellow/berry-yellow-collectable.prefab");
-        constexpr auto berry_red     = STRHASH("assets/bundled/prefabs/autospawn/collectable/berry-red/berry-red-collectable.prefab");
-        constexpr auto berry_green   = STRHASH("assets/bundled/prefabs/autospawn/collectable/berry-green/berry-green-collectable.prefab");
-        constexpr auto potato        = STRHASH("assets/bundled/prefabs/autospawn/collectable/potato/potato-collectable.prefab");
-        constexpr auto collectSulfur = STRHASH("assets/bundled/prefabs/autospawn/collectable/stone/sulfur-collectable.prefab");
-        constexpr auto collectStone  = STRHASH("assets/bundled/prefabs/autospawn/collectable/stone/stone-collectable.prefab");
-        constexpr auto collectWood   = STRHASH("assets/bundled/prefabs/autospawn/collectable/wood/wood-collectable.prefab");
-        constexpr auto collectMetal  = STRHASH("assets/bundled/prefabs/autospawn/collectable/stone/metal-collectable.prefab");
+        PREFABID(hemp, "assets/bundled/prefabs/autospawn/collectable/hemp/hemp-collectable.prefab");
+        PREFABID(mushroom1, "assets/bundled/prefabs/autospawn/collectable/mushrooms/mushroom-cluster-5.prefab");
+        PREFABID(mushroom2, "assets/bundled/prefabs/autospawn/collectable/mushrooms/mushroom-cluster-6.prefab");
+        PREFABID(pumpkin, "assets/bundled/prefabs/autospawn/collectable/pumpkin/pumpkin-collectable.prefab");
+        PREFABID(corn, "assets/bundled/prefabs/autospawn/collectable/corn/corn-collectable.prefab");
+        PREFABID(berry_white, "assets/bundled/prefabs/autospawn/collectable/berry-white/"
+                              "berry-white-collectable.prefab");
+        PREFABID(berry_black, "assets/bundled/prefabs/autospawn/collectable/berry-black/"
+                              "berry-black-collectable.prefab");
+        PREFABID(berry_blue, "assets/bundled/prefabs/autospawn/collectable/berry-blue/"
+                             "berry-blue-collectable.prefab");
+        PREFABID(berry_yellow, "assets/bundled/prefabs/autospawn/collectable/berry-yellow/"
+                               "berry-yellow-collectable.prefab");
+        PREFABID(berry_red, "assets/bundled/prefabs/autospawn/collectable/berry-red/berry-red-collectable.prefab");
+        PREFABID(berry_green, "assets/bundled/prefabs/autospawn/collectable/berry-green/"
+                              "berry-green-collectable.prefab");
+        PREFABID(potato, "assets/bundled/prefabs/autospawn/collectable/potato/potato-collectable.prefab");
+        PREFABID(collectSulfur, "assets/bundled/prefabs/autospawn/collectable/stone/sulfur-collectable.prefab");
+        PREFABID(collectStone, "assets/bundled/prefabs/autospawn/collectable/stone/stone-collectable.prefab");
+        PREFABID(collectWood, "assets/bundled/prefabs/autospawn/collectable/wood/wood-collectable.prefab");
+        PREFABID(collectMetal, "assets/bundled/prefabs/autospawn/collectable/stone/metal-collectable.prefab");
     } // namespace collectable
 
     /* RADTOWN */
     namespace radtown
     {
-        constexpr auto barrel1                   = STRHASH("assets/bundled/prefabs/autospawn/resource/loot/loot-barrel-1.prefab");
-        constexpr auto barrel2                   = STRHASH("assets/bundled/prefabs/autospawn/resource/loot/loot-barrel-2.prefab");
-        constexpr auto barrel_1                  = STRHASH("assets/bundled/prefabs/radtown/loot_barrel_1.prefab");
-        constexpr auto barrel_2                  = STRHASH("assets/bundled/prefabs/radtown/loot_barrel_2.prefab");
-        constexpr auto barrel_oil                = STRHASH("assets/bundled/prefabs/radtown/oil_barrel.prefab");
-        constexpr auto crate_basic               = STRHASH("assets/bundled/prefabs/radtown/crate_basic.prefab");
-        constexpr auto crate_elite               = STRHASH("assets/bundled/prefabs/radtown/crate_elite.prefab");
-        constexpr auto crate_mili                = STRHASH("assets/bundled/prefabs/radtown/crate_normal.prefab");
-        constexpr auto crate_normal2             = STRHASH("assets/bundled/prefabs/radtown/crate_normal_2.prefab");
-        constexpr auto crate_normal_food         = STRHASH("assets/bundled/prefabs/radtown/crate_normal_2_food.prefab");
-        constexpr auto crate_normal_medical      = STRHASH("assets/bundled/prefabs/radtown/crate_normal_2_medical.prefab");
-        constexpr auto crate_tools               = STRHASH("assets/bundled/prefabs/radtown/crate_tools.prefab");
-        constexpr auto crate_underwater_advanced = STRHASH("assets/bundled/prefabs/radtown/crate_underwater_advanced.prefab");
-        constexpr auto crate_underwater_basic    = STRHASH("assets/bundled/prefabs/radtown/crate_underwater_basic.prefab");
-        constexpr auto crate_bradley             = STRHASH("assets/prefabs/npc/m2bradley/bradley_crate.prefab");
-        constexpr auto crate_heli                = STRHASH("assets/prefabs/npc/patrol helicopter/heli_crate.prefab");
-        constexpr auto crate_food                = STRHASH("assets/bundled/prefabs/radtown/foodbox.prefab");
-        constexpr auto airdrop                   = STRHASH("assets/prefabs/misc/supply drop/supply_drop.prefab");
+        PREFABID(barrel1, "assets/bundled/prefabs/autospawn/resource/loot/loot-barrel-1.prefab");
+        PREFABID(barrel2, "assets/bundled/prefabs/autospawn/resource/loot/loot-barrel-2.prefab");
+        PREFABID(barrel_1, "assets/bundled/prefabs/radtown/loot_barrel_1.prefab");
+        PREFABID(barrel_2, "assets/bundled/prefabs/radtown/loot_barrel_2.prefab");
+        PREFABID(barrel_oil, "assets/bundled/prefabs/radtown/oil_barrel.prefab");
+        PREFABID(crate_basic, "assets/bundled/prefabs/radtown/crate_basic.prefab");
+        PREFABID(crate_elite, "assets/bundled/prefabs/radtown/crate_elite.prefab");
+        PREFABID(crate_mili, "assets/bundled/prefabs/radtown/crate_normal.prefab");
+        PREFABID(crate_normal2, "assets/bundled/prefabs/radtown/crate_normal_2.prefab");
+        PREFABID(crate_normal_food, "assets/bundled/prefabs/radtown/crate_normal_2_food.prefab");
+        PREFABID(crate_normal_medical, "assets/bundled/prefabs/radtown/crate_normal_2_medical.prefab");
+        PREFABID(crate_tools, "assets/bundled/prefabs/radtown/crate_tools.prefab");
+        PREFABID(crate_underwater_advanced, "assets/bundled/prefabs/radtown/crate_underwater_advanced.prefab");
+        PREFABID(crate_underwater_basic, "assets/bundled/prefabs/radtown/crate_underwater_basic.prefab");
+        PREFABID(crate_bradley, "assets/prefabs/npc/m2bradley/bradley_crate.prefab");
+        PREFABID(crate_heli, "assets/prefabs/npc/patrol helicopter/heli_crate.prefab");
+        PREFABID(crate_food, "assets/bundled/prefabs/radtown/foodbox.prefab");
+        PREFABID(airdrop, "assets/prefabs/misc/supply drop/supply_drop.prefab");
     } // namespace radtown
 
     namespace animals
     {
-        constexpr auto bear      = STRHASH("assets/rust.ai/agents/bear/bear.prefab/");
-        constexpr auto polarBear = STRHASH("assets/rust.ai/agents/bear/polarbear.prefab");
-        constexpr auto boar      = STRHASH("assets/rust.ai/agents/boar/boar.prefab");
-        constexpr auto chicken   = STRHASH("assets/rust.ai/agents/chicken/chicken.prefab");
-        constexpr auto stag      = STRHASH("assets/rust.ai/agents/stag/stag.prefab");
-        constexpr auto wolf      = STRHASH("assets/rust.ai/agents/wolf/wolf.prefab");
-        constexpr auto zombie    = STRHASH("assets/rust.ai/agents/zombie/zombie.prefab");
+        PREFABID(bear, "assets/rust.ai/agents/bear/bear.prefab");
+        PREFABID(polarBear, "assets/rust.ai/agents/bear/polarbear.prefab");
+        PREFABID(boar, "assets/rust.ai/agents/boar/boar.prefab");
+        PREFABID(chicken, "assets/rust.ai/agents/chicken/chicken.prefab");
+        PREFABID(stag, "assets/rust.ai/agents/stag/stag.prefab");
+        PREFABID(wolf, "assets/rust.ai/agents/wolf/wolf.prefab");
+        PREFABID(zombie, "assets/rust.ai/agents/zombie/zombie.prefab");
     } // namespace animals
+
+    namespace traps
+    {
+        PREFABID(autoturret, "assets/prefabs/npc/autoturret/autoturret_deployed.prefab");
+        PREFABID(flameturret, "assets/prefabs/npc/flame turret/flameturret.deployed.prefab");
+        PREFABID(guntrap, "assets/prefabs/deployable/single shot trap/guntrap.deployed.prefab");
+        PREFABID(samsite, "assets/prefabs/npc/sam_site_turret/sam_site_turret_deployed.prefab");
+        PREFABID(landdmine, "assets/prefabs/deployable/landmine/landmine.prefab");
+        PREFABID(beartrap, "assets/prefabs/deployable/bear trap/beartrap.prefab");
+    } // namespace traps
 
 } // namespace prefabs

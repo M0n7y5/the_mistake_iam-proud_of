@@ -6,6 +6,9 @@
 #include "PerformanceText.h"
 #include "MainCamera.h"
 #include "Client.h"
+#include "UIBlackoutOverlay.h"
+#include "BaseProjectile.h"
+#include "Shared.h"
 #include "EntityList.h"
 
 inline void InitHooks()
@@ -16,11 +19,14 @@ inline void InitHooks()
     ItemIcon::Init();
     Projectile::Init();
     PerformanceText::Init();
+    UIBlackoutOverlay::Init();
+    BaseProjectile::Init();
+    Shared::Init();
     MainCamera::Init();
     EntityList::Init();
 }
 
-// we just hook this forst and rest in Game Thread
+// we just hook this first and rest in Game Thread
 inline void PreInitHooks()
 {
     using namespace Hooks;

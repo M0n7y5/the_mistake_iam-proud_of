@@ -285,7 +285,7 @@ enum class TextureFormat : int32_t
     DXT5Crunched
 };
 
-enum class Layer : uint32_t
+enum class Layer : int32_t
 {
     Default                = 0x00000000,
     TransparentFX          = 0x00000001,
@@ -467,6 +467,8 @@ enum class PlayerFlags : int32_t
     Workbench2          = 0x00200000,
     Workbench3          = 0x00400000,
 };
+
+SCOPED_ENUM_FLAG(PlayerFlags);
 
 // Todo: update
 enum class PlayerBones : int32_t
@@ -745,3 +747,190 @@ enum class AimbotSmooth : int32_t
     Linear = 0,
     SlowEnd
 };
+
+enum class ItemCategory : int32_t
+{
+    Weapon,
+    Construction,
+    Items,
+    Resources,
+    Attire,
+    Tool,
+    Medical,
+    Food,
+    Ammunition,
+    Traps,
+    Misc,
+    All,
+    Common,
+    Component,
+    Search,
+    Favourite,
+    Electrical,
+    Fun
+};
+
+enum class GatherType : int32_t
+{
+    Tree,
+    Ore,
+    Flesh,
+    UNSET,
+    LAST
+};
+
+enum class SendMethod : int32_t
+{
+    Reliable,
+    ReliableUnordered,
+    Unreliable
+};
+
+enum class SilentFarmTargetType
+{
+    Player,
+    Tree,
+    Ore,
+    TreeMarker,
+    OreHotSpot
+};
+
+enum class BaseEntityFlags : int32_t
+{
+    Placeholder  = 1,
+    On           = 2,
+    OnFire       = 4,
+    Open         = 8,
+    Locked       = 16,
+    Debugging    = 32,
+    Disabled     = 64,
+    Reserved1    = 128,
+    Reserved2    = 256,
+    Reserved3    = 512,
+    Reserved4    = 1024,
+    Reserved5    = 2048,
+    Broken       = 4096,
+    Busy         = 8192,
+    Reserved6    = 16384,
+    Reserved7    = 32768,
+    Reserved8    = 65536,
+    Reserved9    = 131072,
+    Reserved10   = 262144,
+    Reserved11   = 524288,
+    InUse        = 1048576,
+    Unused21     = 2097152,
+    Unused22     = 4194304,
+    Unused23     = 8388608,
+    Protected    = 16777216,
+    Transferring = 33554432
+};
+
+SCOPED_ENUM_FLAG(BaseEntityFlags);
+
+enum class MessageType : uint8_t
+{
+    First,
+    Welcome,
+    Auth,
+    Approved,
+    Ready,
+    Entities,
+    EntityDestroy,
+    GroupChange,
+    GroupDestroy,
+    RPCMessage,
+    EntityPosition,
+    ConsoleMessage,
+    ConsoleCommand,
+    Effect,
+    DisconnectReason,
+    Tick,
+    Message,
+    RequestUserInformation,
+    GiveUserInformation,
+    GroupEnter,
+    GroupLeave,
+    VoiceData,
+    EAC,
+    EntityFlags,
+    World,
+    ConsoleReplicatedVars,
+    Last = 25
+};
+
+enum class EffectType : uint32_t
+{
+    Invalid = 0,
+    C4,
+    Satchel,
+    Rocket,
+    RocketIncen,
+    ExplosiveAmmo,
+    ExplosiveGrenade,
+    Count
+};
+
+enum class MountPoses
+{
+    Chair,
+    Driving,
+    Horseback,
+    HeliUnarmed,
+    HeliArmed,
+    HandMotorBoat,
+    MotorBoatPassenger,
+    SitGeneric,
+    SitRaft,
+    StandDrive,
+    SitShootingGeneric,
+    SitMinicopter_Pilot,
+    SitMinicopter_Passenger,
+    ArcadeLeft,
+    ArcadeRight,
+    SitSummer_Ring,
+    SitSummer_BoogieBoard,
+    SitCarPassenger,
+    SitSummer_Chair,
+    SitRaft_NoPaddle,
+    Sit_SecretLab,
+    Sit_Workcart,
+    Sit_Cardgame,
+    Sit_Crane,
+    Sit_Snowmobile_Shooting,
+    Sit_RetroSnowmobile_Shooting,
+    Driving_Snowmobile,
+    ZiplineHold,
+    Sit_Locomotive,
+    Sit_Throne,
+    Standing = 128
+};
+
+enum class blackoutType
+{
+    FULLBLACK,
+    BINOCULAR,
+    SCOPE,
+    HELMETSLIT,
+    SNORKELGOGGLE,
+    NVG,
+    FULLWHITE,
+    SUNGLASSES,
+    NONE = 64
+};
+
+enum class EnvironmentType : uint32_t
+{
+	Underground = 1,
+	Building = 2,
+	Outdoor = 4,
+	Elevator = 8,
+	PlayerConstruction = 16,
+	TrainTunnels = 32,
+	UnderwaterLab = 64,
+	Submarine = 128,
+	BuildingDark = 256,
+	BuildingVeryDark = 512,
+	NoSunlight = 1024
+};
+
+SCOPED_ENUM_FLAG(EnvironmentType);

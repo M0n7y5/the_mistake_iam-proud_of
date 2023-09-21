@@ -24,6 +24,7 @@ Index of this file:
 
 */
 
+#include <string>
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
     #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -33,6 +34,8 @@ Index of this file:
 #endif
 
 #include "imgui.h"
+#include "../../mrt/xorstr.hpp"
+
 #ifndef IMGUI_DISABLE
     #include "imgui_internal.h"
     #ifdef IMGUI_ENABLE_FREETYPE
@@ -3134,62 +3137,118 @@ ImFontConfig::ImFontConfig()
 // (This is used when io.MouseDrawCursor = true)
 const int FONT_ATLAS_DEFAULT_TEX_DATA_W = 122; // Actual texture will be 2 times that + 1 spacing.
 const int FONT_ATLAS_DEFAULT_TEX_DATA_H = 27;
-static const char
-    FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS[FONT_ATLAS_DEFAULT_TEX_DATA_W * FONT_ATLAS_DEFAULT_TEX_DATA_H + 1] = {
-        "..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX-     XX          - "
-        "XX       XX "
-        "..-         -X.....X-   X.X   -          X.X          -X.....X          -          X.....X-    X..X         "
-        "-X..X     X..X"
-        "---         -XXX.XXX-  X...X  -         X...X         -X....X           -           X....X-    X..X         "
-        "-X...X   X...X"
-        "X           -  X.X  - X.....X -        X.....X        -X...X            -            X...X-    X..X         - "
-        "X...X X...X "
-        "XX          -  X.X  -X.......X-       X.......X       -X..X.X           -           X.X..X-    X..X         - "
-        " X...X...X  "
-        "X.X         -  X.X  -XXXX.XXXX-       XXXX.XXXX       -X.X X.X          -          X.X X.X-    X..XXX       - "
-        "  X.....X   "
-        "X..X        -  X.X  -   X.X   -          X.X          -XX   X.X         -         X.X   XX-    X..X..XXX    - "
-        "   X...X    "
-        "X...X       -  X.X  -   X.X   -    XX    X.X    XX    -      X.X        -        X.X      -    X..X..X..XX  - "
-        "    X.X     "
-        "X....X      -  X.X  -   X.X   -   X.X    X.X    X.X   -       X.X       -       X.X       -    X..X..X..X.X - "
-        "   X...X    "
-        "X.....X     -  X.X  -   X.X   -  X..X    X.X    X..X  -        X.X      -      X.X        -XXX X..X..X..X..X- "
-        "  X.....X   "
-        "X......X    -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -         X.X   XX-XX   X.X         -X..XX........X..X- "
-        " X...X...X  "
-        "X.......X   -  X.X  -   X.X   -X.....................X-          X.X X.X-X.X X.X          -X...X...........X- "
-        "X...X X...X "
-        "X........X  -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -           X.X..X-X..X.X           - "
-        "X..............X-X...X   X...X"
-        "X.........X -XXX.XXX-   X.X   -  X..X    X.X    X..X  -            X...X-X...X            -  "
-        "X.............X-X..X     X..X"
-        "X..........X-X.....X-   X.X   -   X.X    X.X    X.X   -           X....X-X....X           -  X.............X- "
-        "XX       XX "
-        "X......XXXXX-XXXXXXX-   X.X   -    XX    X.X    XX    -          X.....X-X.....X          -   "
-        "X............X--------------"
-        "X...X..X    ---------   X.X   -          X.X          -          XXXXXXX-XXXXXXX          -   X...........X - "
-        "            "
-        "X..X X..X   -       -XXXX.XXXX-       XXXX.XXXX       -------------------------------------    X..........X - "
-        "            "
-        "X.X  X..X   -       -X.......X-       X.......X       -    XX           XX    -           -    X..........X - "
-        "            "
-        "XX    X..X  -       - X.....X -        X.....X        -   X.X           X.X   -           -     X........X  - "
-        "            "
-        "      X..X  -       -  X...X  -         X...X         -  X..X           X..X  -           -     X........X  - "
-        "            "
-        "       XX   -       -   X.X   -          X.X          - X...XXXXXXXXXXXXX...X -           -     XXXXXXXXXX  - "
-        "            "
-        "-------------       -    X    -           X           -X.....................X-           ------------------- "
-        "            "
-        "                    ----------------------------------- X...XXXXXXXXXXXXX...X -                               "
-        "            "
-        "                                                      -  X..X           X..X  -                               "
-        "            "
-        "                                                      -   X.X           X.X   -                               "
-        "            "
-        "                                                      -    XX           XX    -                               "
-        "            "};
+// static std::string
+//     FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS = {
+//         ("..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX-     XX          - "
+//         "XX       XX "
+//         "..-         -X.....X-   X.X   -          X.X          -X.....X          -          X.....X-    X..X         "
+//         "-X..X     X..X"
+//         "---         -XXX.XXX-  X...X  -         X...X         -X....X           -           X....X-    X..X         "
+//         "-X...X   X...X"
+//         "X           -  X.X  - X.....X -        X.....X        -X...X            -            X...X-    X..X         - "
+//         "X...X X...X "
+//         "XX          -  X.X  -X.......X-       X.......X       -X..X.X           -           X.X..X-    X..X         - "
+//         " X...X...X  "
+//         "X.X         -  X.X  -XXXX.XXXX-       XXXX.XXXX       -X.X X.X          -          X.X X.X-    X..XXX       - "
+//         "  X.....X   "
+//         "X..X        -  X.X  -   X.X   -          X.X          -XX   X.X         -         X.X   XX-    X..X..XXX    - "
+//         "   X...X    "
+//         "X...X       -  X.X  -   X.X   -    XX    X.X    XX    -      X.X        -        X.X      -    X..X..X..XX  - "
+//         "    X.X     "
+//         "X....X      -  X.X  -   X.X   -   X.X    X.X    X.X   -       X.X       -       X.X       -    X..X..X..X.X - "
+//         "   X...X    "
+//         "X.....X     -  X.X  -   X.X   -  X..X    X.X    X..X  -        X.X      -      X.X        -XXX X..X..X..X..X- "
+//         "  X.....X   "
+//         "X......X    -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -         X.X   XX-XX   X.X         -X..XX........X..X- "
+//         " X...X...X  "
+//         "X.......X   -  X.X  -   X.X   -X.....................X-          X.X X.X-X.X X.X          -X...X...........X- "
+//         "X...X X...X "
+//         "X........X  -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -           X.X..X-X..X.X           - "
+//         "X..............X-X...X   X...X"
+//         "X.........X -XXX.XXX-   X.X   -  X..X    X.X    X..X  -            X...X-X...X            -  "
+//         "X.............X-X..X     X..X"
+//         "X..........X-X.....X-   X.X   -   X.X    X.X    X.X   -           X....X-X....X           -  X.............X- "
+//         "XX       XX "
+//         "X......XXXXX-XXXXXXX-   X.X   -    XX    X.X    XX    -          X.....X-X.....X          -   "
+//         "X............X--------------"
+//         "X...X..X    ---------   X.X   -          X.X          -          XXXXXXX-XXXXXXX          -   X...........X - "
+//         "            "
+//         "X..X X..X   -       -XXXX.XXXX-       XXXX.XXXX       -------------------------------------    X..........X - "
+//         "            "
+//         "X.X  X..X   -       -X.......X-       X.......X       -    XX           XX    -           -    X..........X - "
+//         "            "
+//         "XX    X..X  -       - X.....X -        X.....X        -   X.X           X.X   -           -     X........X  - "
+//         "            "
+//         "      X..X  -       -  X...X  -         X...X         -  X..X           X..X  -           -     X........X  - "
+//         "            "
+//         "       XX   -       -   X.X   -          X.X          - X...XXXXXXXXXXXXX...X -           -     XXXXXXXXXX  - "
+//         "            "
+//         "-------------       -    X    -           X           -X.....................X-           ------------------- "
+//         "            "
+//         "                    ----------------------------------- X...XXXXXXXXXXXXX...X -                               "
+//         "            "
+//         "                                                      -  X..X           X..X  -                               "
+//         "            "
+//         "                                                      -   X.X           X.X   -                               "
+//         "            "
+//         "                                                      -    XX           XX    -                               "
+//         "            ")};
+// static const char
+//     FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS[FONT_ATLAS_DEFAULT_TEX_DATA_W * FONT_ATLAS_DEFAULT_TEX_DATA_H + 1] = {
+//         "..-         -XXXXXXX-    X    -           X           -XXXXXXX          -          XXXXXXX-     XX          - "
+//         "XX       XX "
+//         "..-         -X.....X-   X.X   -          X.X          -X.....X          -          X.....X-    X..X         "
+//         "-X..X     X..X"
+//         "---         -XXX.XXX-  X...X  -         X...X         -X....X           -           X....X-    X..X         "
+//         "-X...X   X...X"
+//         "X           -  X.X  - X.....X -        X.....X        -X...X            -            X...X-    X..X         - "
+//         "X...X X...X "
+//         "XX          -  X.X  -X.......X-       X.......X       -X..X.X           -           X.X..X-    X..X         - "
+//         " X...X...X  "
+//         "X.X         -  X.X  -XXXX.XXXX-       XXXX.XXXX       -X.X X.X          -          X.X X.X-    X..XXX       - "
+//         "  X.....X   "
+//         "X..X        -  X.X  -   X.X   -          X.X          -XX   X.X         -         X.X   XX-    X..X..XXX    - "
+//         "   X...X    "
+//         "X...X       -  X.X  -   X.X   -    XX    X.X    XX    -      X.X        -        X.X      -    X..X..X..XX  - "
+//         "    X.X     "
+//         "X....X      -  X.X  -   X.X   -   X.X    X.X    X.X   -       X.X       -       X.X       -    X..X..X..X.X - "
+//         "   X...X    "
+//         "X.....X     -  X.X  -   X.X   -  X..X    X.X    X..X  -        X.X      -      X.X        -XXX X..X..X..X..X- "
+//         "  X.....X   "
+//         "X......X    -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -         X.X   XX-XX   X.X         -X..XX........X..X- "
+//         " X...X...X  "
+//         "X.......X   -  X.X  -   X.X   -X.....................X-          X.X X.X-X.X X.X          -X...X...........X- "
+//         "X...X X...X "
+//         "X........X  -  X.X  -   X.X   - X...XXXXXX.XXXXXX...X -           X.X..X-X..X.X           - "
+//         "X..............X-X...X   X...X"
+//         "X.........X -XXX.XXX-   X.X   -  X..X    X.X    X..X  -            X...X-X...X            -  "
+//         "X.............X-X..X     X..X"
+//         "X..........X-X.....X-   X.X   -   X.X    X.X    X.X   -           X....X-X....X           -  X.............X- "
+//         "XX       XX "
+//         "X......XXXXX-XXXXXXX-   X.X   -    XX    X.X    XX    -          X.....X-X.....X          -   "
+//         "X............X--------------"
+//         "X...X..X    ---------   X.X   -          X.X          -          XXXXXXX-XXXXXXX          -   X...........X - "
+//         "            "
+//         "X..X X..X   -       -XXXX.XXXX-       XXXX.XXXX       -------------------------------------    X..........X - "
+//         "            "
+//         "X.X  X..X   -       -X.......X-       X.......X       -    XX           XX    -           -    X..........X - "
+//         "            "
+//         "XX    X..X  -       - X.....X -        X.....X        -   X.X           X.X   -           -     X........X  - "
+//         "            "
+//         "      X..X  -       -  X...X  -         X...X         -  X..X           X..X  -           -     X........X  - "
+//         "            "
+//         "       XX   -       -   X.X   -          X.X          - X...XXXXXXXXXXXXX...X -           -     XXXXXXXXXX  - "
+//         "            "
+//         "-------------       -    X    -           X           -X.....................X-           ------------------- "
+//         "            "
+//         "                    ----------------------------------- X...XXXXXXXXXXXXX...X -                               "
+//         "            "
+//         "                                                      -  X..X           X..X  -                               "
+//         "            "
+//         "                                                      -   X.X           X.X   -                               "
+//         "            "
+//         "                                                      -    XX           XX    -                               "
+//         "            "};
 
 static const ImVec2 FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ImGuiMouseCursor_COUNT][3] = {
   // Pos ........ Size ......... Offset ......
@@ -3533,7 +3592,7 @@ bool ImFontAtlas::Build()
     // Default font is none are specified
     if (ConfigData.Size == 0)
     {
-        AddFontDefault();
+        //AddFontDefault();
         IM_DEBUG_BREAK();
     }
 
@@ -3982,30 +4041,30 @@ static void ImFontAtlasBuildRenderDefaultTexData(ImFontAtlas* atlas)
     IM_ASSERT(r->IsPacked());
 
     const int w = atlas->TexWidth;
-    if (!(atlas->Flags & ImFontAtlasFlags_NoMouseCursors))
+    if (/*!(atlas->Flags & ImFontAtlasFlags_NoMouseCursors)*/false)
     {
         // Render/copy pixels
-        IM_ASSERT(r->Width == FONT_ATLAS_DEFAULT_TEX_DATA_W * 2 + 1 && r->Height == FONT_ATLAS_DEFAULT_TEX_DATA_H);
-        const int x_for_white = r->X;
-        const int x_for_black = r->X + FONT_ATLAS_DEFAULT_TEX_DATA_W + 1;
-        if (atlas->TexPixelsAlpha8 != NULL)
-        {
-            ImFontAtlasBuildRender8bppRectFromString(
-                atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
-                FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, '.', 0xFF);
-            ImFontAtlasBuildRender8bppRectFromString(
-                atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
-                FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, 'X', 0xFF);
-        }
-        else
-        {
-            ImFontAtlasBuildRender32bppRectFromString(
-                atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
-                FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, '.', IM_COL32_WHITE);
-            ImFontAtlasBuildRender32bppRectFromString(
-                atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
-                FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS, 'X', IM_COL32_WHITE);
-        }
+        // IM_ASSERT(r->Width == FONT_ATLAS_DEFAULT_TEX_DATA_W * 2 + 1 && r->Height == FONT_ATLAS_DEFAULT_TEX_DATA_H);
+        // const int x_for_white = r->X;
+        // const int x_for_black = r->X + FONT_ATLAS_DEFAULT_TEX_DATA_W + 1;
+        // if (atlas->TexPixelsAlpha8 != NULL)
+        // {
+        //     ImFontAtlasBuildRender8bppRectFromString(
+        //         atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+        //         FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS.c_str(), '.', 0xFF);
+        //     ImFontAtlasBuildRender8bppRectFromString(
+        //         atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+        //         FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS.c_str(), 'X', 0xFF);
+        // }
+        // else
+        // {
+        //     ImFontAtlasBuildRender32bppRectFromString(
+        //         atlas, x_for_white, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+        //         FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS.c_str(), '.', IM_COL32_WHITE);
+        //     ImFontAtlasBuildRender32bppRectFromString(
+        //         atlas, x_for_black, r->Y, FONT_ATLAS_DEFAULT_TEX_DATA_W, FONT_ATLAS_DEFAULT_TEX_DATA_H,
+        //         FONT_ATLAS_DEFAULT_TEX_DATA_PIXELS.c_str(), 'X', IM_COL32_WHITE);
+        // }
     }
     else
     {

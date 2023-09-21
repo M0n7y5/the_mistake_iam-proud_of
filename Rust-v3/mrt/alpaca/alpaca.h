@@ -197,9 +197,9 @@ typename std::enable_if<std::is_same_v<Container, std::ofstream>,
                         std::size_t>::type
 serialize(const T &s, Container &bytes, std::size_t &byte_index) {
   static_assert(!detail::with_version<O>(),
-                "options::with_version is not supported when writing to file");
+                _("options::with_version is not supported when writing to file"));
   static_assert(!detail::with_checksum<O>(),
-                "options::with_checksum is not supported when writing to file");
+                _("options::with_checksum is not supported when writing to file"));
   detail::serialize_helper<O, T, N, Container, 0>(s, bytes, byte_index);
   return byte_index;
 }
@@ -426,10 +426,10 @@ deserialize(T &s, Container &bytes, std::size_t &byte_index,
             std::size_t &end_index, std::error_code &error_code) {
   static_assert(
       !detail::with_version<O>(),
-      "options::with_version is not supported when reading from file");
+      _("options::with_version is not supported when reading from file"));
   static_assert(
       !detail::with_checksum<O>(),
-      "options::with_checksum is not supported when reading from file");
+      _("options::with_checksum is not supported when reading from file"));
   detail::deserialize_helper<O, T, N, Container, 0>(s, bytes, byte_index,
                                                     end_index, error_code);
 }

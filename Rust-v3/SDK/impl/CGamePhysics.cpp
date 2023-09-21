@@ -2,6 +2,7 @@
 #include "../Offsets.h"
 #include "../globals.h"
 #include "../../Kotlar/Kotlar.h"
+#include "../il2cpp_api.h"
 
 bool CGamePhysics::LineOfSight(Vector3 src, Vector3 dest, Layers layerMask, float padding, CBaseEntity* ignoreEntity)
 {
@@ -20,4 +21,22 @@ bool CGamePhysics::Raycast(Vector3 origin, Vector3 direction, CRaycastHit* hitIn
 
     return ((bool (*)(Vector3, Vector3, CRaycastHit*, float, int))(addr))(origin, direction, hitInfo, maxDistance,
                                                                           layerMask);
+}
+
+void CGamePhysics::IgnoreLayerCollision(Layer layer1, Layer layer2, bool ignore)
+{
+    // UnityEngine.Physics::IgnoreLayerCollision()
+    static auto addr = il2cpp_resolve_icall(_("UnityEngine.Physics::IgnoreLayerCollision"));
+    ((void (*)(Layer, Layer, bool))(addr))(layer1, layer2, ignore);
+}
+
+bool CGamePhysics::CheckCapsule(Vector3 start, Vector3 end, float radius, int32_t layerMask,
+                                QueryTriggerInteraction triggerInteraction)
+{
+    static auto addr = OFF(
+        Offsets::UnityEngine_Physics::StaticMethods::
+            CheckCapsule_UnityEngine_Vector3_start__UnityEngine_Vector3_end__System_Single_radius__System_Int32_layerMask__UnityEngine_QueryTriggerInteraction_queryTriggerInteraction);
+
+    return ((bool (*)(Vector3, Vector3, float, int32_t, QueryTriggerInteraction))(addr))(start, end, radius, layerMask,
+                                                                                         triggerInteraction);
 }

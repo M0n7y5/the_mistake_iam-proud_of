@@ -37,6 +37,8 @@ Index of this file:
 #endif
 
 #include "imgui.h"
+#include "../../mrt/xorstr.hpp"
+
 #ifndef IMGUI_DISABLE
     #include "imgui_internal.h"
 
@@ -6553,7 +6555,7 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
             ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaPreviewHalf;
         ImGuiColorEditFlags sub_flags = (flags & sub_flags_to_forward) | ImGuiColorEditFlags_NoPicker;
         if (flags & ImGuiColorEditFlags_DisplayRGB || (flags & ImGuiColorEditFlags_DisplayMask_) == 0)
-            if (ColorEdit4("##rgb", col, sub_flags | ImGuiColorEditFlags_DisplayRGB))
+            if (ColorEdit4(_("##rgb"), col, sub_flags | ImGuiColorEditFlags_DisplayRGB))
             {
                 // FIXME: Hackily differentiating using the DragInt (ActiveId != 0 && !ActiveIdAllowOverlap) vs. using
                 // the InputText or DropTarget. For the later we don't want to run the hue-wrap canceling code. If you
@@ -6562,9 +6564,9 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
                 value_changed              = true;
             }
         if (flags & ImGuiColorEditFlags_DisplayHSV || (flags & ImGuiColorEditFlags_DisplayMask_) == 0)
-            value_changed |= ColorEdit4("##hsv", col, sub_flags | ImGuiColorEditFlags_DisplayHSV);
+            value_changed |= ColorEdit4(_("##hsv"), col, sub_flags | ImGuiColorEditFlags_DisplayHSV);
         if (flags & ImGuiColorEditFlags_DisplayHex || (flags & ImGuiColorEditFlags_DisplayMask_) == 0)
-            value_changed |= ColorEdit4("##hex", col, sub_flags | ImGuiColorEditFlags_DisplayHex);
+            value_changed |= ColorEdit4(_("##hex"), col, sub_flags | ImGuiColorEditFlags_DisplayHex);
         PopItemWidth();
     }
 
@@ -6870,7 +6872,7 @@ void ImGui::ColorTooltip(const char* text, const float* col, ImGuiColorEditFlags
     int    cr = IM_F32_TO_INT8_SAT(col[0]), cg = IM_F32_TO_INT8_SAT(col[1]), cb = IM_F32_TO_INT8_SAT(col[2]),
         ca = (flags & ImGuiColorEditFlags_NoAlpha) ? 255 : IM_F32_TO_INT8_SAT(col[3]);
     ColorButton(
-        "##preview", cf,
+        _("##preview"), cf,
         (flags & (ImGuiColorEditFlags_InputMask_ | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_AlphaPreview |
                   ImGuiColorEditFlags_AlphaPreviewHalf)) |
             ImGuiColorEditFlags_NoTooltip,
@@ -6880,19 +6882,19 @@ void ImGui::ColorTooltip(const char* text, const float* col, ImGuiColorEditFlags
     {
         if (flags & ImGuiColorEditFlags_NoAlpha)
             Text(
-                "#%02X%02X%02X\nR: %d, G: %d, B: %d\n(%.3f, %.3f, %.3f)", cr, cg, cb, cr, cg, cb, col[0], col[1],
+                _("#%02X%02X%02X\nR: %d, G: %d, B: %d\n(%.3f, %.3f, %.3f)"), cr, cg, cb, cr, cg, cb, col[0], col[1],
                 col[2]);
         else
             Text(
-                "#%02X%02X%02X%02X\nR:%d, G:%d, B:%d, A:%d\n(%.3f, %.3f, %.3f, %.3f)", cr, cg, cb, ca, cr, cg, cb, ca,
+                _("#%02X%02X%02X%02X\nR:%d, G:%d, B:%d, A:%d\n(%.3f, %.3f, %.3f, %.3f)"), cr, cg, cb, ca, cr, cg, cb, ca,
                 col[0], col[1], col[2], col[3]);
     }
     else if (flags & ImGuiColorEditFlags_InputHSV)
     {
         if (flags & ImGuiColorEditFlags_NoAlpha)
-            Text("H: %.3f, S: %.3f, V: %.3f", col[0], col[1], col[2]);
+            Text(_("H: %.3f, S: %.3f, V: %.3f"), col[0], col[1], col[2]);
         else
-            Text("H: %.3f, S: %.3f, V: %.3f, A: %.3f", col[0], col[1], col[2], col[3]);
+            Text(_("H: %.3f, S: %.3f, V: %.3f, A: %.3f"), col[0], col[1], col[2], col[3]);
     }
     EndTooltip();
 }
@@ -6901,7 +6903,7 @@ void ImGui::ColorEditOptionsPopup(const float* col, ImGuiColorEditFlags flags)
 {
     bool allow_opt_inputs   = !(flags & ImGuiColorEditFlags_DisplayMask_);
     bool allow_opt_datatype = !(flags & ImGuiColorEditFlags_DataTypeMask_);
-    if ((!allow_opt_inputs && !allow_opt_datatype) || !BeginPopup("context"))
+    if ((!allow_opt_inputs && !allow_opt_datatype) || !BeginPopup(_("context")))
         return;
     ImGuiContext&       g    = *GImGui;
     ImGuiColorEditFlags opts = g.ColorEditOptions;

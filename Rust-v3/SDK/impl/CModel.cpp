@@ -15,7 +15,7 @@ Vector3 CModel::GetBonePosition(PlayerBones bone)
 
     auto boneTransform = (CTransform*)boneTransformArray->m_Items[(int)bone];
 
-    const auto& s = SettingsData::settings->ragebot.general.targeting;
+    //const auto& s = SettingsData::settings->ragebot.general.targeting;
 
     // head is little bit off
     if (bone == PlayerBones::eyeTranform)

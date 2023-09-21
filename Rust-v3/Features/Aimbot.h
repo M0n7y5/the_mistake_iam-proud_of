@@ -7,6 +7,26 @@
 #include <vector>
 #include "../mrt/circular_buffer.h"
 
+namespace HitScanner
+{
+    struct TraceRay
+    {
+        float                   priority{};
+        uint8_t                 maxReachablePoints{};
+        std::array<Vector3, 16> points{};
+    };
+
+    inline int   defaultDensity = 333;
+    inline float angleLimit     = 95.f;
+    inline float sideAngleLimit = 22.f;
+    inline float rayDistance    = 13.f;
+    inline float rayDivider     = 15.f;
+
+    inline std::vector<Vector3>  currentSpherePoints;
+    inline std::vector<TraceRay> currentTraceRays;
+
+} // namespace HitScanner
+
 namespace Aimbot
 {
     enum class TargetType
@@ -57,7 +77,8 @@ namespace Aimbot
     inline Utils::FOVCalc         FOV{};
     inline Vector3                PredictedPosition = {};
     inline LauncherPredictionInfo launcherInfo{};
-
-    void ClientInput();
-    void LateUpdate();
+    inline TargetInfo             CurrentTarget{};
+    
+    void                          ClientInput();
+    void                          LateUpdate();
 } // namespace Aimbot

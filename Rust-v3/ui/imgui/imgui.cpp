@@ -1172,6 +1172,7 @@ CODE
 // [SECTION] INCLUDES
 //-------------------------------------------------------------------------
 
+#include <string>
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
     #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -1181,6 +1182,7 @@ CODE
 #endif
 
 #include "imgui.h"
+#include "../../mrt/xorstr.hpp"
 #ifndef IMGUI_DISABLE
     #include "imgui_internal.h"
 
@@ -1345,11 +1347,11 @@ static void AddDrawListToDrawData(ImVector<ImDrawList*>* out_list, ImDrawList* d
 static void AddWindowToSortBuffer(ImVector<ImGuiWindow*>* out_sorted_windows, ImGuiWindow* window);
 
 // Settings
-static void  WindowSettingsHandler_ClearAll(ImGuiContext*, ImGuiSettingsHandler*);
-static void* WindowSettingsHandler_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*, const char* name);
-static void  WindowSettingsHandler_ReadLine(ImGuiContext*, ImGuiSettingsHandler*, void* entry, const char* line);
-static void  WindowSettingsHandler_ApplyAll(ImGuiContext*, ImGuiSettingsHandler*);
-static void  WindowSettingsHandler_WriteAll(ImGuiContext*, ImGuiSettingsHandler*, ImGuiTextBuffer* buf);
+// static void  WindowSettingsHandler_ClearAll(ImGuiContext*, ImGuiSettingsHandler*);
+// static void* WindowSettingsHandler_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*, const char* name);
+// static void  WindowSettingsHandler_ReadLine(ImGuiContext*, ImGuiSettingsHandler*, void* entry, const char* line);
+// static void  WindowSettingsHandler_ApplyAll(ImGuiContext*, ImGuiSettingsHandler*);
+// static void  WindowSettingsHandler_WriteAll(ImGuiContext*, ImGuiSettingsHandler*, ImGuiTextBuffer* buf);
 
 // Platform Dependents default implementation for IO functions
 static const char* GetClipboardTextFn_DefaultImpl(void* user_data_ctx);
@@ -4191,15 +4193,15 @@ void ImGui::Initialize()
 
     // Add .ini handle for ImGuiWindow and ImGuiTable types
     {
-        ImGuiSettingsHandler ini_handler;
-        ini_handler.TypeName   = "Window";
-        ini_handler.TypeHash   = ImHashStr("Window");
-        ini_handler.ClearAllFn = WindowSettingsHandler_ClearAll;
-        ini_handler.ReadOpenFn = WindowSettingsHandler_ReadOpen;
-        ini_handler.ReadLineFn = WindowSettingsHandler_ReadLine;
-        ini_handler.ApplyAllFn = WindowSettingsHandler_ApplyAll;
-        ini_handler.WriteAllFn = WindowSettingsHandler_WriteAll;
-        AddSettingsHandler(&ini_handler);
+        // ImGuiSettingsHandler ini_handler;
+        // ini_handler.TypeName   = "Window";
+        // ini_handler.TypeHash   = ImHashStr("Window");
+        // ini_handler.ReadOpenFn = nullptr;//WindowSettingsHandler_ReadOpen;
+        // ini_handler.ReadLineFn = nullptr;//WindowSettingsHandler_ReadLine;
+        // ini_handler.ClearAllFn = nullptr;//WindowSettingsHandler_ClearAll;
+        // ini_handler.ApplyAllFn = nullptr;//WindowSettingsHandler_ApplyAll;
+        // ini_handler.WriteAllFn = nullptr;//WindowSettingsHandler_WriteAll;
+        // AddSettingsHandler(&ini_handler);
     }
     TableSettingsAddSettingsHandler();
 
@@ -11899,10 +11901,10 @@ bool ImGui::BeginPopupEx(ImGuiID id, ImGuiWindowFlags flags)
 
     char name[20];
     if (flags & ImGuiWindowFlags_ChildMenu)
-        ImFormatString(name, IM_ARRAYSIZE(name), "##Menu_%02d", g.BeginMenuCount); // Recycle windows based on depth
+        ImFormatString(name, IM_ARRAYSIZE(name), _("##Menu_%02d"), g.BeginMenuCount); // Recycle windows based on depth
     else
         ImFormatString(
-            name, IM_ARRAYSIZE(name), "##Popup_%08x", id); // Not recycling, so we can close/open during the same frame
+            name, IM_ARRAYSIZE(name), _("##Popup_%08x"), id); // Not recycling, so we can close/open during the same frame
 
     flags        |= ImGuiWindowFlags_Popup;
     bool is_open = Begin(name, NULL, flags);
@@ -12037,10 +12039,11 @@ bool ImGui::BeginPopupContextItem(const char* str_id, ImGuiPopupFlags popup_flag
 
 bool ImGui::BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_flags)
 {
+    static std::string str = _("window_context");
     ImGuiContext& g      = *GImGui;
     ImGuiWindow*  window = g.CurrentWindow;
     if (!str_id)
-        str_id = "window_context";
+        str_id = str.c_str();
     ImGuiID id           = window->GetID(str_id);
     int     mouse_button = (popup_flags & ImGuiPopupFlags_MouseButtonMask_);
     if (IsMouseReleased(mouse_button) && IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
@@ -12052,10 +12055,11 @@ bool ImGui::BeginPopupContextWindow(const char* str_id, ImGuiPopupFlags popup_fl
 
 bool ImGui::BeginPopupContextVoid(const char* str_id, ImGuiPopupFlags popup_flags)
 {
+    static std::string str = _("void_context");
     ImGuiContext& g      = *GImGui;
     ImGuiWindow*  window = g.CurrentWindow;
     if (!str_id)
-        str_id = "void_context";
+        str_id = str.c_str();
     ImGuiID id           = window->GetID(str_id);
     int     mouse_button = (popup_flags & ImGuiPopupFlags_MouseButtonMask_);
     if (IsMouseReleased(mouse_button) && !IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
@@ -13841,7 +13845,7 @@ static const char* GetFallbackWindowNameForWindowingList(ImGuiWindow* window)
 {
     if (window->Flags & ImGuiWindowFlags_Popup)
         return ImGui::LocalizeGetMsg(ImGuiLocKey_WindowingPopup);
-    if ((window->Flags & ImGuiWindowFlags_MenuBar) && strcmp(window->Name, "##MainMenuBar") == 0)
+    if ((window->Flags & ImGuiWindowFlags_MenuBar) && strcmp(window->Name, _("##MainMenuBar")) == 0)
         return ImGui::LocalizeGetMsg(ImGuiLocKey_WindowingMainMenuBar);
     return ImGui::LocalizeGetMsg(ImGuiLocKey_WindowingUntitled);
 }
@@ -13856,13 +13860,13 @@ void ImGui::NavUpdateWindowingOverlay()
         return;
 
     if (g.NavWindowingListWindow == NULL)
-        g.NavWindowingListWindow = FindWindowByName("###NavWindowingList");
+        g.NavWindowingListWindow = FindWindowByName(_("###NavWindowingList"));
     const ImGuiViewport* viewport = GetMainViewport();
     SetNextWindowSizeConstraints(ImVec2(viewport->Size.x * 0.20f, viewport->Size.y * 0.20f), ImVec2(FLT_MAX, FLT_MAX));
     SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     PushStyleVar(ImGuiStyleVar_WindowPadding, g.Style.WindowPadding * 2.0f);
     Begin(
-        "###NavWindowingList", NULL,
+        _("###NavWindowingList"), NULL,
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize |
             ImGuiWindowFlags_NoSavedSettings);
@@ -14755,100 +14759,100 @@ void ImGui::ClearWindowSettings(const char* name)
         settings->WantDelete = true;
 }
 
-static void WindowSettingsHandler_ClearAll(ImGuiContext* ctx, ImGuiSettingsHandler*)
-{
-    ImGuiContext& g = *ctx;
-    for (int i = 0; i != g.Windows.Size; i++)
-        g.Windows[i]->SettingsOffset = -1;
-    g.SettingsWindows.clear();
-}
+// static void WindowSettingsHandler_ClearAll(ImGuiContext* ctx, ImGuiSettingsHandler*)
+// {
+//     ImGuiContext& g = *ctx;
+//     for (int i = 0; i != g.Windows.Size; i++)
+//         g.Windows[i]->SettingsOffset = -1;
+//     g.SettingsWindows.clear();
+// }
 
-static void* WindowSettingsHandler_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*, const char* name)
-{
-    ImGuiID              id       = ImHashStr(name);
-    ImGuiWindowSettings* settings = ImGui::FindWindowSettingsByID(id);
-    if (settings)
-        *settings = ImGuiWindowSettings(); // Clear existing if recycling previous entry
-    else
-        settings = ImGui::CreateNewWindowSettings(name);
-    settings->ID        = id;
-    settings->WantApply = true;
-    return (void*)settings;
-}
+// static void* WindowSettingsHandler_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*, const char* name)
+// {
+//     ImGuiID              id       = ImHashStr(name);
+//     ImGuiWindowSettings* settings = ImGui::FindWindowSettingsByID(id);
+//     if (settings)
+//         *settings = ImGuiWindowSettings(); // Clear existing if recycling previous entry
+//     else
+//         settings = ImGui::CreateNewWindowSettings(name);
+//     settings->ID        = id;
+//     settings->WantApply = true;
+//     return (void*)settings;
+// }
 
-static void WindowSettingsHandler_ReadLine(ImGuiContext*, ImGuiSettingsHandler*, void* entry, const char* line)
-{
-    ImGuiWindowSettings* settings = (ImGuiWindowSettings*)entry;
-    int                  x, y;
-    int                  i;
-    if (sscanf(line, "Pos=%i,%i", &x, &y) == 2)
-    {
-        settings->Pos = ImVec2ih((short)x, (short)y);
-    }
-    else if (sscanf(line, "Size=%i,%i", &x, &y) == 2)
-    {
-        settings->Size = ImVec2ih((short)x, (short)y);
-    }
-    else if (sscanf(line, "Collapsed=%d", &i) == 1)
-    {
-        settings->Collapsed = (i != 0);
-    }
-}
+// static void WindowSettingsHandler_ReadLine(ImGuiContext*, ImGuiSettingsHandler*, void* entry, const char* line)
+// {
+//     ImGuiWindowSettings* settings = (ImGuiWindowSettings*)entry;
+//     int                  x, y;
+//     int                  i;
+//     if (sscanf(line, "Pos=%i,%i", &x, &y) == 2)
+//     {
+//         settings->Pos = ImVec2ih((short)x, (short)y);
+//     }
+//     else if (sscanf(line, "Size=%i,%i", &x, &y) == 2)
+//     {
+//         settings->Size = ImVec2ih((short)x, (short)y);
+//     }
+//     else if (sscanf(line, "Collapsed=%d", &i) == 1)
+//     {
+//         settings->Collapsed = (i != 0);
+//     }
+// }
 
-// Apply to existing windows (if any)
-static void WindowSettingsHandler_ApplyAll(ImGuiContext* ctx, ImGuiSettingsHandler*)
-{
-    ImGuiContext& g = *ctx;
-    for (ImGuiWindowSettings* settings = g.SettingsWindows.begin(); settings != NULL;
-         settings                      = g.SettingsWindows.next_chunk(settings))
-        if (settings->WantApply)
-        {
-            if (ImGuiWindow* window = ImGui::FindWindowByID(settings->ID))
-                ApplyWindowSettings(window, settings);
-            settings->WantApply = false;
-        }
-}
+// // Apply to existing windows (if any)
+// static void WindowSettingsHandler_ApplyAll(ImGuiContext* ctx, ImGuiSettingsHandler*)
+// {
+//     ImGuiContext& g = *ctx;
+//     for (ImGuiWindowSettings* settings = g.SettingsWindows.begin(); settings != NULL;
+//          settings                      = g.SettingsWindows.next_chunk(settings))
+//         if (settings->WantApply)
+//         {
+//             if (ImGuiWindow* window = ImGui::FindWindowByID(settings->ID))
+//                 ApplyWindowSettings(window, settings);
+//             settings->WantApply = false;
+//         }
+// }
 
-static void WindowSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)
-{
-    // Gather data from windows that were active during this session
-    // (if a window wasn't opened in this session we preserve its settings)
-    ImGuiContext& g = *ctx;
-    for (int i = 0; i != g.Windows.Size; i++)
-    {
-        ImGuiWindow* window = g.Windows[i];
-        if (window->Flags & ImGuiWindowFlags_NoSavedSettings)
-            continue;
+// static void WindowSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)
+// {
+//     // Gather data from windows that were active during this session
+//     // (if a window wasn't opened in this session we preserve its settings)
+//     ImGuiContext& g = *ctx;
+//     for (int i = 0; i != g.Windows.Size; i++)
+//     {
+//         ImGuiWindow* window = g.Windows[i];
+//         if (window->Flags & ImGuiWindowFlags_NoSavedSettings)
+//             continue;
 
-        ImGuiWindowSettings* settings = ImGui::FindWindowSettingsByWindow(window);
-        if (!settings)
-        {
-            settings               = ImGui::CreateNewWindowSettings(window->Name);
-            window->SettingsOffset = g.SettingsWindows.offset_from_ptr(settings);
-        }
-        IM_ASSERT(settings->ID == window->ID);
-        settings->Pos  = ImVec2ih(window->Pos);
-        settings->Size = ImVec2ih(window->SizeFull);
+//         ImGuiWindowSettings* settings = ImGui::FindWindowSettingsByWindow(window);
+//         if (!settings)
+//         {
+//             settings               = ImGui::CreateNewWindowSettings(window->Name);
+//             window->SettingsOffset = g.SettingsWindows.offset_from_ptr(settings);
+//         }
+//         IM_ASSERT(settings->ID == window->ID);
+//         settings->Pos  = ImVec2ih(window->Pos);
+//         settings->Size = ImVec2ih(window->SizeFull);
 
-        settings->Collapsed  = window->Collapsed;
-        settings->WantDelete = false;
-    }
+//         settings->Collapsed  = window->Collapsed;
+//         settings->WantDelete = false;
+//     }
 
-    // Write to text buffer
-    buf->reserve(buf->size() + g.SettingsWindows.size() * 6); // ballpark reserve
-    for (ImGuiWindowSettings* settings = g.SettingsWindows.begin(); settings != NULL;
-         settings                      = g.SettingsWindows.next_chunk(settings))
-    {
-        if (settings->WantDelete)
-            continue;
-        const char* settings_name = settings->GetName();
-        buf->appendf("[%s][%s]\n", handler->TypeName, settings_name);
-        buf->appendf("Pos=%d,%d\n", settings->Pos.x, settings->Pos.y);
-        buf->appendf("Size=%d,%d\n", settings->Size.x, settings->Size.y);
-        buf->appendf("Collapsed=%d\n", settings->Collapsed);
-        buf->append("\n");
-    }
-}
+//     // Write to text buffer
+//     buf->reserve(buf->size() + g.SettingsWindows.size() * 6); // ballpark reserve
+//     for (ImGuiWindowSettings* settings = g.SettingsWindows.begin(); settings != NULL;
+//          settings                      = g.SettingsWindows.next_chunk(settings))
+//     {
+//         if (settings->WantDelete)
+//             continue;
+//         const char* settings_name = settings->GetName();
+//         buf->appendf("[%s][%s]\n", handler->TypeName, settings_name);
+//         buf->appendf("Pos=%d,%d\n", settings->Pos.x, settings->Pos.y);
+//         buf->appendf("Size=%d,%d\n", settings->Size.x, settings->Size.y);
+//         buf->appendf("Collapsed=%d\n", settings->Collapsed);
+//         buf->append("\n");
+//     }
+// }
 
 //-----------------------------------------------------------------------------
 // [SECTION] LOCALIZATION

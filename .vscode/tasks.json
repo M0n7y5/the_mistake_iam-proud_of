@@ -14,7 +14,6 @@
 			],
 			"group": {
 				"kind": "build",
-				"isDefault": true
 			},
 			"presentation": {
 				"reveal": "silent"
@@ -27,6 +26,40 @@
 			"command": "msbuild",
 			"args": [
 				"/property:Configuration=Release",
+				"/property:GenerateFullPaths=true",
+				"/t:Rebuild",
+				"-m",
+				"-clp:ShowTimestamp"
+			],
+			"group": "build",
+			"presentation": {
+				"reveal": "silent"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Build ShippingTesting",
+			"type": "shell",
+			"command": "msbuild",
+			"args": [
+				"/property:Configuration=ShippingTesting",
+				"/property:GenerateFullPaths=true",
+				"/t:Rebuild",
+				"-m",
+				"-clp:ShowTimestamp"
+			],
+			"group": "build",
+			"presentation": {
+				"reveal": "silent"
+			},
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "Build Shipping",
+			"type": "shell",
+			"command": "msbuild",
+			"args": [
+				"/property:Configuration=Shipping",
 				"/property:GenerateFullPaths=true",
 				"/t:Rebuild",
 				"-m",

@@ -5,6 +5,6 @@ namespace Hooks
 {
     namespace BasePlayer
     {
-        void Init();
-    }
+        void        Init();
+    } // namespace BasePlayer
 } // namespace Hooks

@@ -60,7 +60,7 @@
 
 // exceptions
 #if defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)
-#    define ANKERL_UNORDERED_DENSE_HAS_EXCEPTIONS() 1 // NOLINT(cppcoreguidelines-macro-usage)
+#    define ANKERL_UNORDERED_DENSE_HAS_EXCEPTIONS() 0 // NOLINT(cppcoreguidelines-macro-usage)
 #else
 #    define ANKERL_UNORDERED_DENSE_HAS_EXCEPTIONS() 0 // NOLINT(cppcoreguidelines-macro-usage)
 #endif
@@ -125,13 +125,13 @@ namespace detail {
 // make sure this is not inlined as it is slow and dramatically enlarges code, thus making other
 // inlinings more difficult. Throws are also generally the slow path.
 [[noreturn]] inline ANKERL_UNORDERED_DENSE_NOINLINE void on_error_key_not_found() {
-    throw std::out_of_range("ankerl::unordered_dense::map::at(): key not found");
+    throw std::out_of_range(_("ankerl::unordered_dense::map::at(): key not found"));
 }
 [[noreturn]] inline ANKERL_UNORDERED_DENSE_NOINLINE void on_error_bucket_overflow() {
-    throw std::overflow_error("ankerl::unordered_dense: reached max bucket size, cannot increase size");
+    throw std::overflow_error(_("ankerl::unordered_dense: reached max bucket size, cannot increase size"));
 }
 [[noreturn]] inline ANKERL_UNORDERED_DENSE_NOINLINE void on_error_too_many_elements() {
-    throw std::out_of_range("ankerl::unordered_dense::map::replace(): too many elements");
+    throw std::out_of_range(_("ankerl::unordered_dense::map::replace(): too many elements"));
 }
 
 #    else

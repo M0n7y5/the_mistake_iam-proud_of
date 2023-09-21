@@ -1,18 +1,18 @@
 ﻿/*
  * MIT License
- * 
+ *
  * Copyright (c) 2017-2019 Mikhail Pilin
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *  
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,41 +27,49 @@
 #include <cstdint>
 #include <stdexcept>
 
-namespace ww898 {
-namespace utf {
-
-struct utf32 final
+namespace ww898
 {
-    static size_t const max_unicode_symbol_size = 1;
-    static size_t const max_supported_symbol_size = 1;
-
-    static uint32_t const max_supported_code_point = 0x7FFFFFFF;
-
-    using char_type = uint32_t;
-
-    template<typename PeekFn>
-    static size_t char_size(PeekFn &&)
+    namespace utf
     {
-        return 1;
-    }
 
-    template<typename ReadFn>
-    static uint32_t read(ReadFn && read_fn)
-    {
-        char_type const ch = std::forward<ReadFn>(read_fn)();
-        if (ch < 0x80000000)
-            return ch;
-        throw std::runtime_error("Too large utf32 char");
-    }
+        struct utf32 final
+        {
+            static size_t const max_unicode_symbol_size   = 1;
+            static size_t const max_supported_symbol_size = 1;
 
-    template<typename WriteFn>
-    static void write(uint32_t const cp, WriteFn && write_fn)
-    {
-        if (cp < 0x80000000)
-            std::forward<WriteFn>(write_fn)(static_cast<char_type>(cp));
-        else
-            throw std::runtime_error("Too large utf32 code point");
-    }
-};
+            static uint32_t const max_supported_code_point = 0x7FFFFFFF;
 
-}}
+            using char_type = uint32_t;
+
+            template <typename PeekFn> static size_t char_size(PeekFn&&)
+            {
+                return 1;
+            }
+
+            template <typename ReadFn> static uint32_t read(ReadFn&& read_fn)
+            {
+                char_type const ch = std::forward<ReadFn>(read_fn)();
+                if (ch < 0x80000000)
+                    return ch;
+#ifdef _DEBUG
+                throw std::runtime_error("Too large utf32 char");
+#else
+                abort();
+#endif
+            }
+
+            template <typename WriteFn> static void write(uint32_t const cp, WriteFn&& write_fn)
+            {
+                if (cp < 0x80000000)
+                    std::forward<WriteFn>(write_fn)(static_cast<char_type>(cp));
+                else
+#ifdef _DEBUG
+                    throw std::runtime_error("Too large utf32 char");
+#else
+                    abort();
+#endif
+            }
+        };
+
+    } // namespace utf
+} // namespace ww898

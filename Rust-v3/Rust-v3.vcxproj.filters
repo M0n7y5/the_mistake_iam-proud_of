@@ -99,9 +99,6 @@
     <ClCompile Include="SDK\impl\CCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SDK\impl\CTerrainCollision.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SDK\impl\CBaseCombatEntity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -160,6 +157,27 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SDK\impl\CGamePhysics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\settings_types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\vector_algorithms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\cpu_model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\miniz.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hooks\UIBlackoutOverlay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hooks\BaseProjectile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Hooks\Shared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -302,5 +320,14 @@
     <ClInclude Include="Features\DesyncManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SDK\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SDK\prefab_ids.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mrt\chkstk2.c" />
   </ItemGroup>
 </Project>

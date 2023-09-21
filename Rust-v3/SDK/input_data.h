@@ -1330,7 +1330,8 @@ enum class KeyCode
 enum class TriggerType : uint32_t
 {
     HOLD,
-    TOGGLE
+    TOGGLE,
+    ALWAYS_ON
 };
 
 // struct that will be save in cfg
@@ -1340,8 +1341,9 @@ struct KeyButtonData
     TriggerType type;
     bool        isToggled;
 
-    constexpr KeyButtonData(KeyCode mKey = KeyCode::None, TriggerType mType = TriggerType::HOLD,
-                            bool mIsToggled = false)
+    constexpr KeyButtonData(KeyCode     mKey       = KeyCode::None,
+                            TriggerType mType      = TriggerType::HOLD,
+                            bool        mIsToggled = false)
     {
         key       = mKey;
         type      = mType;
@@ -1355,20 +1357,21 @@ struct KeyButton
     double        lastToggleTime;
     KeyButtonData buttonData;
 
-    constexpr KeyButton(KeyCode mKey = KeyCode::None, TriggerType mType = TriggerType::HOLD,
-                        bool mIsToggled = false)
+    constexpr KeyButton(KeyCode     mKey       = KeyCode::None,
+                        TriggerType mType      = TriggerType::HOLD,
+                        bool        mIsToggled = false)
         : lastToggleTime(0), buttonData(mKey, mType, mIsToggled)
     {
     }
 };
 
-#define KEYNAMEENTRY(x)                                                                            \
-    {                                                                                              \
-        KeyCode::x, _(#x)                                                                          \
+#define KEYNAMEENTRY(x)                                                        \
+    {                                                                          \
+        KeyCode::x, _(#x)                                                      \
     }
-#define KEYNAMEENTRYEX(x, y)                                                                       \
-    {                                                                                              \
-        KeyCode::x, _(y)                                                                           \
+#define KEYNAMEENTRYEX(x, y)                                                   \
+    {                                                                          \
+        KeyCode::x, _(y)                                                       \
     }
 
 static inline std::string GetKeyString(KeyCode key)
@@ -1396,6 +1399,9 @@ static inline std::string GetKeyString(KeyCode key)
         KEYNAMEENTRY(Minus),
         KEYNAMEENTRY(Period),
         KEYNAMEENTRY(Slash),
+        KEYNAMEENTRY(Space),
+        KEYNAMEENTRY(LeftShift),
+        KEYNAMEENTRY(LeftControl),
 
         KEYNAMEENTRY(Alpha0),
         KEYNAMEENTRY(Alpha1),
@@ -1506,7 +1512,7 @@ static inline std::string GetKeyString(KeyCode key)
     return names[key];
 }
 
-static inline std::string GetKeyString(KeyButton &button)
+static inline std::string GetKeyString(KeyButton& button)
 
 {
     return GetKeyString(button.buttonData.key);

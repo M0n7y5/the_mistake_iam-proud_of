@@ -91,4 +91,30 @@ extern "C" double __CRTDECL fabs(double _X)
     return fn(_X);
 }
 
+extern "C" float __CRTDECL roundf(float _X)
+{
+    static auto fn = LI_FN(roundf).in_safe(crtbaseModule.get());
+    return fn(_X);
+}
+
+extern "C" float __CRTDECL tanf(float _X)
+{
+    static auto fn = LI_FN(tanf).in_safe(crtbaseModule.get());
+    return fn(_X);
+}
+
+extern "C" float __CRTDECL asinf(float _X)
+{
+    static auto fn = LI_FN(asinf).in_safe(crtbaseModule.get());
+    return fn(_X);
+}
+
+// TODO: Make it TLS variable
+int __eeeerrr = 0;
+
+extern "C" int* _errno()
+{
+    return &__eeeerrr;
+}
+
 #endif // MRT_ENABLED

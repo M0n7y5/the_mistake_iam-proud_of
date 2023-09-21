@@ -123,7 +123,8 @@ class Vector2
         return x == _flt(0.f) && y == _flt(0.f);
     }
 
-    static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, float angle, bool angleInRadians = false)
+    static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, float angle,
+                               bool angleInRadians = false)
     {
         float rad = DEG2RAD(normalize_angle(angle));
         float s   = (float)-std::sin(rad);
@@ -141,19 +142,18 @@ class Vector2
 class Vector3
 {
   public:
-    Vector3()
+    float x, y, z;
+    constexpr Vector3()
     {
         x = y = z = _flt(0.f);
     }
 
-    Vector3(float fx, float fy, float fz)
+    constexpr Vector3(float fx, float fy, float fz)
     {
         x = fx;
         y = fy;
         z = fz;
     }
-
-    float x, y, z;
 
     Vector3 operator+(const Vector3& input) const
     {
@@ -416,7 +416,8 @@ class Vector3
     bool empty() const
     {
         return (x == _flt(0.f) && y == _flt(0.f) && z == _flt(0.f)) ||
-               (x == negate_flt(_flt(1.f)) && y == negate_flt(_flt(1.f)) && z == negate_flt(_flt(1.f)));
+               (x == negate_flt(_flt(1.f)) && y == negate_flt(_flt(1.f)) &&
+                z == negate_flt(_flt(1.f)));
     }
 
     static float Angle(Vector3 from, Vector3 to)
@@ -467,12 +468,13 @@ class Vector3
         if (m_vecUp)
         {
             Vector3 m_vecLeft = (*m_vecUp).Cross(*this);
-            m_flRoll          = RAD2DEG(std::atan2f(m_vecLeft.y, (m_vecLeft.z * x) - (m_vecLeft.x * z)));
+            m_flRoll = RAD2DEG(std::atan2f(m_vecLeft.y, (m_vecLeft.z * x) - (m_vecLeft.x * z)));
         }
 
         // return Vector3(RAD2DEG(atan2f(-z, sqrtf(x * x + y * y))), RAD2DEG(atan2f(y, x)),
         // m_dRoll);
-        return Vector3(RAD2DEG(std::atan2f(-y, std::sqrt(x * x + z * z))), RAD2DEG(std::atan2f(z, x)), m_flRoll);
+        return Vector3(RAD2DEG(std::atan2f(-y, std::sqrt(x * x + z * z))),
+                       RAD2DEG(std::atan2f(z, x)), m_flRoll);
     }
 
     static float Clamp(float value, float min, float max)
@@ -493,6 +495,12 @@ class Vector3
         return value;
     }
 };
+
+inline constexpr Vector3 vec3Right   = {_flt(1.f), _flt(0.f), _flt(0.f)};
+inline constexpr Vector3 vec3Left    = {_flt(-1.f), _flt(0.f), _flt(0.f)};
+inline constexpr Vector3 vec3Forward = {_flt(0.f), _flt(0.f), _flt(1.f)};
+inline constexpr Vector3 vec3Back = {_flt(0.f), _flt(0.f), _flt(1.f)};
+inline constexpr Vector3 vec3Up      = {_flt(0.f), _flt(1.f), _flt(0.f)};
 
 class Vector4
 {
@@ -712,9 +720,12 @@ class Vector4
         float   num11 = rotation.w * num2;
         float   num12 = rotation.w * num3;
         Vector3 result;
-        result.x = (_flt(1.f) - (num5 + num6)) * point.x + (num7 - num12) * point.y + (num8 + num11) * point.z;
-        result.y = (num7 + num12) * point.x + (_flt(1.f) - (num4 + num6)) * point.y + (num9 - num10) * point.z;
-        result.z = (num8 - num11) * point.x + (num9 + num10) * point.y + (_flt(1.f) - (num4 + num5)) * point.z;
+        result.x = (_flt(1.f) - (num5 + num6)) * point.x + (num7 - num12) * point.y +
+                   (num8 + num11) * point.z;
+        result.y = (num7 + num12) * point.x + (_flt(1.f) - (num4 + num6)) * point.y +
+                   (num9 - num10) * point.z;
+        result.z = (num8 - num11) * point.x + (num9 + num10) * point.y +
+                   (_flt(1.f) - (num4 + num5)) * point.z;
         return result;
     }
 
@@ -732,7 +743,38 @@ class Vector4
     }
 };
 
-typedef Vector4 Quaternion;
+// typedef Vector4 Quaternion;
+
+struct Quaternion
+{
+    float x, y, z, w;
+
+    Vector3 operator*(const Vector3& point) const
+    {
+        float num   = x * 2.f;
+        float num2  = y * 2.f;
+        float num3  = z * 2.f;
+        float num4  = x * num;
+        float num5  = y * num2;
+        float num6  = z * num3;
+        float num7  = x * num2;
+        float num8  = x * num3;
+        float num9  = y * num3;
+        float num10 = w * num;
+        float num11 = w * num2;
+        float num12 = w * num3;
+
+        Vector3 result{};
+
+        result.x =
+            (1.f - (num5 + num6)) * point.x + (num7 - num12) * point.y + (num8 + num11) * point.z;
+        result.y =
+            (num7 + num12) * point.x + (1.f - (num4 + num6)) * point.y + (num9 - num10) * point.z;
+        result.z =
+            (num8 - num11) * point.x + (num9 + num10) * point.y + (1.f - (num4 + num5)) * point.z;
+        return result;
+    }
+};
 
 class Matrix4x4
 {
@@ -760,18 +802,21 @@ class Matrix4x4
   public:
     inline Matrix4x4()
     {
-        Init(_flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
-             _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f));
+        Init(_flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
+             _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
+             _flt(0.f));
     }
 
-    inline Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
-                     float m21, float m22, float m23, float m30, float m31, float m32, float m33)
+    inline Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12,
+                     float m13, float m20, float m21, float m22, float m23, float m30, float m31,
+                     float m32, float m33)
     {
         Init(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
     }
 
-    inline void Init(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
-                     float m21, float m22, float m23, float m30, float m31, float m32, float m33)
+    inline void Init(float m00, float m01, float m02, float m03, float m10, float m11, float m12,
+                     float m13, float m20, float m21, float m22, float m23, float m30, float m31,
+                     float m32, float m33)
     {
         m[0][0] = m00;
         m[0][1] = m01;
@@ -816,8 +861,8 @@ class Matrix4x4
 
     Matrix4x4 transpose() const
     {
-        return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2],
-                         m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
+        return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1],
+                         m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
     }
 
     static Matrix4x4 Translate(Vector3 vector)
@@ -845,7 +890,8 @@ class Matrix4x4
 
     // game specific
     // needs to be implemented outside
-    static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar);
+    static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear,
+                           float zFar);
 
     union {
         float m[4][4];
@@ -894,15 +940,14 @@ inline Vector3 quatmult(const Vector3* point, Vector4* quat)
     float   num11 = quat->w * num2;
     float   num12 = quat->w * num3;
     Vector3 result;
-    result.x = (_flt(1.f) - (num5 + num6)) * point->x + (num7 - num12) * point->y + (num8 + num11) * point->z;
-    result.y = (num7 + num12) * point->x + (_flt(1.f) - (num4 + num6)) * point->y + (num9 - num10) * point->z;
-    result.z = (num8 - num11) * point->x + (num9 + num10) * point->y + (_flt(1.f) - (num4 + num5)) * point->z;
+    result.x = (_flt(1.f) - (num5 + num6)) * point->x + (num7 - num12) * point->y +
+               (num8 + num11) * point->z;
+    result.y = (num7 + num12) * point->x + (_flt(1.f) - (num4 + num6)) * point->y +
+               (num9 - num10) * point->z;
+    result.z = (num8 - num11) * point->x + (num9 + num10) * point->y +
+               (_flt(1.f) - (num4 + num5)) * point->z;
     return result;
 }
-
-inline Vector3 vecright   = {_flt(1.f), _flt(0.f), _flt(0.f)};
-inline Vector3 vecforward = {_flt(0.f), _flt(0.f), _flt(1.f)};
-inline Vector3 vecup      = {_flt(0.f), _flt(1.f), _flt(0.f)};
 
 namespace math_additional
 {
@@ -946,9 +991,11 @@ namespace math_additional
     }
 }; // namespace math_additional
 
-inline float Remap(float value, float inputStart, float inputEnd, float outputStart, float outputEnd)
+inline float Remap(float value, float inputStart, float inputEnd, float outputStart,
+                   float outputEnd)
 {
-    float result = (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
+    float result =
+        (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
     return result;
 }
 

@@ -33,7 +33,7 @@
  *  \brief Get enum underlying type.
  */
 template <typename T>
-inline typename std::underlying_type<T>::type enumc_to_int( T t )
+constexpr inline typename std::underlying_type<T>::type enumc_to_int( T t )
 {
     return static_cast< typename std::underlying_type<T>::type >( t );
 }
@@ -48,39 +48,39 @@ inline typename std::underlying_type<T>::type enumc_to_int( T t )
  */
 #define SCOPED_ENUM_FLAG2(lhs_t, ths_t)                                     \
     /*  \brief Bitwise or operator. */                                      \
-    inline lhs_t operator|(lhs_t lhs, ths_t rhs) noexcept                   \
+    constexpr inline lhs_t operator|(lhs_t lhs, ths_t rhs) noexcept                   \
     {                                                                       \
         return static_cast<lhs_t>(enumc_to_int(lhs) | enumc_to_int(rhs));   \
     }                                                                       \
                                                                             \
     /*  \brief Bitwise or assignment operator. */                           \
-    inline lhs_t & operator|=(lhs_t &lhs, ths_t rhs) noexcept               \
+    constexpr inline lhs_t & operator|=(lhs_t &lhs, ths_t rhs) noexcept               \
     {                                                                       \
         lhs = static_cast<lhs_t>(enumc_to_int(lhs) | enumc_to_int(rhs));    \
         return lhs;                                                         \
     }                                                                       \
                                                                             \
     /*      \brief Bitwise and operator. */                                 \
-    inline lhs_t operator&(lhs_t lhs, ths_t rhs) noexcept                   \
+    constexpr inline lhs_t operator&(lhs_t lhs, ths_t rhs) noexcept                   \
     {                                                                       \
         return static_cast<lhs_t>(enumc_to_int(lhs) & enumc_to_int(rhs));   \
     }                                                                       \
                                                                             \
     /*  \brief Bitwise and assignment operator. */                          \
-    inline lhs_t & operator&=(lhs_t &lhs, ths_t rhs) noexcept               \
+    constexpr inline lhs_t & operator&=(lhs_t &lhs, ths_t rhs) noexcept               \
     {                                                                       \
         lhs = static_cast<lhs_t>(enumc_to_int(lhs) & enumc_to_int(rhs));    \
         return lhs;                                                         \
     }                                                                       \
                                                                             \
     /*  \brief Bitwise xor operator. */                                     \
-    inline lhs_t operator^(lhs_t lhs, ths_t rhs) noexcept                   \
+    constexpr inline lhs_t operator^(lhs_t lhs, ths_t rhs) noexcept                   \
     {                                                                       \
         return static_cast<lhs_t>(enumc_to_int(lhs) ^ enumc_to_int(rhs));   \
     }                                                                       \
                                                                             \
     /*  \brief Bitwise xor assignment operator. */                          \
-    inline lhs_t & operator^=(lhs_t &lhs, ths_t rhs) noexcept               \
+    constexpr inline lhs_t & operator^=(lhs_t &lhs, ths_t rhs) noexcept               \
     {                                                                       \
         lhs = static_cast<lhs_t>(enumc_to_int(lhs) ^ enumc_to_int(rhs));    \
         return lhs;                                                         \
@@ -94,13 +94,13 @@ inline typename std::underlying_type<T>::type enumc_to_int( T t )
     SCOPED_ENUM_FLAG2(enum_t, enum_t)                                       \
                                                                             \
     /*  \brief Bitwise negation operator. */                                \
-    inline enum_t operator~(enum_t value) noexcept                          \
+    constexpr inline enum_t operator~(enum_t value) noexcept                          \
     {                                                                       \
         return static_cast<enum_t>(~enumc_to_int(value));                   \
     }                                                                       \
                                                                             \
     /*  \brief Negation operator. */                                        \
-    inline bool operator!(enum_t value) noexcept                            \
+    constexpr inline bool operator!(enum_t value) noexcept                            \
     {                                                                       \
         return enumc_to_int(value) == 0;                                    \
     }

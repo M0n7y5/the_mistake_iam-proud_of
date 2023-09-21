@@ -12,6 +12,10 @@
       <Configuration>ShippingTesting</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Shipping|x64">
+      <Configuration>Shipping</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -41,6 +45,13 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>LLVM_v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
@@ -53,8 +64,15 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ShippingTesting|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ShippingTesting|x64'">
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'">
     <EmbedManifest>false</EmbedManifest>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
@@ -62,6 +80,10 @@
     <UseLldLink>true</UseLldLink>
     <LldLinkAdditionalOptions>
     </LldLinkAdditionalOptions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'" Label="LLVM">
+    <UseLldLink>true</UseLldLink>
+    <LldLinkAdditionalOptions />
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnabled>false</VcpkgEnabled>
@@ -80,7 +102,7 @@
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mavx %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mavx /clang:-fbracket-depth=512 /clang:-Werror=uninitialized %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -102,7 +124,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <Optimization>MaxSpeed</Optimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-fbracket-depth=512 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,20 +143,22 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <ExceptionHandling>false</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <Optimization>MaxSpeed</Optimization>
-      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MinSpace</Optimization>
+      <AdditionalOptions>/clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-Wno-microsoft-cast /clang:-Werror=return-type  /clang:-Werror=uninitialized /clang:-mstackrealign %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,11 +170,54 @@
       <MergeSections>
       </MergeSections>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalOptions>/merge:.pdata=.rdata /merge:.rdata=.data /STACK:0x400000,0x400000 %(AdditionalOptions)</AdditionalOptions>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalDependencies>$(ProjectDir)lib\chkstk2.o;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED;_HAS_STATIC_RTTI=0;EAC_DEEZ;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <StringPooling>true</StringPooling>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <ExceptionHandling>false</ExceptionHandling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <Optimization>Full</Optimization>
+      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mno-stack-arg-probe /clang:-mstackrealign /clang:-Werror=uninitialized %(AdditionalOptions)</AdditionalOptions>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>false</OmitFramePointers>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <EntryPointSymbol>DllMain</EntryPointSymbol>
+      <MergeSections>
+      </MergeSections>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <AdditionalOptions>/merge:.pdata=.rdata /merge:.rdata=.data /STACK:0x100000,0x100000 %(AdditionalOptions)</AdditionalOptions>
       <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="SDK\settings_types.cpp" />
     <ClCompile Include="ui\ESP.cpp" />
     <ClCompile Include="Features\EntityManager.cpp" />
     <ClCompile Include="Features\Movement.cpp" />
@@ -160,7 +227,10 @@
     <ClCompile Include="Hooks\Client.cpp" />
     <ClCompile Include="Hooks\ItemIcon.cpp" />
     <ClCompile Include="Hooks\MainCamera.cpp" />
+    <ClCompile Include="Hooks\UIBlackoutOverlay.cpp" />
     <ClCompile Include="Hooks\PerformanceText.cpp" />
+    <ClCompile Include="Hooks\BaseProjectile.cpp" />
+    <ClCompile Include="Hooks\Shared.cpp" />
     <ClCompile Include="SDK\impl\CInput.cpp" />
     <ClCompile Include="ui\imgui_backend\imgui_impl_unity.cpp" />
     <ClCompile Include="mrt\logging.cpp" />
@@ -177,7 +247,6 @@
     <ClCompile Include="SDK\impl\CMesh.cpp" />
     <ClCompile Include="SDK\impl\CModel.cpp" />
     <ClCompile Include="SDK\impl\CShader.cpp" />
-    <ClCompile Include="SDK\impl\CTerrainCollision.cpp" />
     <ClCompile Include="SDK\impl\CTexture.cpp" />
     <ClCompile Include="SDK\impl\CTexture2D.cpp" />
     <ClCompile Include="SDK\impl\CTime.cpp" />
@@ -188,6 +257,9 @@
     <ClCompile Include="mrt\core.cpp" />
     <ClCompile Include="mrt\math.cpp" />
     <ClCompile Include="mrt\memory.cpp" />
+    <ClCompile Include="mrt\vector_algorithms.cpp" />
+    <ClCompile Include="mrt\cpu_model.cpp" />
+    <ClCompile Include="mrt\miniz.cpp" />
     <ClCompile Include="mrt\string.cpp" />
     <ClCompile Include="Hooks\Projectile.cpp" />
     <ClCompile Include="Hooks\PlayerWalkMovement.cpp" />
@@ -204,8 +276,10 @@
   <ItemGroup>
     <ClInclude Include="Features\DesyncManager.h" />
     <ClInclude Include="SDK\input_data.h" />
+    <ClInclude Include="SDK\prefab_ids.h" />
     <ClInclude Include="SDK\settings.h" />
     <ClInclude Include="SDK\settings_types.h" />
+    <ClInclude Include="SDK\utils.h" />
     <ClInclude Include="ui\ESP.h" />
     <ClInclude Include="Features\EntityManager.h" />
     <ClInclude Include="Features\Movement.h" />
@@ -248,6 +322,9 @@
     <ClInclude Include="ui\MiniTween.h" />
     <ClInclude Include="ui\mui.h" />
     <ClInclude Include="ui\STween.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mrt\chkstk2.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
