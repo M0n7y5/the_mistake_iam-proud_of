@@ -435,7 +435,6 @@ void GUI::Init()
             fs.AddFeature(_("Boost Speed"), &settings->misc.flyhack.FlyHackBoostSpeed, 1, 50, "%d");
             fs.AddFeature(_("Prevent Fly Kick"), &settings->misc.flyhack.AntiFlyKick);
             fs.AddFeature(_("Prevent Ban"), &settings->misc.flyhack.PreventBan);
-            fs.AddFeature(_("Absolute Position"), &settings->misc.flyhack.AbsoluteFlyHack);
             fs.AddFeature(_("Wall Phase"), settings->misc.flyhack.WallPhase);
         });
 

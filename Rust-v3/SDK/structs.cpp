@@ -377,6 +377,15 @@ bool CWaterLevel::Test(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEn
     return ((bool (*)(Vector3, bool, bool, CBaseEntity*))(addr))(pos, waves, volumes, forEntity);
 }
 
+CWaterInfo CWaterLevel::GetWaterInfo(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEntity, bool noEarlyExit)
+{
+    static auto addr = OFF(
+        Offsets::WaterLevel::StaticMethods::
+            GetWaterInfo_UnityEngine_Vector3_pos__System_Boolean_waves__System_Boolean_volumes__BaseEntity_forEntity___null__System_Boolean_noEarlyExit___False);
+    return ((CWaterInfo(*)(Vector3, bool, bool, CBaseEntity*, bool))(addr))(pos, waves, volumes, forEntity,
+                                                                            noEarlyExit);
+}
+
 CTerrainCollision* CTerrainMeta::GetCollision()
 {
     static auto addr = OFF(Offsets::TerrainMeta::StaticMethods::get_Collision);
@@ -476,5 +485,5 @@ CRect CSprite::GetTextureRect()
 CItem* CItemContainer::FindItemByUID(ItemId_o iUID)
 {
     static auto addr = OFF(Offsets::ItemContainer::Methods::FindItemByUID_ItemId_iUID);
-    return ((CItem*(__thiscall*)(CItemContainer*, ItemId_o))(addr))(this, iUID);
+    return ((CItem * (__thiscall*)(CItemContainer*, ItemId_o))(addr))(this, iUID);
 }

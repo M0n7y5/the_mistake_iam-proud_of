@@ -3,7 +3,7 @@
 <!-- Path to custom LLVM compiler -->
 <Project DefaultTargets="Build">
 	<PropertyGroup>
-		<LLVMInstallDir>G:\llvm\llvm_build\Release</LLVMInstallDir>
+		<LLVMInstallDir>G:\llvm\llvm_build\RelWithDebInfo</LLVMInstallDir>
 		<LLVMToolsVersion>16.0.6</LLVMToolsVersion>
 	</PropertyGroup>
 </Project>

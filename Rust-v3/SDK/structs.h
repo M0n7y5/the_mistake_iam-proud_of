@@ -893,9 +893,15 @@ struct CAntiHack : ILObjectBase<ConVar_AntiHack_c>
     static constexpr float flyhack_forgiveness_horizontal_inertia = 10.f;
 };
 
+struct CWaterInfo : WaterLevel_WaterInfo_Fields
+{
+
+};
+
 struct CWaterLevel : ILObjectBase<WaterLevel_Fields>
 {
     static bool Test(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEntity = nullptr);
+    static CWaterInfo GetWaterInfo(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEntity = nullptr, bool noEarlyExit = false);
 };
 
 struct CPlayerTick : ILObjectBase<PlayerTick_Fields>

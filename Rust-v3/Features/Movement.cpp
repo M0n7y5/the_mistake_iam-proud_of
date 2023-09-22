@@ -30,14 +30,16 @@ namespace Movement
         auto onLadder      = player->OnLadder();
         auto notInElevator = (enviroment & EnvironmentType::Elevator) == (EnvironmentType)0;
 
-        auto waterTest =
-            (settings->misc.flyhack.AbsoluteFlyHack
-                 ? !CWaterLevel::Test(vector - Vector3(0.f, CAntiHack::flyhack_extrusion, 0.f), true, true, player)
-                 : true);
+        auto waterInfo = CWaterLevel::GetWaterInfo(vector - Vector3(0.f, CAntiHack::flyhack_extrusion, 0.f), true, true, player, false);
+
+        // auto waterTest =
+        //     (settings->misc.flyhack.AbsoluteFlyHack
+        //          ? !CWaterLevel::Test(vector - Vector3(0.f, CAntiHack::flyhack_extrusion, 0.f), true, true, player)
+        //          : true);
 
         if (verifyGrounded)
         {
-            if (!onLadder && notInElevator && waterTest)
+            if (!onLadder && notInElevator && waterInfo.isValid == false)
             {
                 float flyhack_margin = CAntiHack::flyhack_margin;
                 float radius         = player->GetRadius();
@@ -301,12 +303,12 @@ namespace Movement
 
                 auto nextPos = currentPosition + addThisFrame;
 
-                auto isFlyhacking = TestFlying(localplayer, currentPosition, nextPos, true, true);
+                // auto isFlyhacking = TestFlying(localplayer, currentPosition, nextPos, true, true);
 
-                if (isFlyhacking)
-                {
-                    targetMovement = {};
-                }
+                // if (isFlyhacking)
+                // {
+                //     targetMovement = {};
+                // }
 
                 if (targetMovement.empty() == false)
                 {
@@ -315,10 +317,6 @@ namespace Movement
                 }
 
                 modelState->SetFlag(ModelStateFlags::Sprinting, true);
-            }
-            else
-            {
-                // absolute flyhack
             }
         }
         else
