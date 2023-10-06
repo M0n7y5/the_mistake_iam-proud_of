@@ -8,6 +8,9 @@ namespace Movement
     inline float flyhackDistanceVerticalMax   = 0.f;
     inline float flyhackDistanceHorizontalMax = 0.f;
 
+    inline bool    IsWallTeleportPossible = false;
+    inline Vector3 TeleportTargetPosition = {};
+
     void FlyHack(CBasePlayer* player);
     bool TestFlying(CBasePlayer* player, const Vector3& oldPos, const Vector3& newPos, bool verifyGrounded,
                     bool changeValues = true);

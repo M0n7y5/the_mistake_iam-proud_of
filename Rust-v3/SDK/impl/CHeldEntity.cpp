@@ -19,7 +19,7 @@ bool CHeldEntity::IsBaseProjectile()
             {
             // RIFLE AMMO
             case 1545779598:  // assault rifle
-            case -1335497659: // ICE AK
+            case -1335497659: // ICE AK 
             case -1812555177: // LR-300 Assault Rifle
             case -904863145:  // Semi-Automatic Rifle
             case 1588298435:  // Bolt Action Rifle
@@ -27,6 +27,7 @@ bool CHeldEntity::IsBaseProjectile()
             case 28201841:    // M39 Rifle
             case -2069578888: // M249
             case -1214542497: // HMLMG
+            case -139037392:  // Abyss AK
 
             // PISTOL AMMO
             case 1796682209:  // Custom SMG

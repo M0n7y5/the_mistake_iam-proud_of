@@ -2,6 +2,7 @@
 // this needs to be here before il2cpp header
 // since its using its types but doesnt include its header
 // its the il2cppdumper issue
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <stdint.h>
@@ -523,6 +524,8 @@ struct CBaseNetworkable : ILObjectBase<BaseNetworkable_Fields>
     //     auto lol =
     //     this->StaticFields<BaseNetworkable_StaticFields>()->clientEntities;
     // }
+
+    bool HasParent();
 };
 
 struct CTerrainCollision
@@ -566,8 +569,11 @@ struct CCapsuleCollider : ILObjectBase<UnityEngine_CapsuleCollider_Fields>
     float GetRadius();
 };
 
+struct CBasePlayer;
+
 struct CPlayerWalkMovement : CBaseMovement, PlayerWalkMovement_Fields_s
 {
+    void TeleportTo(Vector3 pos, CBasePlayer* player);
 };
 
 struct CBaseCombatEntity : CBaseEntity, BaseCombatEntity_Fields_s
@@ -602,6 +608,10 @@ struct CItemDefinition : ILObjectBase<ItemDefinition_Fields>
 struct CItem : ILObjectBase<Item_Fields>
 {
     bool HasCondition();
+    bool IsBroken()
+    {
+        return HasCondition() && this->_condition <= 0;
+    }
 };
 
 struct CHeldEntity : CBaseEntity, HeldEntity_Fields_s
@@ -627,6 +637,8 @@ struct CPlayerEyes : ILObjectBase<PlayerEyes_Fields>
 {
     Vector3 GetPosition();
     Vector3 BodyForward();
+    Vector3 GetCenter();
+    Quaternion GetRotation();
 };
 
 struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
@@ -649,6 +661,20 @@ struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
     float        NoClipRadius(float margin);
     void         OnLand(float velocity);
     CItem*       GetActiveItem();
+    bool         UpdateLookingAt(float radius, bool includeSecondaryEntities);
+    Vector3      GetMountVelocity();
+
+    float GetDesyncTimeRaw()
+    {
+        float timeSinceLastTick = CTime::GetRealTime() - this->lastSentTickTime;
+
+        return std::max(timeSinceLastTick - CTime::GetDeltaTime(), 0.f);
+    }
+
+    float GetDesyncTimeClamped(float maxDesync = 0.99f)
+    {
+        return std::min(GetDesyncTimeRaw(), maxDesync);
+    }
 
     bool HasFlag(PlayerFlags Flag)
     {
@@ -717,16 +743,40 @@ struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
 
         return vec2.Lerp() * mult;
     };
+
+    Vector3 NoClipOffset()
+    {
+        return {0.f, this->GetHeight(true) - this->GetRadius(), 0.f};
+    }
 };
 
 struct CAttackEntity : CHeldEntity, AttackEntity_Fields_s
 {
-    bool IsWeaponReady(bool bow);
+    bool IsWeaponReady();
     void StartAttackCooldown(float cooldown);
 };
 
 struct CBaseProjectile : CAttackEntity, BaseProjectile_Fields_s
 {
+    void  OnSignal();
+    void  UpdateAmmoDisplay();
+    void  LaunchProjectile();
+    bool  HasReloadCooldown();
+    void  StartReloadCooldown(float cooldown);
+    bool  SupportsRapidFire();
+    float CalculateServerCooldownTime(float nextTime, float cooldown);
+    void  Shoot();
+    float ScaleRepeatDelay(float delay);
+
+    bool IsBurstDisabled() {
+
+        return this->HasFlag(BaseEntityFlags::Reserved6) == this->defaultOn;
+    }
+
+    bool UsingInternalBurstMode()
+    {
+        return IsBurstDisabled() == false && this->isBurstWeapon;
+    }
 };
 
 struct CGatherPropertyEntry : ResourceDispenser_GatherPropertyEntry_Fields
@@ -782,9 +832,6 @@ class CGamePhysics
     static bool LineOfSight(Vector3 src, Vector3 dest, Layers layerMask, float padding = 0.f,
                             CBaseEntity* ignoreEntity = nullptr);
 
-    static bool Trace(CRay ray, float radius, CRaycastHit* hitInfo, float maxDistance, int32_t layerMask,
-                      QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal);
-
     static bool Raycast(CRay ray, float maxDistance, int32_t layerMask,
                         QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal);
 
@@ -800,6 +847,10 @@ class CGamePhysics
                              QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal);
 
     static void IgnoreLayerCollision(Layer layer1, Layer layer2, bool ignore);
+
+    static bool Trace(CRay ray, float radius, CRaycastHit* hitInfo, float maxDistance, int32_t layerMask,
+                      QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction::UseGlobal,
+                      CBaseEntity*            ignoreEntity       = nullptr);
 };
 
 struct CProjectile : ILObjectBase<Projectile_Fields>
@@ -810,7 +861,7 @@ struct CServerProjectile : ILObjectBase<ServerProjectile_Fields>
 {
 };
 
-struct CProjectileWeaponMod : ILObjectBase<ProjectileWeaponMod_Fields>
+struct CProjectileWeaponMod : CBaseEntity, ProjectileWeaponMod_Fields_s
 {
 };
 
@@ -855,6 +906,8 @@ struct Quaternion;
 struct CQuaternion : UnityEngine_Quaternion_Fields
 {
     static Quaternion Euler(Vector3 euler);
+
+    Vector3 GetEulerAngles();
 };
 
 struct CUIBlackoutOverlay : ILObjectBase<UIBlackoutOverlay_Fields>
@@ -895,13 +948,13 @@ struct CAntiHack : ILObjectBase<ConVar_AntiHack_c>
 
 struct CWaterInfo : WaterLevel_WaterInfo_Fields
 {
-
 };
 
 struct CWaterLevel : ILObjectBase<WaterLevel_Fields>
 {
-    static bool Test(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEntity = nullptr);
-    static CWaterInfo GetWaterInfo(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEntity = nullptr, bool noEarlyExit = false);
+    static bool       Test(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEntity = nullptr);
+    static CWaterInfo GetWaterInfo(Vector3 pos, bool waves, bool volumes, CBaseEntity* forEntity = nullptr,
+                                   bool noEarlyExit = false);
 };
 
 struct CPlayerTick : ILObjectBase<PlayerTick_Fields>
@@ -927,7 +980,7 @@ struct CRectTransform : UnityEngine_RectTransform_Fields_s, CTransform
     CRect GetRect();
 };
 
-struct CPlayerBelt
+struct CPlayerBelt : ILObjectBase<PlayerBelt_Fields>
 {
     int    GetMaxBeltSlots();
     CItem* GetActiveItem();
@@ -937,4 +990,8 @@ struct CPlayerBelt
 struct CItemContainer : ILObjectBase<ItemContainer_Fields>
 {
     CItem* FindItemByUID(ItemId_o iUID);
+};
+
+struct CFlintStrikeWeapon : ILObjectBase<FlintStrikeWeapon_Fields>
+{
 };

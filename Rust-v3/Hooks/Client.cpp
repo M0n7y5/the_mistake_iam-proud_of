@@ -2,6 +2,7 @@
 #include "../SDK/il2cpp_api.h"
 #include "../SDK/structs.h"
 #include "../SDK/globals.h"
+#include "../SDK/prefab_ids.h"
 #include "../mrt/logging.h"
 #include "../mrt/constexpr-xxh3.h"
 #include "../mrt/steam.hpp"
@@ -22,7 +23,7 @@ namespace
     static uintptr_t Awake_o     = 0;
     static uintptr_t OnDisable_o = 0;
 
-    //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    // ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     static bool isMenuOpen    = true;
     static bool graceFullExit = true;
@@ -176,49 +177,49 @@ namespace
         graceFullExit = true;
     }
 
-//     static void hk_Awake(void* _this)
-//     {
-//         static bool initMe = true;
+    //     static void hk_Awake(void* _this)
+    //     {
+    //         static bool initMe = true;
 
-//         if (initMe)
-//         {
-//             // lets init this function by allowing orinal function run first
-//             initMe = false;
-//             reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
+    //         if (initMe)
+    //         {
+    //             // lets init this function by allowing orinal function run first
+    //             initMe = false;
+    //             reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
 
-// #ifdef _DEBUG
-//             L::Print<L::Yellow>("Client Awake -> initMe");
-// #endif
+    // #ifdef _DEBUG
+    //             L::Print<L::Yellow>("Client Awake -> initMe");
+    // #endif
 
-//             return;
-//         }
+    //             return;
+    //         }
 
-//         // L::Print("Client Awake -> Called");
+    //         // L::Print("Client Awake -> Called");
 
-//         reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
-//     }
+    //         reinterpret_cast<decltype(&hk_Awake)>(Awake_o)(_this);
+    //     }
 
-//     static void hk_OnDisable(void* _this)
-//     {
-//         static bool initMe = true;
+    //     static void hk_OnDisable(void* _this)
+    //     {
+    //         static bool initMe = true;
 
-//         if (initMe)
-//         {
-//             // lets init this function by allowing orinal function run first
-//             initMe = false;
-//             reinterpret_cast<decltype(&hk_OnDisable)>(OnDisable_o)(_this);
+    //         if (initMe)
+    //         {
+    //             // lets init this function by allowing orinal function run first
+    //             initMe = false;
+    //             reinterpret_cast<decltype(&hk_OnDisable)>(OnDisable_o)(_this);
 
-// #ifdef _DEBUG
-//             L::Print<L::Yellow>("Client OnDisable -> initMe");
-// #endif
+    // #ifdef _DEBUG
+    //             L::Print<L::Yellow>("Client OnDisable -> initMe");
+    // #endif
 
-//             return;
-//         }
+    //             return;
+    //         }
 
-//         // L::Print("Client OnDisable -> Called");
+    //         // L::Print("Client OnDisable -> Called");
 
-//         reinterpret_cast<decltype(&hk_OnDisable)>(OnDisable_o)(_this);
-//     }
+    //         reinterpret_cast<decltype(&hk_OnDisable)>(OnDisable_o)(_this);
+    //     }
 
     static uintptr_t OnNetworkMessage_o = 0;
 
@@ -255,11 +256,11 @@ namespace
                 if (opt.Satchel)
                     type = EffectType::Satchel;
                 break;
-            case 3053816283:
+            case prefabs::effects::rocketExplosion:
                 if (opt.Rocket)
                     type = EffectType::Rocket;
                 break;
-            case 1437504946:
+            case prefabs::effects::rocketIncendiaryExplosion:
                 if (opt.RocketIncendiary)
                     type = EffectType::RocketIncen;
                 break;
@@ -267,7 +268,7 @@ namespace
                 if (opt.ExplosiveAmmo)
                     type = EffectType::ExplosiveAmmo;
                 break;
-            case 133790274:
+            case prefabs::effects::grenadeExplosion:
                 if (opt.Grenades)
                     type = EffectType::ExplosiveGrenade;
                 break;
@@ -278,9 +279,10 @@ namespace
             auto pos = *(Vector3*)&effect.worldPos;
 
             if (pos.empty())
-                return;
+            {
+                pos = *(Vector3*)&effect.origin;
+            }
 
-            pos = *(Vector3*)&effect.origin;
             if (pos.empty())
                 return;
 

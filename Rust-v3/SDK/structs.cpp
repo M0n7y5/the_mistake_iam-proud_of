@@ -1,7 +1,10 @@
 #include "structs.h"
+#include "prefab_ids.h"
+#include "settings.h"
 #include "../Kotlar/Kotlar.h"
 #include "../mrt/ww898/utf_converters.hpp"
 #include "../mrt/xorstr.hpp"
+#include "../mrt/fnv1a.hpp"
 #include "Offsets.h"
 #include "globals.h"
 #include "il2cpp_api.h"
@@ -191,10 +194,23 @@ Vector3 CPlayerEyes::GetPosition()
     static auto addr = OFF(Offsets::PlayerEyes::Methods::get_position);
     return ((Vector3(__thiscall*)(CPlayerEyes*))(addr))(this);
 }
+
 Vector3 CPlayerEyes::BodyForward()
 {
     static auto addr = OFF(Offsets::PlayerEyes::Methods::BodyForward);
     return ((Vector3(__thiscall*)(CPlayerEyes*))(addr))(this);
+}
+
+Vector3 CPlayerEyes::GetCenter()
+{
+    static auto addr = OFF(Offsets::PlayerEyes::Methods::get_center);
+    return ((Vector3(__thiscall*)(CPlayerEyes*))(addr))(this);
+}
+
+Quaternion CPlayerEyes::GetRotation()
+{
+    static auto addr = OFF(Offsets::PlayerEyes::Methods::get_rotation);
+    return ((Quaternion(__thiscall*)(CPlayerEyes*))(addr))(this);
 }
 
 CGameObject* CComponent::GetGameobject()
@@ -333,7 +349,13 @@ CString* CStringPool::Get(uint32_t id)
 Quaternion CQuaternion::Euler(Vector3 euler)
 {
     static auto addr = OFF(Offsets::UnityEngine_Quaternion::StaticMethods::Euler_UnityEngine_Vector3_euler);
-    return ((Quaternion(*)(Vector3))(addr))(euler * ((float)M_PI / 180.f));
+    return ((Quaternion(*)(Vector3))(addr))(euler);
+}
+
+Vector3 CQuaternion::GetEulerAngles()
+{
+    static auto addr = OFF(Offsets::UnityEngine_Quaternion::Methods::get_eulerAngles);
+    return ((Vector3(__thiscall*)(CQuaternion*))(addr))(this);
 }
 
 void CBoxCollider::SetSize(Vector3 size)
@@ -486,4 +508,196 @@ CItem* CItemContainer::FindItemByUID(ItemId_o iUID)
 {
     static auto addr = OFF(Offsets::ItemContainer::Methods::FindItemByUID_ItemId_iUID);
     return ((CItem * (__thiscall*)(CItemContainer*, ItemId_o))(addr))(this, iUID);
+}
+
+bool CItem::HasCondition()
+{
+    static auto addr = OFF(Offsets::Item::Methods::get_hasCondition);
+    return ((bool(__thiscall*)(CItem*))(addr))(this);
+}
+
+bool CBaseNetworkable::HasParent()
+{
+    static auto addr = OFF(Offsets::BaseNetworkable::Methods::HasParent);
+    return ((bool(__thiscall*)(CBaseNetworkable*))(addr))(this);
+}
+
+void CBaseProjectile::OnSignal()
+{
+    static auto addr = OFF(Offsets::BaseProjectile::Methods::OnSignal_BaseEntity_Signal_signal__System_String_arg);
+
+    auto str = CString::newString("");
+
+    ((void(__thiscall*)(CBaseProjectile*, void*, CString*))(addr))(this, nullptr, str);
+}
+
+void CBaseProjectile::UpdateAmmoDisplay()
+{
+    static auto addr = OFF(Offsets::BaseProjectile::Methods::UpdateAmmoDisplay);
+
+    ((void(__thiscall*)(CBaseProjectile*))(addr))(this);
+}
+
+void CBaseProjectile::LaunchProjectile()
+{
+    static auto addr = OFF(Offsets::BaseProjectile::Methods::LaunchProjectile);
+
+    ((void(__thiscall*)(CBaseProjectile*))(addr))(this);
+}
+
+bool CBaseProjectile::HasReloadCooldown()
+{
+    static auto addr = OFF(Offsets::BaseProjectile::Methods::HasReloadCooldown);
+
+    return ((bool(__thiscall*)(CBaseProjectile*))(addr))(this);
+}
+
+void CBaseProjectile::StartReloadCooldown(float cooldown)
+{
+    static auto addr = OFF(Offsets::BaseProjectile::Methods::StartReloadCooldown_System_Single_cooldown);
+
+    ((void(__thiscall*)(CBaseProjectile*, float))(addr))(this, cooldown);
+}
+
+bool CBaseProjectile::SupportsRapidFire()
+{
+    return true;
+}
+
+float CBaseProjectile::CalculateServerCooldownTime(float nextTime, float cooldown)
+{
+    auto  owner = (CBasePlayer*)this->addedToParentEntity;
+    float time  = CTime::GetTime();
+
+    if (owner == nullptr)
+        return time + nextTime;
+
+    auto desync = owner->GetDesyncTimeClamped();
+
+    float num = 0.1f + cooldown * 0.1f + desync + std::max(CTime::GetDeltaTime(), CTime::GetSmoothDeltaTime());
+
+    if (nextTime < 0.f)
+        nextTime = std::max(0.f, time + cooldown - num);
+    else if (time - nextTime <= num)
+        nextTime = std::min(nextTime + cooldown, time + cooldown);
+    else
+        nextTime = std::max(nextTime + cooldown, time + cooldown - num);
+
+    return nextTime;
+}
+
+float CBaseProjectile::ScaleRepeatDelay(float delay)
+{
+
+    float average            = 1.f;
+    float sum                = 0.f;
+    float burstFireRateScale = this->UsingInternalBurstMode() ? this->internalBurstFireRateScale : 1.f;
+
+    // if(this->children)
+
+    if (this->children != nullptr)
+    {
+        auto      modListData = this->children->fields._items;
+        std::span mods((CBaseEntity**)modListData->m_Items, modListData->max_length);
+
+        float currAverage = 0.f;
+        float modsCount   = 0.f;
+        for (auto ent : mods)
+        {
+            if (ent == nullptr || ent->m_CachedPtr == 0)
+                continue;
+
+            if (HASH_RUNTIME(ent->klass->_1.name) == HASH_CTIME("ProjectileWeaponMod"))
+            {
+                auto mod = (CProjectileWeaponMod*)ent;
+
+                if (mod->needsOnForEffects == false || mod->HasFlag(BaseEntityFlags::On))
+                {
+                    auto modifier = mod->repeatDelay;
+
+                    if (modifier.fields.enabled == false)
+                        continue;
+
+                    currAverage += modifier.fields.scalar;
+                    modsCount++;
+                }
+            }
+        }
+
+        average = currAverage / modsCount;
+
+        float currSum = 0.f;
+        for (auto ent : mods)
+        {
+            if (ent == nullptr || ent->m_CachedPtr == 0)
+                continue;
+
+            if (HASH_RUNTIME(ent->klass->_1.name) == HASH_CTIME("ProjectileWeaponMod"))
+            {
+                auto mod = (CProjectileWeaponMod*)ent;
+
+                if (mod->needsOnForEffects == false || mod->HasFlag(BaseEntityFlags::On))
+                {
+                    auto modifier = mod->repeatDelay;
+
+                    if (modifier.fields.enabled == false)
+                        continue;
+
+                    currSum += modifier.fields.offset;
+                }
+            }
+        }
+
+        sum = currSum;
+    }
+
+    return delay * average * sum * burstFireRateScale;
+}
+
+void CBaseProjectile::Shoot()
+{
+    if (this->IsWeaponReady() == false)
+        return;
+
+    if (this->primaryMagazine->fields.contents == 0)
+        return;
+
+    this->OnSignal();
+    this->LaunchProjectile();
+    this->primaryMagazine->fields.contents--;
+    this->UpdateAmmoDisplay();
+
+    float prevNextAttackTime = this->nextAttackTime;
+    float repeatDelay        = this->repeatDelay;
+
+    using namespace prefabs;
+    auto isBow = this->prefabID == weapon::coumpound_bow || this->prefabID == weapon::hunting_bow;
+
+    if (isBow)
+    {
+        float reloadTime = this->reloadTime;
+        repeatDelay += reloadTime;
+
+        this->StartReloadCooldown(reloadTime);
+
+        this->ServerRPC(_("BowReload"));
+    }
+
+    this->StartAttackCooldown(repeatDelay);
+
+    float nextAttackTime = this->nextAttackTime;
+
+    using namespace SettingsData;
+
+    if (settings->ragebot.general.desync.RapidFire && prevNextAttackTime != nextAttackTime)
+        this->nextAttackTime = this->CalculateServerCooldownTime(
+            prevNextAttackTime, ScaleRepeatDelay(this->repeatDelay) + this->animationDelay);
+}
+
+void CPlayerWalkMovement::TeleportTo(Vector3 pos, CBasePlayer* player)
+{
+    static auto addr =
+        OFF(Offsets::PlayerWalkMovement::Methods::TeleportTo_UnityEngine_Vector3_position__BasePlayer_player);
+
+    ((void(__thiscall*)(CPlayerWalkMovement*, Vector3, CBasePlayer*))(addr))(this, pos, player);
 }

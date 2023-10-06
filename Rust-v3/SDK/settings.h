@@ -60,9 +60,12 @@ namespace SettingsDataTypes
 
         T PrevValue{};
 
+        bool initiallySet = false;
+
         void Reset()
         {
-            PrevValue = {};
+            PrevValue    = {};
+            initiallySet = false;
         };
 
         OV<T>(T defValue)
@@ -74,6 +77,12 @@ namespace SettingsDataTypes
         bool Changed()
         {
             auto changed = Value != PrevValue;
+
+            if (initiallySet == false)
+            {
+                changed      = true;
+                initiallySet = false;
+            }
 
             if (changed)
             {
@@ -141,8 +150,8 @@ struct Settings
 
             struct Targeting
             {
-                PlayerBones PlayerHitbox    = PlayerBones::head;
-                PlayerBones NPCHitbox       = PlayerBones::head;
+                PlayerBones PlayerHitbox    = PlayerBones::eyeTranform;
+                PlayerBones NPCHitbox       = PlayerBones::eyeTranform;
                 bool        Players         = true;
                 bool        NPC             = false;
                 bool        Friends         = false;
@@ -208,13 +217,14 @@ struct Settings
     {
         struct General
         {
-            bool Enabled             = true;
-            bool Sleepers            = false;
-            bool TeamAsFriends       = true;
-            bool ForceSkeletonUpdate = false;
-            bool Watermark           = true;
-            bool ShowHotBar          = true;
-            int  SkeletonDistance    = 100.f;
+            bool Enabled                    = true;
+            bool Sleepers                   = false;
+            bool TeamAsFriends              = true;
+            bool ForceSkeletonUpdate        = false;
+            bool Watermark                  = true;
+            bool ShowHotBar                 = true;
+            bool HideHotBarWhenMenuIsOpened = true;
+            int  SkeletonDistance           = 100.f;
 
             struct Indicators
             {
@@ -530,20 +540,20 @@ struct Settings
 
         struct FlyHack
         {
-            TKO                         Flyhack           = TKO(KeyCode::F, true);
-            TKO                         FlyhackForward    = TKO(KeyCode::W, true);
-            TKO                         FlyhackBack       = TKO(KeyCode::S, true);
-            TKO                         FlyhackLeft       = TKO(KeyCode::A, true);
-            TKO                         FlyhackRight      = TKO(KeyCode::D, true);
-            TKO                         FlyhackUp         = TKO(KeyCode::Space, true);
-            TKO                         FlyhackBoost      = TKO(KeyCode::LeftShift, true);
-            TKO                         FlyhackSlow       = TKO(KeyCode::LeftControl, true);
-            int                         FlyHackBoostSpeed = 10; // 10%
-            bool                        AntiFlyKick       = true;
-            bool                        AbsoluteFlyHack   = false;
-            bool                        Noclip            = false;
-            bool                        PreventBan        = true;
-            SettingsDataTypes::OV<bool> WallPhase         = true;
+            TKO                         Flyhack            = TKO(KeyCode::F, true);
+            TKO                         FlyhackForward     = TKO(KeyCode::W, true);
+            TKO                         FlyhackBack        = TKO(KeyCode::S, true);
+            TKO                         FlyhackLeft        = TKO(KeyCode::A, true);
+            TKO                         FlyhackRight       = TKO(KeyCode::D, true);
+            TKO                         FlyhackUp          = TKO(KeyCode::Space, true);
+            TKO                         FlyhackBoost       = TKO(KeyCode::LeftShift, true);
+            TKO                         FlyhackSlow        = TKO(KeyCode::LeftControl, true);
+            int                         FlyHackBoostSpeed  = 10; // 10%
+            bool                        AntiFlyKick        = true;
+            bool                        AbsoluteFlyHack    = false;
+            bool                        NoTerrainCollision = false;
+            bool                        PreventBan         = true;
+            SettingsDataTypes::OV<bool> WallPhase          = true;
 
         } flyhack{};
 
@@ -575,14 +585,16 @@ struct Settings
 
         struct Other
         {
-            bool                        InstantLoot    = true;
-            bool                        AutoCollect    = false;
-            TKO                         InstantRevive  = TKO(KeyCode::E, false);
-            TKO                         InstantHeal    = TKO(KeyCode::R, false);
-            TKO                         SilentFarm     = TKO(KeyCode::C, false);
-            TKO                         SilentMelee    = TKO(KeyCode::B, false);
-            TKO                         InstantSuicide = TKO(KeyCode::None, false);
-            SettingsDataTypes::OV<bool> AdminFlag      = true;
+            bool                        InstantLoot     = true;
+            bool                        AutoCollect     = false;
+            TKO                         InstantUntie    = TKO(KeyCode::E, false);
+            TKO                         InstantRevive   = TKO(KeyCode::E, false);
+            TKO                         InstantHeal     = TKO(KeyCode::R, false);
+            TKO                         SilentFarm      = TKO(KeyCode::C, false);
+            TKO                         SilentMelee     = TKO(KeyCode::B, false);
+            TKO                         InstantSuicide  = TKO(KeyCode::None, false);
+            TKO                         TeleportForward = TKO(KeyCode::Mouse2, false);
+            SettingsDataTypes::OV<bool> AdminFlag       = true;
         } other{};
     } misc;
 };

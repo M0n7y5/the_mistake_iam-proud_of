@@ -1,9 +1,11 @@
 #pragma once
 #include "../mrt/md5.h"
 #include <stdint.h>
+#include <string_view>
 
 namespace prefabs
 {
+    //NOTE: Make shure all text is in lowercase
     constexpr uint32_t ToInt32(md5::Digest const& num)
     {
         return (uint32_t)((int)(num[0]) | ((int)num[1] << 8) | ((int)num[2] << 16) | ((int)num[3] << 24));
@@ -15,12 +17,44 @@ namespace prefabs
     }
 
 #define PREFABID(name, x) constexpr auto name = STRHASH(x)
+#define BONEID(name) constexpr auto name = STRHASH(#name)
 
     namespace other
     {
         PREFABID(treeMarker1, "assets/content/nature/treesprefabs/trees/effects/tree_marking_nospherecast.prefab");
         PREFABID(treeMarker2, "assets/content/nature/treesprefabs/trees/effects/tree_marking.prefab");
+        PREFABID(workbench1, "assets/prefabs/deployable/tier 1 workbench/workbench1.deployed.prefab");
+        PREFABID(workbench2, "assets/prefabs/deployable/tier 2 workbench/workbench2.deployed.prefab");
+        PREFABID(workbench3, "assets/prefabs/deployable/tier 3 workbench/workbench3.deployed.prefab");
+        PREFABID(toolcupboard, "assets/prefabs/deployable/tool cupboard/cupboard.tool.deployed.prefab");
     } // namespace other
+
+    namespace weapon
+    {
+        PREFABID(eoka, "assets/prefabs/weapons/eoka pistol/pistol_eoka.entity.prefab");
+        PREFABID(ice_ak, "assets/prefabs/weapons/ak47u/iceskin/ak47u_ice.entity.prefab");
+        PREFABID(hunting_bow, "assets/prefabs/weapons/bow/bow_hunting.entity.prefab");
+        PREFABID(coumpound_bow, "assets/prefabs/weapons/compound bow/compound_bow.entity.prefab");
+    } // namespace weapon
+    namespace effects
+    {
+        // 4089790239, string: assets/prefabs/weapons/f1 grenade/effects/f1grenade_explosion.prefab
+        // 3053816283, string: assets/prefabs/weapons/rocketlauncher/effects/rocket_explosion.prefab
+        // 1437504946, string: assets/prefabs/weapons/rocketlauncher/effects/rocket_explosion_incendiary.prefab
+        // 857997843, string: assets/prefabs/tools/c4/effects/c4_explosion.prefab
+        // 1289728008, string: assets/prefabs/weapons/satchelcharge/effects/satchel-charge-explosion.prefab
+        // 1161374517, string: assets/content/vehicles/mlrs/effects/pfx_mlrs_rocket_explosion_ground.prefab
+        PREFABID(grenadeExplosion, "assets/prefabs/weapons/f1 grenade/effects/f1grenade_explosion.prefab");
+        PREFABID(rocketExplosion, "assets/prefabs/weapons/rocketlauncher/effects/rocket_explosion.prefab");
+        PREFABID(rocketIncendiaryExplosion,
+                 "assets/prefabs/weapons/rocketlauncher/effects/rocket_explosion_incendiary.prefab");
+    } // namespace effects
+
+    namespace underwater
+    {
+        PREFABID(crate, "assets/bundled/prefabs/radtown/crate_underwater_basic.prefab");
+        PREFABID(crate_advanced, "assets/bundled/prefabs/radtown/crate_underwater_advanced.prefab");
+    } // namespace underwater
 
     // namespace tools
     // {
@@ -171,5 +205,18 @@ namespace prefabs
         PREFABID(landdmine, "assets/prefabs/deployable/landmine/landmine.prefab");
         PREFABID(beartrap, "assets/prefabs/deployable/bear trap/beartrap.prefab");
     } // namespace traps
+
+    namespace bones
+    {
+        BONEID(spine1);
+        BONEID(spine2);
+        BONEID(spine3);
+        BONEID(spine4);
+        BONEID(head);
+        BONEID(neck);
+        BONEID(pelvis);
+        BONEID(l_hip);
+        BONEID(r_hip);
+    }
 
 } // namespace prefabs

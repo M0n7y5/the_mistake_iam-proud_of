@@ -88,7 +88,6 @@ namespace EntityManager
 
     struct RaidEffectData
     {
-        Vector3 position{};
         int     count{};
     };
 
@@ -107,8 +106,7 @@ namespace EntityManager
             this->startTime         = startTime;
             this->lastExplosionTime = startTime;
 
-            effects[(int)type].count    = 1;
-            effects[(int)type].position = position;
+            effects[(int)type].count = 1;
         }
 
         int GetAllEffectCount()
@@ -121,22 +119,22 @@ namespace EntityManager
             return count;
         }
 
-        void AddNewEffect(EffectType type, Vector3 position, float startTime)
+        void AddNewEffect(EffectType type, Vector3 incomingPosition, float startTime)
         {
             int     totalEffectCount{};
             Vector3 totalPosition{};
 
             this->effects[(int)type].count++;
-            this->effects[(int)type].position = (position + this->effects[(int)type].position) / 2.f;
+            this->position = (incomingPosition + this->position) / 2.f;
 
-            for (int i = 0; i < (int)EffectType::Count; i++)
-            {
-                totalEffectCount += effects[i].count;
-                totalPosition += effects[i].position;
-            }
+            // for (int i = 0; i < (int)EffectType::Count; i++)
+            // {
+            //     totalEffectCount += effects[i].count;
+            //     totalPosition += effects[i].position;
+            // }
 
             // average this shit out
-            this->position = totalPosition / totalEffectCount;
+            // this->position = totalPosition;
 
             this->lastExplosionTime = startTime;
         }
@@ -285,16 +283,14 @@ namespace EntityManager
             vehicles.clear();
             traps.clear();
             silentFarmStuff.clear();
-            raids.clear();
             items.clear();
             backpacks.clear();
             corpses.clear();
             stashes.clear();
         }
 
-        inline void CleanRaids()
+        inline void CleanRaids(bool fullWipe)
         {
-
             auto currentTime = CTime::GetRealTime();
         }
 

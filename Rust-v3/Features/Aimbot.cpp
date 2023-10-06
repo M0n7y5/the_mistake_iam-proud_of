@@ -2,8 +2,10 @@
 #include "../SDK/structs.h"
 #include "../SDK/il2cpp_api.h"
 #include "../SDK/settings.h"
+#include "../SDK/prefab_ids.h"
 #include "../ui/ESP.h"
 #include "EntityManager.h"
+#include "AntiHack.h"
 #include <algorithm>
 #include <array>
 #include <exception>
@@ -48,52 +50,67 @@ namespace HitScanner
         }
     }
 
-    void GenerateLOSTraceRays(Vector3 position, Quaternion rotation, float maxDistance, uint32_t rayDivider)
+    void GenerateNormalizedLOSTraceRays(/*Vector3 position, Quaternion rotation, */ std::vector<TraceRay>& outVec,
+                                        float maxDistance, float heightLimit, float density)
     {
         if (currentSpherePoints.empty())
         {
-            PointsOnSphere(currentSpherePoints, defaultDensity);
+            PointsOnSphere(currentSpherePoints, density);
         }
 
-        currentTraceRays.clear();
-        currentTraceRays.reserve(100);
+        outVec.clear();
+        outVec.reserve(1000);
+
+        TraceRay tr{};
 
         for (auto rayStart : currentSpherePoints)
         {
-            auto ray = rotation * rayStart;
+            auto ray     = /*rotation * */ rayStart;
+            tr.direction = ray;
 
             auto angle = Vector3::Angle(ray, vec3Up);
 
             if (angle > angleLimit)
                 continue;
 
-            auto frontAngle   = Vector3::Angle(ray, rotation * vec3Forward);
-            auto backAngle    = Vector3::Angle(ray, rotation * vec3Back);
-            auto leftAngle    = Vector3::Angle(ray, rotation * vec3Left);
-            auto leftUpAngle  = Vector3::Angle(ray, rotation * (vec3Left + vec3Up));
-            auto rightAngle   = Vector3::Angle(ray, rotation * vec3Right);
-            auto rightUpAngle = Vector3::Angle(ray, rotation * (vec3Right + vec3Up));
+            auto frontAngle   = Vector3::Angle(ray, /*rotation **/ vec3Forward);
+            auto backAngle    = Vector3::Angle(ray, /*rotation **/ vec3Back);
+            auto leftAngle    = Vector3::Angle(ray, /*rotation **/ vec3Left);
+            auto leftUpAngle  = Vector3::Angle(ray, /*rotation **/ (vec3Left + vec3Up));
+            auto rightAngle   = Vector3::Angle(ray, /*rotation **/ vec3Right);
+            auto rightUpAngle = Vector3::Angle(ray, /*rotation **/ (vec3Right + vec3Up));
 
             auto priorityAngle =
-                std::min<float>({angle, frontAngle, backAngle, leftAngle, leftUpAngle, rightAngle, rightUpAngle});
+                std::min<float>({leftAngle, leftUpAngle, rightAngle, rightUpAngle, frontAngle, backAngle, angle});
 
             if (priorityAngle > sideAngleLimit)
                 continue;
 
-            TraceRay tr{};
             tr.priority = priorityAngle;
 
-            for (float i = 0; i < rayDivider; i++)
+            Vector3 vecCurr = ray * rayDistance;
+            vecCurr.y       = std::clamp(vecCurr.y, 0.f, heightLimit);
+
+            auto rayDivider = tr.points.size();
+            auto stepVec    = vecCurr / (float)rayDivider;
+
+            Vector3 vec{};
+
+            for (int i = 0; i < rayDivider; i++)
             {
-                Vector3 vec = ray * ((maxDistance / rayDivider) * i);
-                vec += position;
+                vec += stepVec;
+
+                if (vec.y > heightLimit)
+                {
+                    break;
+                }
 
                 tr.points[i] = vec;
             }
 
-            currentTraceRays.emplace_back(tr);
+            outVec.emplace_back(tr);
         }
-        std::ranges::sort(currentTraceRays, {}, &TraceRay::priority);
+        std::ranges::sort(outVec, {}, &TraceRay::priority);
     }
 
 } // namespace HitScanner
@@ -121,12 +138,16 @@ namespace Aimbot
 
         float Aimcone{};
         float HipAimcone{};
+        float AimConePenalty{};
+        float AimConePenaltyMax{};
+        float AimConePenaltyPreShot{};
         float ProjectileVelocityScale = 1.f;
         float RecoilYawMin{};
         float RecoilYawMax{};
         float RecoilPitchMin{};
         float RecoilPitchMax{};
         float MaxRecoilRadius{};
+        float AimconeCurveScale{};
         float AimSway{};
     };
 
@@ -155,13 +176,13 @@ namespace Aimbot
     // key itemID
     ankerl::unordered_dense::map<int32_t, AmmoBackupData> ammoBackupData{};
 
-    int32_t               currentlyManagedAmmoID{};
-    const AmmoBackupData* currentlyManagedAmmo{};
+    int32_t         currentlyManagedAmmoID{};
+    AmmoBackupData* currentlyManagedAmmo{};
 
     uint32_t          currentlyManagedWeaponID{};
     WeaponBackupData* currentlyManagedWeapon{};
 
-    float currentVelocityScalarModifier = 1.f; // 1 in scalar => no change
+    float currentVelocityScalarModifier = 0.f; // 1 in scalar => no change
 
     CCamera*     camera      = nullptr;
     CBasePlayer* localPlayer = nullptr;
@@ -173,7 +194,7 @@ namespace Aimbot
     // bool  projectileHasComponents = false;
     // float projectileInitialDistance;
 
-    static bool GetBestTarget(TargetInfo& target)
+    static bool GetBestTarget(TargetInfo& target, bool onlyHotbarScan = false)
     {
         using namespace EntityManager;
 
@@ -187,35 +208,70 @@ namespace Aimbot
             if (p.entity->m_CachedPtr == 0 || p.entity->_IsDestroyed_k__BackingField == true)
                 continue;
 
-            if (p.entity->IsSleeping() || p.entity->IsWounded() || p.entity->InSafeZone() ||
-                p.entity->_health <= _flt(0.f) || (LifeState)p.entity->lifestate == LifeState::Dead)
-                continue;
-
-            Vector3 aimHitBoxPos{};
-            if (p.entity->playerModel->fields._IsNpc_k__BackingField)
-                aimHitBoxPos =
-                    ((CModel*)p.entity->model)->GetBonePosition(settings->ragebot.general.targeting.NPCHitbox);
-            else
-                aimHitBoxPos =
-                    ((CModel*)p.entity->model)->GetBonePosition(settings->ragebot.general.targeting.PlayerHitbox);
-
-            if (settings->ragebot.general.targeting.VisCheck)
+            if (onlyHotbarScan)
             {
-                if (!CGamePhysics::LineOfSight(((CPlayerEyes*)localPlayer->eyes)->GetPosition(), aimHitBoxPos,
-                                               Layers::EntityLineOfSightCheck))
+                if (p.entity->_health <= _flt(0.f) || (LifeState)p.entity->lifestate == LifeState::Dead)
+                    continue;
+            }
+            else
+            {
+                if (p.entity->IsSleeping() || p.entity->IsWounded() || p.entity->InSafeZone() ||
+                    p.entity->_health <= _flt(0.f) || (LifeState)p.entity->lifestate == LifeState::Dead)
                     continue;
             }
 
-            if (std::find(DB::priorityIDs.begin(), DB::priorityIDs.end(), p.entity->userID) != DB::priorityIDs.end())
+            Vector3 aimHitBoxPos{};
+
+            PlayerBones bone{};
+
+            if (p.entity->playerModel->fields._IsNpc_k__BackingField)
             {
-                bestDistance      = 0.f;
-                bestPlayer        = &p;
-                overrideRequested = true;
+                bone = settings->ragebot.general.targeting.NPCHitbox;
+            }
+            else
+            {
+                bone = settings->ragebot.general.targeting.PlayerHitbox;
+            }
 
-                target.entity = (Entity<CBaseCombatEntity>*)bestPlayer;
-                target.type   = TargetType::Player;
+            aimHitBoxPos = ((CModel*)p.entity->model)->GetBonePosition(bone);
 
-                return true;
+            // if (bone == PlayerBones::head)
+            // {
+            //     aimHitBoxPos = ((CPlayerEyes*)p.entity->eyes)->GetPosition();
+            // }
+            // else
+            // {
+            //     aimHitBoxPos = ((CModel*)p.entity->model)->GetBonePosition(bone);
+            // }
+
+            // if (p.entity->playerModel->fields._IsNpc_k__BackingField)
+            //     aimHitBoxPos =
+            //         ((CModel*)p.entity->model)->GetBonePosition(settings->ragebot.general.targeting.NPCHitbox);
+            // else
+            //     aimHitBoxPos =
+            //         ((CModel*)p.entity->model)->GetBonePosition(settings->ragebot.general.targeting.PlayerHitbox);
+
+            if (onlyHotbarScan == false)
+            {
+                if (settings->ragebot.general.targeting.VisCheck)
+                {
+                    if (!CGamePhysics::LineOfSight(((CPlayerEyes*)localPlayer->eyes)->GetPosition(), aimHitBoxPos,
+                                                   Layers::EntityLineOfSightCheck))
+                        continue;
+                }
+
+                if (std::find(DB::priorityIDs.begin(), DB::priorityIDs.end(), p.entity->userID) !=
+                    DB::priorityIDs.end())
+                {
+                    bestDistance      = 0.f;
+                    bestPlayer        = &p;
+                    overrideRequested = true;
+
+                    target.entity = (Entity<CBaseCombatEntity>*)bestPlayer;
+                    target.type   = TargetType::Player;
+
+                    return true;
+                }
             }
 
             auto dist = FOV.DistanceFromCenterEx(aimHitBoxPos);
@@ -234,17 +290,48 @@ namespace Aimbot
             return false;
 
         target.entity = (Entity<CBaseCombatEntity>*)bestPlayer;
-        target.type   = TargetType::Player;
 
         Vector3 aimHitBoxPos{};
-        if (bestPlayer->entity->playerModel->fields._IsNpc_k__BackingField)
-            aimHitBoxPos =
-                ((CModel*)bestPlayer->entity->model)->GetBonePosition(settings->ragebot.general.targeting.NPCHitbox);
-        else
-            aimHitBoxPos =
-                ((CModel*)bestPlayer->entity->model)->GetBonePosition(settings->ragebot.general.targeting.PlayerHitbox);
 
-        target.TargetPos = aimHitBoxPos;
+        PlayerBones bone{};
+
+        if (bestPlayer->entity->playerModel->fields._IsNpc_k__BackingField)
+        {
+            bone = settings->ragebot.general.targeting.NPCHitbox;
+        }
+        else
+        {
+            bone = settings->ragebot.general.targeting.PlayerHitbox;
+        }
+
+        // if (bone == PlayerBones::head)
+        // {
+        //     aimHitBoxPos = ((CPlayerEyes*)bestPlayer->entity->eyes)->GetPosition();
+        // }
+        // else
+        // {
+        //     aimHitBoxPos = ((CModel*)bestPlayer->entity->model)->GetBonePosition(bone);
+        // }
+
+        aimHitBoxPos = ((CModel*)bestPlayer->entity->model)->GetBonePosition(bone);
+
+        // Vector3 aimHitBoxPos{};
+        // if (bestPlayer->entity->playerModel->fields._IsNpc_k__BackingField)
+        //     aimHitBoxPos =
+        //         ((CModel*)bestPlayer->entity->model)->GetBonePosition(settings->ragebot.general.targeting.NPCHitbox);
+        // else
+        //     aimHitBoxPos =
+        //         ((CModel*)bestPlayer->entity->model)->GetBonePosition(settings->ragebot.general.targeting.PlayerHitbox);
+
+        if (onlyHotbarScan)
+        {
+            target.type = TargetType::HotBar;
+        }
+        else
+        {
+            target.type      = TargetType::Player;
+            target.TargetPos = aimHitBoxPos;
+        }
 
         return true;
     }
@@ -373,7 +460,8 @@ namespace Aimbot
         float   timeToTravel2;
         BulletPredictionNoVel(shootPos, targetPos + targetVel * timeToTravel, aimPos2, timeToTravel2);
 
-        float speed = currentlyManagedAmmo->ProjectileVelocity * currentlyManagedWeapon->ProjectileVelocityScale;
+        float vel   = currentlyManagedAmmo->ProjectileVelocity * currentVelocityScalarModifier;
+        float speed = vel * currentlyManagedWeapon->ProjectileVelocityScale;
 
         // aids
         if (speed == _flt(240.f) && shootPos.distance(targetPos) > _flt(260.f))
@@ -410,8 +498,8 @@ namespace Aimbot
 
         do
         {
-            if (CurrentTarget.type != TargetType::Invalid && IsAddressValid(CurrentTarget.entity->entity) &&
-                CurrentTarget.entity->entity->m_CachedPtr != 0)
+            if (CurrentTarget.type != TargetType::Invalid && CurrentTarget.type != TargetType::HotBar &&
+                IsAddressValid(CurrentTarget.entity->entity) && CurrentTarget.entity->entity->m_CachedPtr != 0)
             {
                 Vector3     aimHitBoxPos{};
                 const auto& p = (Entity<CBasePlayer>*)CurrentTarget.entity;
@@ -425,27 +513,52 @@ namespace Aimbot
 
                 if (CurrentTarget.type == TargetType::Player)
                 {
+                    PlayerBones bone{};
+
                     if (p->entity->playerModel->fields._IsNpc_k__BackingField)
-                        aimHitBoxPos =
-                            ((CModel*)p->entity->model)->GetBonePosition(settings->ragebot.general.targeting.NPCHitbox);
+                    {
+                        bone = settings->ragebot.general.targeting.NPCHitbox;
+                    }
                     else
-                        aimHitBoxPos = ((CModel*)p->entity->model)
-                                           ->GetBonePosition(settings->ragebot.general.targeting.PlayerHitbox);
+                    {
+                        bone = settings->ragebot.general.targeting.PlayerHitbox;
+                    }
+
+                    // if (bone == PlayerBones::head)
+                    // {
+                    //     aimHitBoxPos = ((CPlayerEyes*)p->entity->eyes)->GetPosition();
+                    // }
+                    // else
+                    // {
+                    //     aimHitBoxPos = ((CModel*)p->entity->model)->GetBonePosition(bone);
+                    // }
+
+                    aimHitBoxPos = ((CModel*)p->entity->model)->GetBonePosition(bone);
 
                     if (settings->ragebot.general.targeting.VisCheck)
                     {
                         if (!CGamePhysics::LineOfSight(camera->GetPosition(), aimHitBoxPos,
                                                        Layers::EntityLineOfSightCheck))
+                        {
                             break;
+                        }
                     }
                 }
 
-                auto dist = FOV.DistanceFromCenterEx(aimHitBoxPos);
+                if (settings->ragebot.general.targeting.TargetLock == false)
+                {
+                    auto dist = FOV.DistanceFromCenterEx(aimHitBoxPos);
 
-                if (dist < FOV.GetRadiusPx())
+                    if (dist < FOV.GetRadiusPx())
+                    {
+                        CurrentTarget.TargetPos = aimHitBoxPos;
+
+                        return true;
+                    }
+                }
+                else
                 {
                     CurrentTarget.TargetPos = aimHitBoxPos;
-
                     return true;
                 }
             }
@@ -463,10 +576,10 @@ namespace Aimbot
             return targetInfo.TargetPos;
         }
 
-        //auto baseProjectile = localPlayer->GetHeldEntity()->As<CBaseProjectile>();
+        // auto baseProjectile = localPlayer->GetHeldEntity()->As<CBaseProjectile>();
 
-        Vector3 localPos = ((CPlayerEyes*)localPlayer->eyes)->GetPosition();
-        Vector3 velocity = Vector3{0.f, 0.f, 0.f};
+        Vector3 localPos       = ((CPlayerEyes*)localPlayer->eyes)->GetPosition();
+        Vector3 targetVelocity = Vector3{0.f, 0.f, 0.f};
 
         int maxRecords = 25;
 
@@ -474,18 +587,22 @@ namespace Aimbot
         {
         case TargetType::Player:
         {
-            velocity            = targetInfo.entity->entity->GetWorldVelocity();
-            CBasePlayer* player = (CBasePlayer*)(targetInfo.entity->entity);
-            if (player->mounted.fields.ent_cached != nullptr)
-                maxRecords = 15;
+            CBasePlayer* targetEntity = (CBasePlayer*)(targetInfo.entity->entity);
+            targetVelocity            = targetInfo.entity->entity->GetWorldVelocity();
+
+            auto mount = (CBaseMountable*)targetEntity->mounted.fields.ent_cached;
+
+            if (mount == nullptr || (mount->m_CachedPtr == 0) || mount->_IsDestroyed_k__BackingField ||
+                mount->_JustCreated_k__BackingField)
+                maxRecords = 20;
             else
             {
-                CModelState* modelState = (CModelState*)player->mounted.fields.ent_cached;
+                CModelState* modelState = (CModelState*)targetEntity->modelState;
                 if (modelState && !modelState->HasFlag(ModelStateFlags::OnGround))
-                    maxRecords = 50;
+                    maxRecords = 30;
             }
 
-            Vector3 currVelocity = player->GetWorldVelocity();
+            Vector3 currVelocity = targetEntity->GetWorldVelocity();
 
             if (currVelocity.empty())
             {
@@ -585,7 +702,11 @@ namespace Aimbot
     {
         RecoilProperties_o* recoilProp{};
 
-        if (wep->recoil->fields.newRecoilOverride != nullptr)
+        if (wep->prefabID == prefabs::weapon::eoka)
+        {
+            recoilProp = ((CFlintStrikeWeapon*)wep)->strikeRecoil;
+        }
+        else if (wep->recoil->fields.newRecoilOverride != nullptr)
         {
             recoilProp = wep->recoil->fields.newRecoilOverride;
         }
@@ -717,7 +838,7 @@ namespace Aimbot
         PredictedPosition  = {};
         launcherInfo.valid = false;
 
-        currentVelocityScalarModifier = 1.f; // reset this
+        currentVelocityScalarModifier = 0.f; // reset this
 
         do
         {
@@ -736,6 +857,21 @@ namespace Aimbot
 
             if (localPlayer->inventory == nullptr || localPlayer->inventory->fields.m_CachedPtr == 0)
                 break;
+
+            auto holdTarget = settings->ragebot.general.aimbot.aim.Active() &&
+                              settings->ragebot.general.targeting.TargetLock && IsPrevTargetValid();
+
+            if (holdTarget == false)
+            {
+                if (GetBestTarget(CurrentTarget) == false)
+                {
+                    if (GetBestTarget(CurrentTarget, true) == false)
+                    {
+                        PredictedPosition = {};
+                        CurrentTarget     = {};
+                    }
+                }
+            }
 
             if (localPlayer->GetHeldEntity() == nullptr || localPlayer->GetHeldEntity()->m_CachedPtr == 0)
                 break;
@@ -777,6 +913,18 @@ namespace Aimbot
                 {
                     currentlyManagedAmmo   = &ss->second;
                     currentlyManagedAmmoID = ammoType->itemid;
+
+                    // we need to update the pointer of modprojectile
+                    if (currentlyManagedAmmo->isSpawn)
+                    {
+                        auto mod = ammoGameobject->GetComponent<CItemModProjectileSpawn>(itemModProjectileSpawnType);
+                        currentlyManagedAmmo->mod = (CItemModProjectile*)mod;
+                    }
+                    else
+                    {
+                        auto mod = ammoGameobject->GetComponent<CItemModProjectile>(itemModProjectileType);
+                        currentlyManagedAmmo->mod = mod;
+                    }
                 }
                 else
                 {
@@ -942,22 +1090,6 @@ namespace Aimbot
                 }
             }
 
-            auto modListData = baseProjectile->children->fields._items;
-
-            std::span mods((CBaseEntity**)modListData->m_Items, modListData->max_length);
-
-            for (auto ent : mods)
-            {
-                if (ent == nullptr || ent->m_CachedPtr == 0)
-                    continue;
-
-                if (HASH_RUNTIME(ent->klass->_1.name) == HASH_CTIME("ProjectileWeaponMod"))
-                {
-                    auto mod = (CProjectileWeaponMod*)ent;
-                    currentVelocityScalarModifier += mod->projectileVelocity.fields.scalar;
-                }
-            }
-
             if (baseProjectile->prefabID != currentlyManagedWeaponID)
             {
                 if (auto ss = weaponBackupData.find(baseProjectile->prefabID); ss != weaponBackupData.end())
@@ -973,34 +1105,38 @@ namespace Aimbot
                     data.HipAimcone              = baseProjectile->hipAimCone;
                     data.automatic               = baseProjectile->automatic;
                     data.ProjectileVelocityScale = baseProjectile->projectileVelocityScale;
+                    data.AimConePenalty          = baseProjectile->aimconePenalty;
+                    data.AimConePenaltyMax       = baseProjectile->aimConePenaltyMax;
+                    data.AimConePenaltyPreShot   = baseProjectile->aimconePenaltyPerShot;
 
-                    if (baseProjectile->recoil == nullptr)
-                        break;
+                    RecoilProperties_o* recoil = nullptr;
 
-                    if (baseProjectile->recoil->fields.newRecoilOverride != nullptr)
+                    auto wep = baseProjectile;
+
+                    if (wep->prefabID == prefabs::weapon::eoka)
                     {
-                        auto recoil = baseProjectile->recoil->fields.newRecoilOverride->fields;
-
-                        data.RecoilPitchMin           = recoil.recoilPitchMin;
-                        data.RecoilPitchMax           = recoil.recoilPitchMax;
-                        data.RecoilYawMin             = recoil.recoilYawMin;
-                        data.RecoilYawMax             = recoil.recoilYawMax;
-                        data.MaxRecoilRadius          = recoil.maxRecoilRadius;
-                        data.UseCurves                = recoil.useCurves;
-                        data.OverrideAimconeWithCurve = recoil.overrideAimconeWithCurve;
+                        recoil = ((CFlintStrikeWeapon*)wep)->strikeRecoil;
                     }
                     else
                     {
-                        auto recoil = baseProjectile->recoil->fields;
+                        recoil = baseProjectile->recoil;
 
-                        data.RecoilPitchMin           = recoil.recoilPitchMin;
-                        data.RecoilPitchMax           = recoil.recoilPitchMax;
-                        data.RecoilYawMin             = recoil.recoilYawMin;
-                        data.RecoilYawMax             = recoil.recoilYawMax;
-                        data.MaxRecoilRadius          = recoil.maxRecoilRadius;
-                        data.UseCurves                = recoil.useCurves;
-                        data.OverrideAimconeWithCurve = recoil.overrideAimconeWithCurve;
+                        if (recoil == nullptr)
+                            break;
+
+                        if (baseProjectile->recoil->fields.newRecoilOverride != nullptr)
+                        {
+                            recoil = baseProjectile->recoil->fields.newRecoilOverride;
+                        }
                     }
+
+                    data.RecoilPitchMin           = recoil->fields.recoilPitchMin;
+                    data.RecoilPitchMax           = recoil->fields.recoilPitchMax;
+                    data.RecoilYawMin             = recoil->fields.recoilYawMin;
+                    data.RecoilYawMax             = recoil->fields.recoilYawMax;
+                    data.MaxRecoilRadius          = recoil->fields.maxRecoilRadius;
+                    data.UseCurves                = recoil->fields.useCurves;
+                    data.OverrideAimconeWithCurve = recoil->fields.overrideAimconeWithCurve;
 
                     weaponBackupData[baseProjectile->prefabID] = data;
                     currentlyManagedWeapon                     = &weaponBackupData[baseProjectile->prefabID];
@@ -1010,21 +1146,55 @@ namespace Aimbot
                 }
             }
 
+            auto modListData = baseProjectile->children->fields._items;
+
+            std::span mods((CBaseEntity**)modListData->m_Items, modListData->max_length);
+
+            for (auto ent : mods)
+            {
+                if (ent == nullptr || ent->m_CachedPtr == 0)
+                    continue;
+
+                if (HASH_RUNTIME(ent->klass->_1.name) == HASH_CTIME("ProjectileWeaponMod"))
+                {
+                    auto mod = (CProjectileWeaponMod*)ent;
+
+                    if (mod->projectileVelocity.fields.enabled)
+                    {
+                        currentVelocityScalarModifier += mod->projectileVelocity.fields.scalar;
+                    }
+                }
+            }
+
+            if (currentVelocityScalarModifier == 0.f)
+            {
+                // we cant have 0
+                currentVelocityScalarModifier = 1.f;
+            }
+
             HandleRecoilData(baseProjectile);
 
-            //auto weaponItem = baseProjectile->GetItem();
+            // auto weaponItem = baseProjectile->GetItem();
 
             // weapon features
             {
                 if (settings->ragebot.general.weapon.NoSpread)
                 {
-                    baseProjectile->aimCone    = -1.f;
-                    baseProjectile->hipAimCone = -1.f;
+                    baseProjectile->aimCone                 = -1.f;
+                    baseProjectile->hipAimCone              = -1.f;
+                    baseProjectile->aimconePenalty          = 0.f;
+                    baseProjectile->aimConePenaltyMax       = 0.f;
+                    baseProjectile->aimconePenaltyPerShot   = 0.f;
+                    baseProjectile->projectileVelocityScale = 1.f;
                 }
                 else
                 {
-                    baseProjectile->aimCone    = currentlyManagedWeapon->Aimcone;
-                    baseProjectile->hipAimCone = currentlyManagedWeapon->HipAimcone;
+                    baseProjectile->aimCone                 = currentlyManagedWeapon->Aimcone;
+                    baseProjectile->hipAimCone              = currentlyManagedWeapon->HipAimcone;
+                    baseProjectile->aimconePenalty          = currentlyManagedWeapon->AimConePenalty;
+                    baseProjectile->aimConePenaltyMax       = currentlyManagedWeapon->AimConePenaltyMax;
+                    baseProjectile->aimconePenaltyPerShot   = currentlyManagedWeapon->AimConePenaltyPreShot;
+                    baseProjectile->projectileVelocityScale = currentlyManagedWeapon->ProjectileVelocityScale;
                 }
 
                 if (settings->ragebot.general.weapon.Automatic)
@@ -1048,37 +1218,22 @@ namespace Aimbot
 
             if (isLauncher)
             {
-                if (LauncherPrediction() == false)
-                {
-                    launcherInfo.valid = false;
-                }
+                launcherInfo.valid = LauncherPrediction();
+            }
+
+            if (settings->ragebot.general.aimbot.aim.Enabled && CurrentTarget.type != TargetType::Invalid &&
+                CurrentTarget.type != TargetType::HotBar)
+            {
+                PredictedPosition = PredictPosition(CurrentTarget);
             }
             else
             {
-                launcherInfo.valid = false;
+                PredictedPosition = {};
             }
-
-            if (settings->ragebot.general.aimbot.aim.Enabled == false)
-                break;
-
-            if (settings->ragebot.general.aimbot.aim.Active() && settings->ragebot.general.targeting.TargetLock &&
-                IsPrevTargetValid())
-            {
-            }
-            else
-            {
-                if (GetBestTarget(CurrentTarget) == false)
-                {
-                    break;
-                }
-            }
-
-            PredictedPosition = PredictPosition(CurrentTarget);
 
             return;
         } while (false);
-
-        CurrentTarget = {};
+        PredictedPosition = {};
     }
 
     constexpr LayerMask remove = ~(LayerMask::Default | LayerMask::Water | LayerMask::Deployed | LayerMask::Ragdoll |
@@ -1087,66 +1242,79 @@ namespace Aimbot
 
     void Desync()
     {
-        return;
 
-        if (settings->ragebot.general.desync.shoot.Active())
+        auto wantsToShoot = settings->ragebot.general.desync.shoot.Active();
+
+        if (wantsToShoot || settings->misc.other.TeleportForward.Active())
         {
             if (localPlayer->input->fields.state->fields.current == nullptr)
                 return;
 
-            if (localPlayer->clientTickInterval == 0.05f)
+            auto lastEyePos   = *(Vector3*)&localPlayer->lastSentTick->fields.eyePos;
+            auto lastLocalPos = *(Vector3*)&localPlayer->lastSentTick->fields.position;
+            auto rotation     = *(CQuaternion*)&localPlayer->eyes->fields._bodyRotation_k__BackingField;
+
+            auto eulerAngles = rotation.GetEulerAngles();
+
+            auto finalRot = CQuaternion::Euler({0.f, eulerAngles.y, 0.f});
+
+            static Vector3 prevLastPos = {};
+
+            if (wantsToShoot || localPlayer->clientTickInterval == 0.05f || lastEyePos != prevLastPos)
             {
                 // we just start desync, set shit up
 
+                prevLastPos = lastEyePos;
+
                 localPlayer->input->fields.state->fields.previous->fields.buttons =
                     localPlayer->input->fields.state->fields.current->fields.buttons;
+
+                HitScanner::currentTraceRays = HitScanner::testNormalizedTraceRays;
+
+                auto maxDistance = AntiHack::MaximumDesyncDistance(localPlayer);
+                auto maxAltitude = AntiHack::MaximumDesyncAltitude(localPlayer);
+
+                // optimizing shit here
+
+                for (auto& tray : HitScanner::currentTraceRays)
+                {
+                    CRaycastHit raycastHit{};
+                    float       currentMaxDistance = maxDistance;
+                    CRay        ray(lastEyePos, tray.direction);
+
+                    auto curP = finalRot * tray.points[tray.points.size() - 1] + lastEyePos;
+
+                    AntiHack::IsNoClipping(localPlayer, lastEyePos, curP, &currentMaxDistance);
+
+                    // if (CGamePhysics::Raycast(ray, &raycastHit, maxDistance,
+                    // (uint32_t)Layers::EntityLineOfSightCheck,
+                    //                           QueryTriggerInteraction::Ignore))
+                    // {
+                    //     currentMaxDistance = std::abs(raycastHit.m_Distance);
+                    // }
+
+                    tray.maxDistance = currentMaxDistance;
+
+                    for (auto& point : tray.points)
+                    {
+                        if (point.empty() == false)
+                        {
+                            point = finalRot * point + lastEyePos;
+
+                            auto pDist = std::abs(point.distance(lastEyePos));
+                            auto pAlt  = std::abs(point.y - lastEyePos.y);
+
+                            if (pDist > currentMaxDistance || pAlt > maxAltitude)
+                            {
+                                point = {};
+                                continue;
+                            }
+                        }
+                    }
+                }
             }
 
             localPlayer->clientTickInterval = 0.99f;
-
-            auto lastEyePos   = *(Vector3*)&localPlayer->lastSentTick->fields.eyePos;
-            auto lastLocalPos = *(Vector3*)&localPlayer->lastSentTick->fields.position;
-            auto rotation     = *(Vector4*)&localPlayer->eyes->fields._rotationLook_k__BackingField;
-
-            Layers mask = Layers::EntityLineOfSightCheck;
-
-            auto mount = (BaseMountable_o*)localPlayer->mounted.fields.ent_cached;
-
-            float parrentMaxVelocity{};
-
-            if (mount != nullptr)
-            {
-                MountPoses pose = (MountPoses)mount->fields.mountPose;
-                if (pose == MountPoses::SitMinicopter_Pilot || pose == MountPoses::SitMinicopter_Passenger ||
-                    pose == MountPoses::Driving || pose == MountPoses::SitGeneric)
-                {
-                    // values             = &Helicopter;
-                    parrentMaxVelocity = _flt(50.f);
-                }
-                else if (pose == MountPoses::SitShootingGeneric || pose == MountPoses::HandMotorBoat ||
-                         pose == MountPoses::StandDrive || pose == MountPoses::Horseback)
-                {
-                    // values             = &Ridable;
-                    parrentMaxVelocity = _flt(7.5f);
-                }
-            }
-
-            float clientFrames = _flt(2.f) / _flt(60.f);
-            float serverFrames = _flt(2.f) * std::max(std::max(CTime::GetDeltaTime(), CTime::GetSmoothDeltaTime()),
-                                                      CTime::GetFixedDeltaTime());
-
-            const float timeSinceLastTick = CTime::GetRealTime() - localPlayer->lastSentTickTime;
-            const float desyncTimeRaw     = std::max(timeSinceLastTick - CTime::GetDeltaTime(), 0.f);
-            const auto  desyncClamped     = std::min(desyncTimeRaw, 1.f);
-            const auto  playerMaxVelocity = localPlayer->MaxVelocity();
-
-            const auto desyncMaxDiff = (desyncClamped + clientFrames + serverFrames) * _flt(1.5f); // forgiveness 1.5
-            const auto maxHorizontalDesyncDistance = localPlayer->BoundsPadding() + desyncMaxDiff * playerMaxVelocity;
-            const auto playerMaxVerticalVelocity   = std::abs(parrentMaxVelocity + localPlayer->GetParentVelocity().y);
-
-            auto maxDesyncAltitude =
-                localPlayer->BoundsPadding() + desyncMaxDiff * playerMaxVerticalVelocity + localPlayer->GetJumpHeight();
-            maxDesyncAltitude -= 0.0001f;
         }
         else
         {
@@ -1161,6 +1329,11 @@ namespace Aimbot
 
         if (localPlayer->HasFlag(PlayerFlags::Sleeping))
             return;
+
+        if (HitScanner::testNormalizedTraceRays.empty())
+        {
+            HitScanner::GenerateNormalizedLOSTraceRays(HitScanner::testNormalizedTraceRays, 10.f, 3.f, 444.f);
+        }
 
         Desync();
 
@@ -1179,17 +1352,25 @@ namespace Aimbot
 
         auto input       = localPlayer->input;
         auto eyes        = (CPlayerEyes*)localPlayer->eyes;
-        auto localOrigin = eyes->GetPosition();
+        auto localOrigin = eyes->GetPosition(); /*((CModel*)localPlayer->model)
+                              ->GetBoneTransform(PlayerBones::eyeTranform)
+                              ->GetPosition(); */
+
+        auto velocityOrigin       = localPlayer->GetWorldVelocity();
+        auto delta                = CTime::GetDeltaTime();
+        auto nextFramePosDelta    = velocityOrigin * delta;
+        auto predictedLocalOrigin = velocityOrigin.empty() ? localOrigin : localOrigin + nextFramePosDelta;
 
         auto headAngle = *(Vector3*)&input->fields.bodyAngles.fields;
 
-        Vector2 viewOffset = math_additional::CalcAngle(localOrigin, PredictedPosition) - headAngle;
+        // Vector2 viewOffset = math_additional::CalcAngle(localOrigin, PredictedPosition) - headAngle;
+        Vector2 viewOffset = math_additional::CalcAngle(predictedLocalOrigin, PredictedPosition) - headAngle;
 
         if (viewOffset.empty())
             return;
 
         Vector3 aimAngles = headAngle;
-        aimAngles         = aimAngles + viewOffset;
+        aimAngles         = aimAngles + viewOffset - *(Vector3*)&input->fields.recoilAngles;
 
         auto mount  = localPlayer->mounted.fields.ent_cached;
         auto parent = localPlayer->addedToParentEntity;

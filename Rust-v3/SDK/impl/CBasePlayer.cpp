@@ -81,6 +81,12 @@ float CBasePlayer::StartHealth()
     return this->startHealth;
 }
 
+Vector3 CBasePlayer::GetMountVelocity()
+{
+    auto addr = OFF(Offsets::BasePlayer::Methods::GetMountVelocity);
+    return ((Vector3(__thiscall*)(void*))(addr))(this);
+}
+
 // float CBasePlayer::StartMaxHealth()
 // {
 //     return this->max

@@ -9,7 +9,7 @@
 
 #ifdef MRT_ENABLED
 
-extern "C" __declspec(selectany) int _fltused = 1;
+extern "C"  [[gnu::used]] int _fltused = 1;
 
 extern "C"
 {

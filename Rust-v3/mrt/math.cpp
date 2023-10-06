@@ -109,6 +109,12 @@ extern "C" float __CRTDECL asinf(float _X)
     return fn(_X);
 }
 
+extern "C" double sqrt(double _X)
+{
+    static auto fn = LI_FN(sqrt).in_safe(crtbaseModule.get());
+    return fn(_X);
+}
+
 // TODO: Make it TLS variable
 int __eeeerrr = 0;
 

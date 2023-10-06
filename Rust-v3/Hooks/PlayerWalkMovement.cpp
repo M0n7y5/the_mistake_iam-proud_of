@@ -161,6 +161,13 @@ namespace
                 OmniSprint((CBasePlayer*)_this->_Owner_k__BackingField, _this, modelState);
             }
         }
+        if (settings->misc.other.TeleportForward.Active())
+        {
+            if (player->GetDesyncTimeClamped() > 0.96f)
+            {
+                _this->TeleportTo(Movement::TeleportTargetPosition, player);
+            }
+        }
     }
 
     void hk_TeleportTo(CPlayerWalkMovement* _this, Vector3 position, CBasePlayer* player, void* method)

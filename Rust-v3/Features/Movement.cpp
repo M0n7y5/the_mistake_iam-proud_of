@@ -8,7 +8,8 @@
 #include "../SDK/settings.h"
 #include "../mrt/logging.h"
 #include "../mrt/xorstr.hpp"
-#include "../Features/Aimbot.h"
+#include "Aimbot.h"
+#include "AntiHack.h"
 
 namespace Movement
 {
@@ -30,7 +31,8 @@ namespace Movement
         auto onLadder      = player->OnLadder();
         auto notInElevator = (enviroment & EnvironmentType::Elevator) == (EnvironmentType)0;
 
-        auto waterInfo = CWaterLevel::GetWaterInfo(vector - Vector3(0.f, CAntiHack::flyhack_extrusion, 0.f), true, true, player, false);
+        auto waterInfo = CWaterLevel::GetWaterInfo(vector - Vector3(0.f, CAntiHack::flyhack_extrusion, 0.f), true, true,
+                                                   player, false);
 
         // auto waterTest =
         //     (settings->misc.flyhack.AbsoluteFlyHack
@@ -356,15 +358,36 @@ namespace Movement
                 CGamePhysics::IgnoreLayerCollision(Layer::Player_Movement, Layer::Water, true);
                 localplayer->modelState->fields.waterLevel = 1.f;
             }
+
+            CGamePhysics::IgnoreLayerCollision(Layer::Player_Movement, Layer::World,
+                                               settings->misc.flyhack.NoTerrainCollision);
         }
         else
         {
             flyhackPauseTime = CTime::GetTime();
+            CGamePhysics::IgnoreLayerCollision(Layer::Player_Movement, Layer::World, false);
         }
+    }
+
+    void TeleportAssist(CBasePlayer* localplayer)
+    {
+        if (localplayer->lastSentTick == nullptr)
+            return;
+
+        auto lastPos = *(Vector3*)&localplayer->lastSentTick->fields.position;
+
+        auto eyes = (CPlayerEyes*)localplayer->eyes;
+
+        TeleportTargetPosition = (eyes->GetRotation() * (vec3Forward * 3.f)) + lastPos;
+
+        IsWallTeleportPossible = AntiHack::IsNoClipping(localplayer, lastPos, TeleportTargetPosition) == false;
+
     }
 
     void AfterClientInput(CBasePlayer* localplayer)
     {
         FlyHack(localplayer);
+
+        TeleportAssist(localplayer);
     }
 } // namespace Movement

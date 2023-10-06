@@ -32,6 +32,7 @@ CCamera*     camera               = nullptr;
 float        fontSize             = 0.0f;
 Vector3      currentLocalPosition = {};
 CBasePlayer* _localPlayer         = 0;
+bool         isSomeGameMenuOpened = false;
 // types
 
 struct Box
@@ -83,6 +84,47 @@ ImVec2 GetTextSize(const char* text)
 {
     return ImGui::GetFont()->CalcTextSizeA(fontSize, FLT_MAX, 0, text);
 }
+
+/*
+rendering colliders
+    BoxCollider boxCollider = GetComponent<BoxCollider>();
+    if (boxCollider != null)
+    {
+        Material material = new Material(Shader.Find("Unlit/Color"));
+        Color color = Color.green;
+        material.color = color;
+        float width = 0.01f;
+        Vector3 rightDir = boxCollider.transform.right.normalized;
+        Vector3 forwardDir = boxCollider.transform.forward.normalized;
+        Vector3 upDir = boxCollider.transform.up.normalized;
+        Vector3 center = boxCollider.transform.position + boxCollider.center;
+        Vector3 size = boxCollider.size;
+        size.x *= boxCollider.transform.lossyScale.x;
+        size.y *= boxCollider.transform.lossyScale.y;
+        size.z *= boxCollider.transform.lossyScale.z;
+        DrawLine(center + upDir * size.y / 2f + rightDir * size.x / 2f + forwardDir * size.z / 2f, center + upDir *
+size.y / 2f - rightDir * size.x / 2f + forwardDir * size.z / 2f, color, material, width); DrawLine(center - upDir *
+size.y / 2f + rightDir * size.x / 2f + forwardDir * size.z / 2f, center - upDir * size.y / 2f - rightDir * size.x / 2f +
+forwardDir * size.z / 2f, color, material, width); DrawLine(center + upDir * size.y / 2f + rightDir * size.x / 2f +
+forwardDir * size.z / 2f, center - upDir * size.y / 2f + rightDir * size.x / 2f + forwardDir * size.z / 2f, color,
+material, width); DrawLine(center + upDir * size.y / 2f - rightDir * size.x / 2f + forwardDir * size.z / 2f, center -
+upDir * size.y / 2f - rightDir * size.x / 2f + forwardDir * size.z / 2f, color, material, width); DrawLine(center +
+upDir * size.y / 2f + rightDir * size.x / 2f - forwardDir * size.z / 2f, center + upDir * size.y / 2f - rightDir *
+size.x / 2f - forwardDir * size.z / 2f, color, material, width); DrawLine(center - upDir * size.y / 2f + rightDir *
+size.x / 2f - forwardDir * size.z / 2f, center - upDir * size.y / 2f - rightDir * size.x / 2f - forwardDir * size.z /
+2f, color, material, width); DrawLine(center + upDir * size.y / 2f + rightDir * size.x / 2f - forwardDir * size.z / 2f,
+center - upDir * size.y / 2f + rightDir * size.x / 2f - forwardDir * size.z / 2f, color, material, width);
+        DrawLine(center + upDir * size.y / 2f - rightDir * size.x / 2f - forwardDir * size.z / 2f, center - upDir *
+size.y / 2f - rightDir * size.x / 2f - forwardDir * size.z / 2f, color, material, width); DrawLine(center + upDir *
+size.y / 2f + rightDir * size.x / 2f + forwardDir * size.z / 2f, center + upDir * size.y / 2f + rightDir * size.x / 2f -
+forwardDir * size.z / 2f, color, material, width); DrawLine(center - upDir * size.y / 2f + rightDir * size.x / 2f +
+forwardDir * size.z / 2f, center - upDir * size.y / 2f + rightDir * size.x / 2f - forwardDir * size.z / 2f, color,
+material, width); DrawLine(center + upDir * size.y / 2f - rightDir * size.x / 2f + forwardDir * size.z / 2f, center +
+upDir * size.y / 2f - rightDir * size.x / 2f - forwardDir * size.z / 2f, color, material, width); DrawLine(center -
+upDir * size.y / 2f - rightDir * size.x / 2f + forwardDir * size.z / 2f, center - upDir * size.y / 2f - rightDir *
+size.x / 2f - forwardDir * size.z / 2f, color, material, width);
+    }
+*/
 
 // Draw helpers
 void RenderTextOutline(ImVec2 pos, ImColor color, ImColor outlineColor, const char* text)
@@ -151,12 +193,45 @@ void DrawPlayerFlag(ImVec2& flagPosition, const char* flag)
     flagPosition.y += fontSize;
 }
 
+static float SinPulse(float time)
+{
+   const float pi = 3.14F;
+   const float frequency = 3.f; // Frequency in Hz
+   return 0.5F * (1.f + (float)std::sin(2.f * pi * frequency * time));
+}
+
 void Indicators()
 {
     if (!settings->visuals.general.indicators.Enabled)
         return;
 
     Vector2 screenCenter = {currentScreenSize.m_Width / _flt(2.f), currentScreenSize.m_Height / _flt(2.f)};
+
+    if (settings->ragebot.general.desync.shoot.Active())
+    {
+        if (_localPlayer->input->fields.state->fields.current != nullptr)
+        {
+            // auto lastEyePos   = *(Vector3*)&_localPlayer->lastSentTick->fields.eyePos;
+            // auto lastLocalPos = *(Vector3*)&_localPlayer->lastSentTick->fields.position;
+            // auto rotation     = *(Quaternion*)&_localPlayer->eyes->fields._rotationLook_k__BackingField;
+
+            for (const auto& ray : HitScanner::currentTraceRays)
+            {
+                for (const auto& point : ray.points)
+                {
+                    if (point.empty() == false)
+                    {
+                        Vector2 screenPos{};
+                        // make it faster??
+                        if (camera->WorldToScreen(point, screenPos, currentScreenSize))
+                        {
+                            g->AddCircleFilled(ToImVec2(screenPos), 2.3f, ImColor(0, 255, 0));
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     if (settings->visuals.ores.general.LineToClosest)
     {
@@ -182,7 +257,7 @@ void Indicators()
         float spreadRad = // aprox
             Aimbot::launcherInfo.travelDist * _flt(0.01963747777f);
 
-        float spreadHalfRad = spreadRad * 0.7f;
+        float spreadHalfRad = spreadRad * 0.6f;
 
         // FIXME: use arrays instead + std::span
         Vector2 drawPoints[32];
@@ -205,28 +280,35 @@ void Indicators()
             idx++;
         }
 
-        if (camera->WorldToScreenVec2Ex({worldPointsGlow, idx}, {drawPointsGlow, idx}, currentScreenSize))
-        {
-            if (settings->visuals.general.indicators.PredictionLauncher.Enable)
-            {
-                auto col  = settings->visuals.general.indicators.PredictionLauncher.Color;
-                auto glow = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5, 35, 25, 50);
-
-                g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col, glow, {});
-
-                auto col2    = col;
-                col2.Value.w = Remap(drawPoints[0].distance(drawPointsGlow[0]), 5.f, 35.f, 0.f, 1.f);
-                g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col2, glow, {});
-            }
-        }
-
         if (camera->WorldToScreenVec2Ex({worldPoints, idx}, {drawPoints, idx}, currentScreenSize))
         {
             if (settings->visuals.general.indicators.PredictionLauncherLine.Enable)
             {
                 g->AddPolyline(reinterpret_cast<ImVec2*>(&drawPoints), idx,
                                settings->visuals.general.indicators.PredictionLauncherLine.Color, ImDrawFlags_Closed,
-                               _flt(1.f));
+                               1.55f);
+            }
+        }
+
+        if (camera->WorldToScreenVec2Ex({worldPointsGlow, idx}, {drawPointsGlow, idx}, currentScreenSize))
+        {
+            if (settings->visuals.general.indicators.PredictionLauncher.Enable)
+            {
+                auto absDistance = std::abs(drawPoints[0].distance(drawPointsGlow[0]));
+
+                // close glow
+                auto col    = settings->visuals.general.indicators.PredictionLauncher.Color;
+                col.Value.w = Remap(absDistance, 10.f, 35.f, 1.f, 0.f);
+                // auto glow   = Remap(absDistance, 5.f, 35.f, 35.f, 50.f);
+
+                g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col, 50.f, {});
+
+                // far glow
+                auto col2    = settings->visuals.general.indicators.PredictionLauncher.Color;
+                col2.Value.w = RemapClamped(absDistance, 15.f, 35.f, 0.f, 1.f);
+                // auto glow2   = Remap(absDistance, 25.f, 5.f, 35.f, 50.f);
+
+                g->AddShadowConvexPoly(reinterpret_cast<ImVec2*>(&drawPointsGlow), idx, col2, 75.f, {});
             }
         }
     }
@@ -238,6 +320,42 @@ void Indicators()
         {
             g->AddCircleFilled({pos.x, pos.y}, 3.f, settings->visuals.general.indicators.Prediction.Color);
         }
+
+        // do
+        // {
+        //     if (_localPlayer == nullptr || _localPlayer->m_CachedPtr == 0)
+        //         break;
+
+        //     if (_localPlayer->HasFlag(PlayerFlags::Sleeping))
+        //         break;
+
+        //     if (_localPlayer->inventory == nullptr || _localPlayer->inventory->fields.m_CachedPtr == 0)
+        //         break;
+
+        //     auto input       = _localPlayer->input;
+        //     auto eyes        = (CPlayerEyes*)_localPlayer->eyes;
+        //     auto localOrigin = eyes->GetPosition();
+        //     auto eyesTransformPos =
+        //         ((CModel*)_localPlayer->model)->GetBoneTransform(PlayerBones::eyeTranform)->GetPosition();
+        //     auto headTransformPos =
+        //     ((CModel*)_localPlayer->model)->GetBoneTransform(PlayerBones::head)->GetPosition();
+
+        //     if (camera->WorldToScreen(eyesTransformPos, pos, currentScreenSize))
+        //     {
+        //         g->AddCircleFilled({pos.x, pos.y}, 3.f, ImColor(0, 0, 255));
+        //     }
+
+        //     if (camera->WorldToScreen(localOrigin, pos, currentScreenSize))
+        //     {
+        //         g->AddCircleFilled({pos.x, pos.y}, 3.f, ImColor(0, 255, 0));
+        //     }
+
+        //     if (camera->WorldToScreen(headTransformPos, pos, currentScreenSize))
+        //     {
+        //         g->AddCircleFilled({pos.x, pos.y}, 3.f, ImColor(255, 0, 0));
+        //     }
+
+        // } while (false);
     }
 
     if (settings->visuals.general.indicators.Radar)
@@ -399,36 +517,102 @@ void Indicators()
     float heightModifier = 0.f;
     auto  screenHeight   = currentScreenSize.m_Height;
 
-    if (settings->misc.flyhack.Flyhack.Active() && settings->misc.flyhack.AntiFlyKick)
+    auto circleCenter = ToImVec2(screenCenter);
+    circleCenter.y -= 30.f;
+
+    if (settings->misc.flyhack.AntiFlyKick)
     {
-        float percentage1 = Movement::flyhackDistanceHorizontal / _flt(6.5f);
-        float percentage2 = Movement::flyhackDistanceVertical / _flt(3.f);
+        if (Movement::flyhackDistanceHorizontal > 0.f || Movement::flyhackDistanceVertical > 0.f)
+        {
+            float percentage1 = Movement::flyhackDistanceHorizontal / _flt(6.5f);
+            float percentage2 = Movement::flyhackDistanceVertical / _flt(3.f);
 
-        int red1   = (int)((percentage1 * _flt(100.f)) * _flt(2.55f));
-        int green1 = 255 - red1;
+            auto color1 =
+                ImGui::GetColorU32(ImLerp(ImColor(32, 243, 32).Value, ImColor(243, 32, 32).Value, percentage1));
+            auto color2 =
+                ImGui::GetColorU32(ImLerp(ImColor(32, 243, 32).Value, ImColor(243, 32, 32).Value, percentage2));
 
-        int red2   = (int)((percentage2 * _flt(100.f)) * _flt(2.55f));
-        int green2 = 255 - red2;
+            auto rectWidth1 = RemapClamped(percentage1, 0.f, 1.f, 2.f, 160.f);
+            auto halfWidth1 = rectWidth1 / 2.f;
 
-        ImVec2 boxLength = ImGui::CalcTextSize(_("FLYHACK"));
-        RenderTextOutline(ImVec2{_flt(5.f), screenHeight / _flt(2.f) - _flt(17.f)}, ImColor{red1, green1, 0},
-                          ImColor{0, 0, 0}, _("FLYHACK"));
-        g->AddRectFilled({_flt(5.f), screenHeight / _flt(2.f) - _flt(3.f)},
-                         {_flt(5.f) + boxLength[0] + _flt(1.f), screenHeight / _flt(2.f) + _flt(3.f)},
-                         ImColor(0, 0, 0));
-        g->AddRectFilled(
-            {_flt(6.f), screenHeight / _flt(2.f) - _flt(2.f)},
-            {std::max(_flt(6.f) + std::max(boxLength[0] * (_flt(1.f) - percentage1) - _flt(1.f), _flt(6.f)), 0.f),
-             screenHeight / 2.f + 2.f},
-            ImColor(red1, green1, 0));
+            auto pMin1 = ImVec2{screenCenter.x - halfWidth1, screenCenter.y};
+            auto pMax1 = ImVec2{screenCenter.x + halfWidth1, screenCenter.y + 100.f};
 
-        g->AddRectFilled({_flt(5.f), screenHeight / 2.f + _flt(4.f)},
-                         {_flt(5.f) + boxLength[0] + 1.f, screenHeight / 2.f + _flt(10.f)}, ImColor(0, 0, 0));
-        g->AddRectFilled({_flt(6.f), screenHeight / 2.f + _flt(5.f)},
-                         {std::max(6.f + std::max(boxLength[0] * (1.f - percentage2) - 1.f, _flt(6.f)), 0.f),
-                          screenHeight / 2.f + _flt(9.f)},
-                         ImColor(red2, green2, 0));
+            auto rectWidth2 = RemapClamped(percentage2, 0.f, 1.f, 2.f, 160.f);
+            auto halfWidth2 = rectWidth2 / 2.f;
+
+            auto pMin2 = ImVec2{screenCenter.x - halfWidth2, screenCenter.y};
+            auto pMax2 = ImVec2{screenCenter.x + halfWidth2, screenCenter.y + 100.f};
+
+            // g->AddRect(pMin, pMax, ImColor(255, 222, 0));
+
+            g->PushClipRect(pMin1, pMax1);
+            g->AddCircle(circleCenter, 68.f, color1, 0, 2.55);
+            g->AddShadowCircle(circleCenter, 68.f, color1, 110.f, {}, ImDrawFlags_ShadowCutOutShapeBackground);
+            g->PopClipRect();
+
+            circleCenter.y += 2.55;
+
+            g->PushClipRect(pMin2, pMax2);
+            g->AddCircle(circleCenter, 70.f, color2, 0, 2.55);
+            g->AddShadowCircle(circleCenter, 70.f, color2, 110.f, {}, ImDrawFlags_ShadowCutOutShapeBackground);
+            g->PopClipRect();
+        }
+
         heightModifier += _flt(12.f);
+    }
+
+    if (settings->misc.other.TeleportForward.Active())
+    {
+        auto pos = screenCenter;
+        pos.y += fontSize + 5.f;
+
+        auto opa = RemapClamped(SinPulse(CTime::GetTime()), 0.f, 1.f, 0.f, 255.f);
+
+        if (settings->misc.other.TeleportForward.Active())
+            RenderTextCenter(pos, _("TELEPORTING"), ImColor(0, 180, 255, (int)opa));
+        // else
+        //     RenderTextCenter(pos, _("CAN TP"), ImColor(0, 180, 255));
+
+        if (_localPlayer->lastSentTick != nullptr)
+        {
+            auto    localPos = *(Vector3*)&_localPlayer->lastSentTick->fields.position;
+            Vector2 pos1{};
+            Vector2 pos2{};
+            camera->WorldToScreen(localPos, pos1, currentScreenSize);
+            camera->WorldToScreen(Movement::TeleportTargetPosition, pos2, currentScreenSize);
+
+            if (pos1.empty() == false)
+                g->AddLine(ToImVec2(pos1), ToImVec2(pos2), settings->visuals.general.indicators.CrossHair.Color);
+
+            g->AddCircleFilled(ToImVec2(pos2), 3.55f, settings->visuals.general.indicators.CrossHair.Color);
+        }
+    }
+
+    auto currentDesync = _localPlayer->GetDesyncTimeClamped();
+
+    if (currentDesync > 0.1f)
+    {
+        auto rectWidth = RemapClamped(currentDesync, 0.f, 0.99f, 2.f, 160.f);
+        auto halfWidth = rectWidth / 2.f;
+
+        auto pMin = ImVec2{screenCenter.x - halfWidth, screenCenter.y};
+        auto pMax = ImVec2{screenCenter.x + halfWidth, screenCenter.y + 100.f};
+
+        // g->AddRect(pMin, pMax, ImColor(255, 222, 0));
+        circleCenter.y += 2.55;
+
+        g->PushClipRect(pMin, pMax);
+        g->AddCircle(circleCenter, 72.f, ImColor(0, 180, 255), 0, 2.65);
+        g->AddShadowCircle(circleCenter, 72.f, ImColor(0, 180, 255), 110.f, {},
+                           ImDrawFlags_ShadowCutOutShapeBackground);
+        g->AddShadowCircle(circleCenter, 72.f, ImColor(0, 180, 255), 110.f, {},
+                           ImDrawFlags_ShadowCutOutShapeBackground);
+        g->AddShadowCircle(circleCenter, 72.f, ImColor(0, 180, 255), 110.f, {},
+                           ImDrawFlags_ShadowCutOutShapeBackground);
+        g->AddShadowCircle(circleCenter, 72.f, ImColor(0, 180, 255), 110.f, {},
+                           ImDrawFlags_ShadowCutOutShapeBackground);
+        g->PopClipRect();
     }
 
     if (settings->misc.other.SilentFarm.Active())
@@ -444,7 +628,8 @@ void Indicators()
         heightModifier += _flt(12.f);
     }
 
-    if (settings->visuals.general.ShowHotBar)
+    if (settings->visuals.general.ShowHotBar &&
+        (settings->visuals.general.HideHotBarWhenMenuIsOpened && isSomeGameMenuOpened == false))
     {
 
         static auto gameHotBar = CGameObject::Find<CGameObject>(_("GameUI.Hud.BeltBar"));
@@ -456,88 +641,262 @@ void Indicators()
         auto beltUiScale = gameHotBarRectTransform->GetLossyScale().x;
         auto beltUIPos   = ScreenToImgui({gameUipos.x, gameUipos.y});
 
-        constexpr static float itemSize       = 75.f;
-        constexpr static float itemSizeHalf   = itemSize / 2.f;
-        constexpr static float margin         = 5.f;
-        constexpr static float totalWidth     = 6.f * (itemSize + margin) - margin;
-        constexpr static float totalWidthHalf = totalWidth / 2.f;
-
-        auto screenPos = Vector2{screenCenter.x - totalWidthHalf, beltUIPos.y - 64.f * beltUiScale - 10.f - itemSize};
-
-        float currX = screenPos.x;
-
-        if (Aimbot::CurrentTarget.type == Aimbot::TargetType::Player)
+        if (Aimbot::CurrentTarget.type == Aimbot::TargetType::Player ||
+            Aimbot::CurrentTarget.type == Aimbot::TargetType::HotBar)
         {
             auto target = (CBasePlayer*)Aimbot::CurrentTarget.entity->entity;
-
-            auto belt = (CPlayerBelt*)target->Belt;
-
-            auto activeItem = target->GetActiveItem();
-
-            auto playerNameID = EntityManager::DB::GetPlayerName(target);
-            auto playerName   = EntityManager::DB::GetString(playerNameID);
-
-            RenderTextCenter({screenCenter.x, screenPos.y - fontSize - 3.f}, playerName->c_str());
-
-            // some design stuff
-            g->AddRectFilled({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
-                             ImColor(20, 25, 31, 180), 7.f);
-            g->AddRect({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
-                       ImColor(25, 33, 42, 180), 7.f, 0, 1.35f);
-
-            for (int i = 0; i < 6; i++)
+            // draw belt
             {
-                auto currentItem = belt->GetItemInSlot(i);
 
-                auto rectMin = ImVec2{currX, screenPos.y};
-                auto rectMax = ImVec2{currX + itemSize, screenPos.y + itemSize};
+                constexpr static float itemSize       = 75.f;
+                constexpr static float itemSizeHalf   = itemSize / 2.f;
+                constexpr static float margin         = 2.f;
+                constexpr static float totalWidth     = 6.f * (itemSize + margin) - margin;
+                constexpr static float totalWidthHalf = totalWidth / 2.f;
 
-                // debug rect
-                // g->AddRect(rectMin, rectMax, ImColor(255, 0, 0), 7.f, 0, 1.55f);
+                auto screenPos =
+                    Vector2{screenCenter.x - totalWidthHalf, beltUIPos.y - 64.f * beltUiScale - 20.f - itemSize * 2.f};
 
-                // g->AddCircleFilled({currX, screenPos.y}, itemSize, ImColor(20, 25, 31));
-                // g->AddCircle({currX, screenPos.y}, itemSize, ImColor(25, 33, 42));
+                float currX = screenPos.x;
 
-                if (currentItem == nullptr)
+                auto belt = (CPlayerBelt*)target->Belt;
+
+                auto activeItem = target->GetActiveItem();
+
+                auto playerNameID = EntityManager::DB::GetPlayerName(target);
+                auto playerName   = EntityManager::DB::GetString(playerNameID);
+
+                RenderTextCenter({screenCenter.x, screenPos.y - fontSize - 3.f}, playerName->c_str());
+
+                // some design stuff
+                g->AddRectFilled({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
+                                 ImColor(20, 25, 31, 180), 7.f);
+                g->AddRect({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
+                           ImColor(25, 33, 42, 220), 7.f, 0, 1.55f);
+
+                char buf[16]{};
+                for (int i = 0; i < 6; i++)
                 {
-                    g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
-                                       ImColor(255, 255, 255, 50), 75, {});
-                }
-                else
-                {
-                    auto sprite = (CSprite*)currentItem->info->fields.iconSprite;
-                    auto tex    = sprite->GetTexture();
+                    auto currentItem = belt->GetItemInSlot(i);
 
-                    // auto offsetCond = Remap(currentItem->_condition, 0, currentItem->_maxCondition, itemSize, 0);
+                    auto rectMin = ImVec2{currX, screenPos.y};
+                    auto rectMax = ImVec2{currX + itemSize, screenPos.y + itemSize};
 
-                    // g->PushClipRect({rectMin.x, rectMin.y}, {rectMin.x + 5.f, rectMin.y + itemSize});
-                    // g->AddRectFilled(rectMin, rectMax, ImColor(111, 136, 66), 7.f);
-                    // g->PopClipRect();
+                    // debug rect
+                    // g->AddRect(rectMin, rectMax, ImColor(255, 0, 0), 7.f, 0, 1.55f);
 
-                    // auto imgPos    = ImVec2{currX - itemSize / 2.f - margin, screenPos.y - itemSize / 2.f - margin};
-                    // auto imgPosEnd = ImVec2{imgPos.x + 50.f, imgPos.y + 50.f};
+                    // g->AddCircleFilled({currX, screenPos.y}, itemSize, ImColor(20, 25, 31));
+                    // g->AddCircle({currX, screenPos.y}, itemSize, ImColor(25, 33, 42));
 
-                    if (activeItem != nullptr)
+                    if (currentItem == nullptr)
                     {
-                        if (activeItem == currentItem)
-                        {
-                            g->AddRectFilled(rectMin, rectMax, ImColor(255, 0, 0, 150), 7.f, 0);
-                        }
-
                         g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
-                                           ImColor(255, 255, 255, 220), 85.f, {});
-
-                        g->AddImage((ImTextureID)tex, rectMin, rectMax);
+                                           ImColor(255, 255, 255, 50), 75, {});
                     }
                     else
                     {
-                        g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
-                                           ImColor(255, 255, 255, 220), 85, {});
+                        auto sprite = (CSprite*)currentItem->info->fields.iconSprite;
+                        auto tex    = sprite->GetTexture();
+
+                        // auto imgPos    = ImVec2{currX - itemSize / 2.f - margin, screenPos.y - itemSize / 2.f -
+                        // margin}; auto imgPosEnd = ImVec2{imgPos.x + 50.f, imgPos.y + 50.f};
+
+                        if (activeItem != nullptr)
+                        {
+                            if (activeItem == currentItem)
+                            {
+                                g->AddRectFilled(rectMin, rectMax, ImColor(255, 0, 0, 150), 7.f, 0);
+                            }
+
+                            g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                                               ImColor(255, 255, 255, 220), 85.f, {});
+                        }
+                        else
+                        {
+                            g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                                               ImColor(255, 255, 255, 220), 85, {});
+                        }
+
+                        if (currentItem->HasCondition())
+                        {
+                            auto isBroken  = currentItem->IsBroken();
+                            auto rectColor = isBroken ? ImColor(255, 89, 38) : ImColor(111, 136, 66);
+
+                            auto offsetCond =
+                                Remap(currentItem->_condition, 0, currentItem->_maxCondition, itemSize, 0);
+
+                            if (isBroken)
+                            {
+                                g->PushClipRect({rectMin.x, rectMin.y}, {rectMin.x + 5.f, rectMin.y + itemSize});
+                                g->AddRectFilled(rectMin, rectMax, rectColor, i == 0 ? 7.f : 0.f);
+                                g->PopClipRect();
+                            }
+                            else
+                            {
+                                g->PushClipRect({rectMin.x, rectMin.y + offsetCond},
+                                                {rectMin.x + 5.f, rectMin.y + itemSize + offsetCond});
+                                g->AddRectFilled(rectMin, rectMax, rectColor, i == 0 ? 7.f : 0.f);
+                                g->PopClipRect();
+                            }
+                        }
                         g->AddImage((ImTextureID)tex, rectMin, rectMax);
+                        snprintf(buf, 16, "[%dx]", currentItem->amount);
+
+                        auto txtSize = GetTextSize(buf);
+                        auto txtPos  = ImVec2{rectMax.x - txtSize.x - 5.f, rectMax.y - fontSize - 5.f};
+
+                        RenderTextOutline(txtPos, ImColor{255, 255, 255}, ImColor{0, 0, 0, 255}, buf);
+                    }
+
+                    currX += margin + itemSize;
+                }
+            }
+
+            // draw wear
+            {
+                constexpr static float itemSize     = 75.f;
+                constexpr static float itemSizeHalf = itemSize / 2.f;
+                constexpr static float margin       = 2.f;
+
+                auto wearItems = (CItemContainer*)target->inventory->fields.containerWear;
+
+                if (wearItems != nullptr)
+                {
+                    size_t countItems = target->playerModel->fields._IsNpc_k__BackingField ? 4 : 8;
+
+                    // if (wearItems->itemList->fields._items->max_length == 0 ||
+                    //     wearItems->itemList->fields._items->max_length >= 9)
+                    // {
+                    //     countItems = 0;
+                    // }
+
+                    std::span items{(CItem**)wearItems->itemList->fields._items->m_Items,
+                                    (size_t)wearItems->itemList->fields._size};
+
+                    float totalWidth     = (items.size() + 1.f) * (itemSize + margin) - margin;
+                    float totalWidthHalf = totalWidth / 2.f;
+
+                    auto screenPos =
+                        Vector2{screenCenter.x - totalWidthHalf, beltUIPos.y - 64.f * beltUiScale - 10.f - itemSize};
+
+                    float currX = screenPos.x;
+
+                    if (items.size() != 0)
+                    {
+                        g->AddRectFilled({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
+                                         ImColor(20, 25, 31, 180), 7.f);
+                        g->AddRect({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
+                                   ImColor(25, 33, 42, 220), 7.f, 0, 1.55f);
+
+                        int i = 0;
+                        for (const auto& currentItem : items)
+                        {
+                            auto rectMin = ImVec2{currX, screenPos.y};
+                            auto rectMax = ImVec2{currX + itemSize, screenPos.y + itemSize};
+
+                            // auto ent = currentItem->worldEnt.fields.ent_cached;
+
+                            if (currentItem == nullptr /*|| currentItem-> heldEntity.fields.ent_cached == nullptr ||
+                        currentItem->worldEnt.fields.ent_cached->fields._IsDestroyed_k__BackingField == true ||
+                        currentItem->worldEnt.fields.ent_cached->fields.m_CachedPtr == 0*/)
+                            {
+                                g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                                                   ImColor(255, 255, 255, 50), 75, {});
+                            }
+                            else
+                            {
+                                auto sprite = (CSprite*)currentItem->info->fields.iconSprite;
+                                auto tex    = sprite->GetTexture();
+
+                                g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                                                   ImColor(255, 255, 255, 220), 85, {});
+
+                                if (currentItem->HasCondition())
+                                {
+                                    auto isBroken  = currentItem->IsBroken();
+                                    auto rectColor = isBroken ? ImColor(255, 89, 38) : ImColor(111, 136, 66);
+
+                                    auto offsetCond =
+                                        Remap(currentItem->_condition, 0, currentItem->_maxCondition, itemSize, 0);
+
+                                    if (isBroken)
+                                    {
+                                        g->PushClipRect({rectMin.x, rectMin.y},
+                                                        {rectMin.x + 5.f, rectMin.y + itemSize});
+                                        g->AddRectFilled(rectMin, rectMax, rectColor, i == 0 ? 7.f : 0.f);
+                                        g->PopClipRect();
+                                    }
+                                    else
+                                    {
+                                        g->PushClipRect({rectMin.x, rectMin.y + offsetCond},
+                                                        {rectMin.x + 5.f, rectMin.y + itemSize + offsetCond});
+                                        g->AddRectFilled(rectMin, rectMax, rectColor, i == 0 ? 7.f : 0.f);
+                                        g->PopClipRect();
+                                    }
+                                }
+
+                                g->AddImage((ImTextureID)tex, rectMin, rectMax);
+                            }
+
+                            currX += margin + itemSize;
+                            i++;
+                        }
                     }
                 }
 
-                currX += margin + itemSize;
+                // some design stuff
+
+                // for (int i = 0; i < 6; i++)
+                // {
+                //     auto currentItem = belt->GetItemInSlot(i);
+
+                //     auto rectMin = ImVec2{currX, screenPos.y};
+                //     auto rectMax = ImVec2{currX + itemSize, screenPos.y + itemSize};
+
+                //     // debug rect
+                //     // g->AddRect(rectMin, rectMax, ImColor(255, 0, 0), 7.f, 0, 1.55f);
+
+                //     // g->AddCircleFilled({currX, screenPos.y}, itemSize, ImColor(20, 25, 31));
+                //     // g->AddCircle({currX, screenPos.y}, itemSize, ImColor(25, 33, 42));
+
+                //     if (currentItem == nullptr)
+                //     {
+                //         g->AddShadowCircle({rectMin.x + itemSizeHalf, rectMin.y + itemSizeHalf}, 5.f,
+                //                            ImColor(255, 255, 255, 50), 75, {});
+                //     }
+                //     else
+                //     {
+                //         auto sprite = (CSprite*)currentItem->info->fields.iconSprite;
+                //         auto tex    = sprite->GetTexture();
+
+                //         if (currentItem->HasCondition())
+                //         {
+                //             auto isBroken  = currentItem->IsBroken();
+                //             auto rectColor = isBroken ? ImColor(255, 89, 38) : ImColor(111, 136, 66);
+
+                //             auto offsetCond =
+                //                 Remap(currentItem->_condition, 0, currentItem->_maxCondition, itemSize, 0);
+
+                //             if (isBroken)
+                //             {
+                //                 g->PushClipRect({rectMin.x, rectMin.y}, {rectMin.x + 5.f, rectMin.y + itemSize});
+                //                 g->AddRectFilled(rectMin, rectMax, rectColor, i == 0 ? 7.f : 0.f);
+                //                 g->PopClipRect();
+                //             }
+                //             else
+                //             {
+                //                 g->PushClipRect({rectMin.x, rectMin.y + offsetCond},
+                //                                 {rectMin.x + 5.f, rectMin.y + itemSize + offsetCond});
+                //                 g->AddRectFilled(rectMin, rectMax, rectColor, i == 0 ? 7.f : 0.f);
+                //                 g->PopClipRect();
+                //             }
+                //         }
+
+                //         g->AddImage((ImTextureID)tex, rectMin, rectMax);
+                //     }
+
+                //     currX += margin + itemSize;
+                // }
             }
         }
     }
@@ -787,34 +1146,34 @@ void DrawRaids()
             snprintf(tmpStr, 64, _("%s %dx"), effectTypeName.c_str(), effectCount);
             RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
                               tmpStr);
+        }
 
-            if (opt.ShowWhenStarted)
-            {
-                float secondsSinceStart  = CTime::GetRealTime() - raid.startTime;
-                int   nSecondsSinceStart = (int)secondsSinceStart;
+        if (opt.ShowWhenStarted)
+        {
+            float secondsSinceStart  = CTime::GetRealTime() - raid.startTime;
+            int   nSecondsSinceStart = (int)secondsSinceStart;
 
-                int seconds = nSecondsSinceStart % 60;
-                int minutes = (nSecondsSinceStart - seconds) / 60;
+            int seconds = nSecondsSinceStart % 60;
+            int minutes = (nSecondsSinceStart - seconds) / 60;
 
-                snprintf(tmpStr, 64, _("Start: %dm%ds"), minutes, seconds);
-                screenPos.y += fontSize;
-                RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
-                                  tmpStr);
-            }
+            snprintf(tmpStr, 64, _("Start: %dm%ds"), minutes, seconds);
+            screenPos.y += fontSize;
+            RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
+                              tmpStr);
+        }
 
-            if (opt.ShowLastExplosion)
-            {
-                float secondsSinceLastExpl  = CTime::GetRealTime() - raid.lastExplosionTime;
-                int   nSecondsSinceLastExpl = (int)secondsSinceLastExpl;
+        if (opt.ShowLastExplosion)
+        {
+            float secondsSinceLastExpl  = CTime::GetRealTime() - raid.lastExplosionTime;
+            int   nSecondsSinceLastExpl = (int)secondsSinceLastExpl;
 
-                int seconds = nSecondsSinceLastExpl % 60;
-                int minutes = (nSecondsSinceLastExpl - seconds) / 60;
+            int seconds = nSecondsSinceLastExpl % 60;
+            int minutes = (nSecondsSinceLastExpl - seconds) / 60;
 
-                snprintf(tmpStr, 64, _("Last: %dm%ds"), minutes, seconds);
-                screenPos.y += fontSize;
-                RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
-                                  tmpStr);
-            }
+            snprintf(tmpStr, 64, _("Last: %dm%ds"), minutes, seconds);
+            screenPos.y += fontSize;
+            RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
+                              tmpStr);
         }
     }
 }
@@ -1290,8 +1649,8 @@ void DrawVehicles()
 void DrawTraps()
 {
     using namespace EntityManager;
-    //int         clutterIdx = 0;
-    const auto& vis        = settings->visuals.traps;
+    // int         clutterIdx = 0;
+    const auto& vis = settings->visuals.traps;
 
     if (vis.general.Enabled == false)
         return;
@@ -1540,7 +1899,7 @@ bool Getbox(EntityManager::Player const& player, Box& box)
     bottom = std::roundf(bottom);
 
     const float height = bottom - top;
-//    const float width  = right - left;
+    //    const float width  = right - left;
 
     if (player.entity->IsWounded() || player.entity->IsSleeping())
         top = bottom - height * 0.4f;
@@ -1677,15 +2036,15 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
         if (player.entity->IsWounded())
             DrawPlayerFlag(flagPosition, "W");
 
-        if (opts.TeamID.Enable)
-        {
-            auto tid = player.entity->GetTeamID();
-            if (tid != 0u)
-            {
-                snprintf(buf, 48, _("TID %llu"), tid);
-                DrawPlayerFlag(flagPosition, buf);
-            }
-        }
+        // if (opts.TeamID.Enable)
+        // {
+        //     auto tid = player.entity->GetTeamID();
+        //     if (tid != 0u)
+        //     {
+        //         snprintf(buf, 48, _("TID %llu"), tid);
+        //         DrawPlayerFlag(flagPosition, buf);
+        //     }
+        // }
     }
 
     ImVec2 itemNamePoint = box.ToImVec2(1);
@@ -1783,8 +2142,14 @@ void DrawPlayers()
 
 void ESP::Draw()
 {
-    const auto& settings = SettingsData::settings;
-    static auto main     = (MainCamera_c*)il2cpp::InitClass(_("MainCamera"));
+    const auto& settings          = SettingsData::settings;
+    static auto main              = (MainCamera_c*)il2cpp::InitClass(_("MainCamera"));
+    static auto inventory         = (UIInventory_c*)il2cpp::InitClass(_("UIInventory"));
+    static auto menuKlass         = (MainMenuSystem_c*)il2cpp::InitClass(_("MainMenuSystem"));
+    static auto mapInterfaceKlass = (MapInterface_c*)il2cpp::InitClass(_("MapInterface"));
+    auto        isMenuOpen        = menuKlass->static_fields->isOpen;
+    auto        isInventoryOpen   = inventory->static_fields->isOpen;
+    auto        isMapOpen         = mapInterfaceKlass->static_fields->IsOpen;
 
     if (g == nullptr)
         return;
@@ -1810,8 +2175,10 @@ void ESP::Draw()
         localPlayer->net == nullptr || localPlayer->eyes == nullptr)
         return;
 
-    if (localPlayer->_IsDestroyed_k__BackingField)
+    if (localPlayer->_IsDestroyed_k__BackingField || localPlayer->_JustCreated_k__BackingField)
         return;
+
+    isSomeGameMenuOpened = isMenuOpen || isInventoryOpen || isMapOpen;
 
     _localPlayer         = localPlayer;
     currentLocalPosition = localPlayer->GetOriginPosition();

@@ -1,13 +1,22 @@
 #include "BasePlayer.h"
 #include <algorithm>
 #include <cstdint>
+#include <span>
+#include <stdint.h>
+#include <vadefs.h>
+#include <vector>
 
 #include "../SDK/il2cpp_api.h"
 #include "../SDK/enums.h"
 #include "../SDK/structs.h"
 #include "../SDK/settings.h"
+#include "../SDK/prefab_ids.h"
+#include "../SDK/globals.h"
+#include "../SDK/mem.h"
 #include "../mrt/logging.h"
 #include "../mrt/xorstr.hpp"
+#include "../mrt/Randomak.h"
+#include "../mrt/scanner.h"
 #include "../Features/Aimbot.h"
 #include "../Features/Movement.h"
 
@@ -187,19 +196,23 @@ namespace
     void AutoCollect()
     {
         using namespace EntityManager;
+        using namespace SettingsData;
 
         static Timer timer{};
 
-        for (const auto& collectible : DB::collectibles)
+        if (settings->misc.other.AutoCollect)
         {
-            if (collectible.distance > 2.8f)
-                continue;
-
-            if (timer.Expired(0.1))
+            for (const auto& collectible : DB::collectibles)
             {
-                collectible.entity->ServerRPC(_("Pickup"));
+                if (collectible.distance > 2.8f)
+                    continue;
+
+                if (timer.Expired(0.15))
+                {
+                    collectible.entity->ServerRPC(_("Pickup"));
+                }
+                break;
             }
-            break;
         }
     }
 
@@ -256,6 +269,12 @@ namespace
         }
 
         if (_this->IsLocalPlayer() == false)
+        {
+            reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, state, method);
+            return;
+        }
+
+        if (_this->HasFlag(PlayerFlags::Sleeping))
         {
             reinterpret_cast<decltype(&hk_ClientInput)>(ClientInput_o)(_this, state, method);
             return;
@@ -327,6 +346,8 @@ namespace
         {
             auto off = Remap(settings->misc.visibility.GiraffeOffset, 0, 100, eyeHeight * 5, -eyeHeight * 5);
             _this->eyes->fields.viewOffset.fields.y += off;
+
+            // hoookTest();
         }
         // else
         // {
@@ -362,7 +383,7 @@ namespace
 
         Movement::AfterClientInput(_this);
 
-        if (settings->misc.other.AdminFlag.Changed())
+        if (settings->misc.other.AdminFlag)
         {
             _this->SetFlag(PlayerFlags::IsAdmin, settings->misc.other.AdminFlag);
         }
@@ -402,27 +423,246 @@ namespace
             SilentMelee(heldEntity, _this, camera);
         }
 
-        auto lookingAt = (CBasePlayer*)_this->_lookingAtEntity;
+        auto lookingAt = (CBaseEntity*)_this->_lookingAtEntity;
 
         if (lookingAt != nullptr)
         {
-            if (lookingAt->IsWounded() && settings->misc.other.InstantRevive.Active())
+            switch (lookingAt->prefabID)
             {
-                // No RPC Flood
-                static Timer timer{};
+            case prefabs::player::player:
+            case prefabs::player::player_model:
+            {
+                auto lookingAtPlayer = (CBasePlayer*)lookingAt;
 
-                if (timer.Expired(0.1f))
+                if (lookingAtPlayer->IsWounded() && settings->misc.other.InstantRevive.Active())
                 {
-                    lookingAt->ServerRPC(_("RPC_KeepAlive"));
-                    lookingAt->ServerRPC(_("RPC_Assist"));
+                    // No RPC Flood
+                    static Timer timer{};
+
+                    if (timer.Expired(0.15f))
+                    {
+                        lookingAtPlayer->ServerRPC(_("RPC_KeepAlive"));
+                        lookingAtPlayer->ServerRPC(_("RPC_Assist"));
+                    }
                 }
+                break;
+            }
+            case prefabs::radtown::crate_underwater_basic:
+            case prefabs::radtown::crate_underwater_advanced:
+            {
+                auto lookingAtPlayer = (CBaseEntity*)lookingAt;
+
+                if (lookingAtPlayer->HasFlag(BaseEntityFlags::Reserved8) && settings->misc.other.InstantUntie.Active())
+                {
+                    // No RPC Flood
+                    static Timer timer{};
+
+                    if (timer.Expired(0.15f))
+                    {
+                        lookingAtPlayer->ServerRPC(_("RPC_FreeCrate"));
+                    }
+                }
+                break;
+            }
             }
         }
+
+        
     }
+
+    uint64_t GetRBX()
+    {
+        uint64_t out = 0;
+        // asm("movl %0, %%rbx;"
+        //     : "=r"(out) /* output */
+        // );
+
+        __asm__("mov %%rbx, %0" : "=r"(out));
+        // return rv;
+
+        return out;
+    }
+
+    uintptr_t   ServerRPC_SendProjectileAttack_o = 0;
+    static void hk_ServerRPC_SendProjectileAttack(CBaseEntity* _this, uint64_t ukn1, CString* funcName,
+                                                  ProtoBuf_PlayerProjectileAttack_o* playerProjectileAttack,
+                                                  MethodInfo*                        method)
+    {
+        using namespace SettingsData;
+        CProjectile* proj = (CProjectile*)GetRBX();
+
+        // #ifdef _DEBUG
+        //         std::string hitName{};
+        //         std::string boneName{};
+
+        //         auto boneID = playerProjectileAttack->fields.playerAttack->fields.attack->fields.hitBone;
+
+        //         if (proj != nullptr)
+        //         {
+        //             if (proj->hitTest != nullptr)
+        //             {
+        //                 if (proj->hitTest->fields.HitEntity != nullptr)
+        //                 {
+        //                     auto ent = proj->hitTest->fields.HitEntity;
+
+        //                     auto nn = (CString*)ent->fields._prefabName;
+
+        //                     if (nn != nullptr)
+        //                     {
+        //                         hitName = nn->str();
+
+        //                         if (boneID != 0)
+        //                         {
+        //                             auto bonemapetit = CStringPool::Get(boneID);
+
+        //                             if (bonemapetit != nullptr)
+        //                             {
+        //                                 boneName = bonemapetit->str();
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+
+        //         L::Print<L::Yellow>("BaseEntity ServerRPC_SendProjectileAttack -> CALL EntityHit: {}, BoneID: {},
+        //         Bone: {}",
+        //                             hitName, boneID, boneName);
+        // #endif
+
+        do
+        {
+            if (settings->ragebot.general.projectile.HitOverride == false)
+                break;
+
+            if (proj == nullptr)
+                break;
+
+            auto hitTest = proj->hitTest;
+            if (hitTest == nullptr)
+                break;
+
+            auto hitEntity = (CBaseEntity*)hitTest->fields.HitEntity;
+            if (hitEntity == nullptr)
+                break;
+
+            auto attack = playerProjectileAttack->fields.playerAttack->fields.attack;
+
+            static Randomak rnd(CTime::GetRealTime() + CTime::GetSmoothDeltaTime());
+
+            using namespace prefabs;
+
+            switch (hitEntity->prefabID)
+            {
+            case player::player:
+            case player::scientistnpc_arena:
+            case player::scientistnpc_cargo:
+            case player::scientistnpc_cargo_turret_any:
+            case player::scientistnpc_cargo_turret_lr300:
+            case player::scientistnpc_ch47_gunner:
+            case player::scientistnpc_excavator:
+            case player::scientistnpc_full_any:
+            case player::scientistnpc_full_lr300:
+            case player::scientistnpc_full_mp5:
+            case player::scientistnpc_full_pistol:
+            case player::scientistnpc_full_shotgun:
+            case player::scientistnpc_heavy:
+            case player::scientistnpc_junkpile_pistol:
+            case player::scientistnpc_oilrig:
+            case player::scientistnpc_patrol:
+            case player::scientistnpc_peacekeeper:
+            case player::scientistnpc_roam:
+            case player::scientistnpc_roam_nvg_variant:
+            case player::scientistnpc_roamtethered:
+            case player::npc_tunneldweller:
+            case player::npc_bandit_guard:
+            case player::npc_underwaterdweller:
+            {
+                auto override = settings->ragebot.general.projectile.PlayerHitOverride;
+
+                switch (override)
+                {
+                case PlayerBones::BoobCensor:
+                {
+                    static std::vector<uint32_t> bonePool{
+                        bones::head,   bones::neck,   bones::spine1, bones::spine2, bones::spine3,
+                        bones::spine4, bones::pelvis, bones::l_hip,  bones::r_hip,
+
+                    };
+
+                    auto idIndex = rnd.GetUInt(0, bonePool.size() - 1);
+
+                    auto bone = bonePool[idIndex];
+
+                    attack->fields.hitBone = bone;
+                    break;
+                }
+                case PlayerBones::eyeTranform:
+                {
+                    attack->fields.hitBone = bones::head;
+                    break;
+                }
+                case PlayerBones::neck:
+                {
+                    attack->fields.hitBone = bones::neck;
+                    break;
+                }
+                case PlayerBones::spine1:
+                {
+                    attack->fields.hitBone = bones::spine1;
+                    break;
+                }
+                case PlayerBones::penis:
+                {
+                    attack->fields.hitBone = bones::pelvis;
+                    break;
+                }
+                default:
+                    break;
+                }
+
+                attack->fields.hitPositionLocal = {-0.1f, -0.1f, 0.f};
+                attack->fields.hitNormalLocal   = {0.f, -0.1f, 0.f};
+                break;
+            }
+            default:
+                break;
+            }
+
+        } while (false);
+
+        reinterpret_cast<decltype(&hk_ServerRPC_SendProjectileAttack)>(ServerRPC_SendProjectileAttack_o)(
+            _this, ukn1, funcName, playerProjectileAttack, method);
+    }
+
+    void MethodInfoInitStub(void* adr);
 } // namespace
 
 void Hooks::BasePlayer::Init()
 {
     auto klass    = il2cpp::InitClass(_("BasePlayer"));
     ClientInput_o = il2cpp::HookVirtualFunction(klass, _("ClientInput"), &hk_ClientInput);
+
+    auto methodInfoInitAdr =
+        Forza::IDAScan((void*)G::baseGameAssemlby,
+                       _("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 05 ?? ?? ?? ?? ?? 4C 8B 0D ?? ?? ?? ?? "
+                         "4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
+
+    auto methodIniter = reinterpret_cast<decltype(&MethodInfoInitStub)>(mem::ResolveCall(methodInfoInitAdr));
+
+    auto methodInfoAdr = Forza::IDAScan(
+        (void*)G::baseGameAssemlby,
+        _("4C 8B 0D ?? ?? ?? ?? 4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
+    auto method = mem::ResolveMov(methodInfoAdr);
+
+    methodIniter(method);
+
+    auto methodInfo = *(MethodInfo**)mem::ResolveMov(methodInfoAdr);
+
+    auto RGCTXs = methodInfo->rgctx_data;
+
+    auto rwMethod = (MethodInfo*)RGCTXs->method;
+
+    ServerRPC_SendProjectileAttack_o = (uintptr_t)RGCTXs->method->virtualMethodPointer;
+    rwMethod->virtualMethodPointer   = (Il2CppMethodPointer)&hk_ServerRPC_SendProjectileAttack;
 }

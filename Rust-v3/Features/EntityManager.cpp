@@ -33,13 +33,12 @@ namespace EntityManager
         // reset shit
         DB::FullClear();
 
-        auto               localPlayer = CLocalPlayer::GetLocalPlayer();
-        auto               loc         = (BasePlayer_o*)localPlayer;
-        //BasePlayer_Fields& ff          = loc->fields;
+        auto localPlayer = CLocalPlayer::GetLocalPlayer();
+        auto loc         = (BasePlayer_o*)localPlayer;
+        // BasePlayer_Fields& ff          = loc->fields;
 
-        if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0 ||
-            localPlayer->input == nullptr || localPlayer->net == nullptr ||
-            localPlayer->eyes == nullptr)
+        if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0 || localPlayer->input == nullptr ||
+            localPlayer->net == nullptr || localPlayer->eyes == nullptr)
             return false;
 
         if (localPlayer->_IsDestroyed_k__BackingField)
@@ -47,8 +46,8 @@ namespace EntityManager
 
         auto currentLocalPosition = localPlayer->GetOriginPosition();
 
-        //auto enityList = klass->StaticFields<BaseNetworkable_StaticFields>();
-        auto cc        = klass2->static_fields->clientEntities;
+        // auto enityList = klass->StaticFields<BaseNetworkable_StaticFields>();
+        auto cc = klass2->static_fields->clientEntities;
 
         if (!IsAddressValid(cc))
             return false;
@@ -60,7 +59,7 @@ namespace EntityManager
         std::span idSpan((NetworkableId_o**)keys.buffer->m_Items, keys.count);
 
         nNetworkablesTotal = items.count;
-        //int idx            = 0;
+        // int idx            = 0;
 
         struct tt
         {
@@ -72,7 +71,8 @@ namespace EntityManager
 
         for (auto networkable : itemSpan)
         {
-            if (networkable->_IsDestroyed_k__BackingField || networkable->m_CachedPtr == 0)
+            if (networkable->_IsDestroyed_k__BackingField || networkable->m_CachedPtr == 0 ||
+                networkable->_JustCreated_k__BackingField)
                 continue;
 
             auto id = networkable->net->fields.ID.fields.Value;
@@ -303,9 +303,9 @@ namespace EntityManager
                     item.itemid     = itemId;
                     item.namePoolID = DB::GetItemName((CItemDefinition*)itemEnt->info);
 
-                    auto hashedName        = HASH_RUNTIME(DB::GetString(item.namePoolID)->c_str());
-                    bool isBlacklistedItem = HASH_CTIME("Wooden Arrow") == hashedName ||
-                                             hashedName == HASH_CTIME("Nailgun Nails");
+                    auto hashedName = HASH_RUNTIME(DB::GetString(item.namePoolID)->c_str());
+                    bool isBlacklistedItem =
+                        HASH_CTIME("Wooden Arrow") == hashedName || hashedName == HASH_CTIME("Nailgun Nails");
 
                     if (isBlacklistedItem == false)
                     {

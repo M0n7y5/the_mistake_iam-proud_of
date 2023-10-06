@@ -12,15 +12,15 @@
 #define RAD2DEG(x) (x * (_flt(180.f) / M_PI))
 #define DEG2RAD(x) (x * (M_PI / _flt(180.f)))
 
-inline float f_sqrt(float in)
-{ // thx can
-    __m128 reg = _mm_load_ss(&in);
+// inline float f_sqrt(float in)
+// { // thx can
+//     __m128 reg = _mm_load_ss(&in);
 
-    float result[4];
-    _mm_store_ps(result, _mm_mul_ss(reg, _mm_rsqrt_ss(reg)));
+//     float result[4];
+//     _mm_store_ps(result, _mm_mul_ss(reg, _mm_rsqrt_ss(reg)));
 
-    return result[0];
-};
+//     return result[0];
+// };
 
 inline float normalize_angle(float angle)
 {
@@ -100,7 +100,7 @@ class Vector2
 
     float length() const
     {
-        return f_sqrt((x * x) + (y * y));
+        return std::sqrt((x * x) + (y * y));
     }
 
     Vector2 normalized() const
@@ -123,8 +123,7 @@ class Vector2
         return x == _flt(0.f) && y == _flt(0.f);
     }
 
-    static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, float angle,
-                               bool angleInRadians = false)
+    static Vector2 RotatePoint(Vector2 pointToRotate, Vector2 centerPoint, float angle, bool angleInRadians = false)
     {
         float rad = DEG2RAD(normalize_angle(angle));
         float s   = (float)-std::sin(rad);
@@ -209,6 +208,15 @@ class Vector3
         z += v.z;
 
         return *this;
+    }
+
+    Vector3 operator*(const Vector3& v)
+    {
+        return {
+            x * v.x,
+            y * v.y,
+            z * v.z,
+        };
     }
 
     Vector3& operator+=(const Vector2& v)
@@ -298,17 +306,17 @@ class Vector3
         if (lenSqr <= _flt(0.f))
             return _flt(0.f);
 
-        return f_sqrt(lenSqr);
+        return std::sqrt(lenSqr);
     }
 
     float length_2d() const
     {
-        return f_sqrt((x * x) + (y * y));
+        return std::sqrt((x * x) + (y * y));
     }
 
     float length_xz() const
     {
-        return f_sqrt(x * x + z * z);
+        return std::sqrt(x * x + z * z);
     }
 
     Vector3 normalize()
@@ -326,7 +334,7 @@ class Vector3
 
     float unity_magnitude()
     {
-        return (float)f_sqrt((double)(x * x + y * y + z * z));
+        return (float)std::sqrt((double)(x * x + y * y + z * z));
     }
 
     Vector3 Cross(Vector3 rhs)
@@ -355,11 +363,11 @@ class Vector3
 
     float Magnitude()
     {
-        return f_sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
+        return std::sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
     }
     float MagnitudeXZ()
     {
-        return f_sqrt(this->x * this->x + this->z * this->z);
+        return std::sqrt(this->x * this->x + this->z * this->z);
     }
 
     Vector3 Normalized()
@@ -416,13 +424,12 @@ class Vector3
     bool empty() const
     {
         return (x == _flt(0.f) && y == _flt(0.f) && z == _flt(0.f)) ||
-               (x == negate_flt(_flt(1.f)) && y == negate_flt(_flt(1.f)) &&
-                z == negate_flt(_flt(1.f)));
+               (x == negate_flt(_flt(1.f)) && y == negate_flt(_flt(1.f)) && z == negate_flt(_flt(1.f)));
     }
 
     static float Angle(Vector3 from, Vector3 to)
     {
-        float num  = (float)f_sqrt((double)(from.Magnitude() * to.Magnitude()));
+        float num  = (float)std::sqrt((double)(from.Magnitude() * to.Magnitude()));
         bool  flag = num < _flt(1E-15f);
         float result;
         if (flag)
@@ -468,13 +475,12 @@ class Vector3
         if (m_vecUp)
         {
             Vector3 m_vecLeft = (*m_vecUp).Cross(*this);
-            m_flRoll = RAD2DEG(std::atan2f(m_vecLeft.y, (m_vecLeft.z * x) - (m_vecLeft.x * z)));
+            m_flRoll          = RAD2DEG(std::atan2f(m_vecLeft.y, (m_vecLeft.z * x) - (m_vecLeft.x * z)));
         }
 
         // return Vector3(RAD2DEG(atan2f(-z, sqrtf(x * x + y * y))), RAD2DEG(atan2f(y, x)),
         // m_dRoll);
-        return Vector3(RAD2DEG(std::atan2f(-y, std::sqrt(x * x + z * z))),
-                       RAD2DEG(std::atan2f(z, x)), m_flRoll);
+        return Vector3(RAD2DEG(std::atan2f(-y, std::sqrt(x * x + z * z))), RAD2DEG(std::atan2f(z, x)), m_flRoll);
     }
 
     static float Clamp(float value, float min, float max)
@@ -499,7 +505,7 @@ class Vector3
 inline constexpr Vector3 vec3Right   = {_flt(1.f), _flt(0.f), _flt(0.f)};
 inline constexpr Vector3 vec3Left    = {_flt(-1.f), _flt(0.f), _flt(0.f)};
 inline constexpr Vector3 vec3Forward = {_flt(0.f), _flt(0.f), _flt(1.f)};
-inline constexpr Vector3 vec3Back = {_flt(0.f), _flt(0.f), _flt(1.f)};
+inline constexpr Vector3 vec3Back    = {_flt(0.f), _flt(0.f), _flt(-1.f)};
 inline constexpr Vector3 vec3Up      = {_flt(0.f), _flt(1.f), _flt(0.f)};
 
 class Vector4
@@ -601,12 +607,12 @@ class Vector4
 
     float length() const
     {
-        return f_sqrt(length_sqr());
+        return std::sqrt(length_sqr());
     }
 
     float length_2d() const
     {
-        return f_sqrt((x * x) + (y * y));
+        return std::sqrt((x * x) + (y * y));
     }
 
     Vector4 normalized() const
@@ -668,7 +674,7 @@ class Vector4
         auto  quaternion = Vector4();
         if (num8 > _flt(0.f))
         {
-            auto num     = (float)f_sqrt(num8 + _flt(1.f));
+            auto num     = (float)std::sqrt(num8 + _flt(1.f));
             quaternion.w = num * _flt(0.5f);
             num          = _flt(0.5f) / num;
             quaternion.x = (m12 - m21) * num;
@@ -678,7 +684,7 @@ class Vector4
         }
         if ((m00 >= m11) && (m00 >= m22))
         {
-            auto num7    = (float)f_sqrt(((_flt(1.f) + m00) - m11) - m22);
+            auto num7    = (float)std::sqrt(((_flt(1.f) + m00) - m11) - m22);
             auto num4    = _flt(0.5f) / num7;
             quaternion.x = _flt(0.5f) * num7;
             quaternion.y = (m01 + m10) * num4;
@@ -688,7 +694,7 @@ class Vector4
         }
         if (m11 > m22)
         {
-            auto num6    = (float)f_sqrt(((_flt(1.f) + m11) - m00) - m22);
+            auto num6    = (float)std::sqrt(((_flt(1.f) + m11) - m00) - m22);
             auto num3    = _flt(0.5f) / num6;
             quaternion.x = (m10 + m01) * num3;
             quaternion.y = _flt(0.5f) * num6;
@@ -696,7 +702,7 @@ class Vector4
             quaternion.w = (m20 - m02) * num3;
             return quaternion;
         }
-        auto num5    = (float)f_sqrt(((_flt(1.f) + m22) - m00) - m11);
+        auto num5    = (float)std::sqrt(((_flt(1.f) + m22) - m00) - m11);
         auto num2    = _flt(0.5f) / num5;
         quaternion.x = (m20 + m02) * num2;
         quaternion.y = (m21 + m12) * num2;
@@ -720,12 +726,9 @@ class Vector4
         float   num11 = rotation.w * num2;
         float   num12 = rotation.w * num3;
         Vector3 result;
-        result.x = (_flt(1.f) - (num5 + num6)) * point.x + (num7 - num12) * point.y +
-                   (num8 + num11) * point.z;
-        result.y = (num7 + num12) * point.x + (_flt(1.f) - (num4 + num6)) * point.y +
-                   (num9 - num10) * point.z;
-        result.z = (num8 - num11) * point.x + (num9 + num10) * point.y +
-                   (_flt(1.f) - (num4 + num5)) * point.z;
+        result.x = (_flt(1.f) - (num5 + num6)) * point.x + (num7 - num12) * point.y + (num8 + num11) * point.z;
+        result.y = (num7 + num12) * point.x + (_flt(1.f) - (num4 + num6)) * point.y + (num9 - num10) * point.z;
+        result.z = (num8 - num11) * point.x + (num9 + num10) * point.y + (_flt(1.f) - (num4 + num5)) * point.z;
         return result;
     }
 
@@ -766,13 +769,44 @@ struct Quaternion
 
         Vector3 result{};
 
-        result.x =
-            (1.f - (num5 + num6)) * point.x + (num7 - num12) * point.y + (num8 + num11) * point.z;
-        result.y =
-            (num7 + num12) * point.x + (1.f - (num4 + num6)) * point.y + (num9 - num10) * point.z;
-        result.z =
-            (num8 - num11) * point.x + (num9 + num10) * point.y + (1.f - (num4 + num5)) * point.z;
+        result.x = (1.f - (num5 + num6)) * point.x + (num7 - num12) * point.y + (num8 + num11) * point.z;
+        result.y = (num7 + num12) * point.x + (1.f - (num4 + num6)) * point.y + (num9 - num10) * point.z;
+        result.z = (num8 - num11) * point.x + (num9 + num10) * point.y + (1.f - (num4 + num5)) * point.z;
         return result;
+    }
+
+    static Vector3 Internal_MakePositive(Vector3 euler)
+    {
+        float num  = -0.005729578f;
+        float num2 = 360.f + num;
+        if (euler.x < num)
+        {
+            euler.x += 360.f;
+        }
+        else if (euler.x > num2)
+        {
+            euler.x -= 360.f;
+        }
+
+        if (euler.y < num)
+        {
+            euler.y += 360.f;
+        }
+        else if (euler.y > num2)
+        {
+            euler.y -= 360.f;
+        }
+
+        if (euler.z < num)
+        {
+            euler.z += 360.f;
+        }
+        else if (euler.z > num2)
+        {
+            euler.z -= 360.f;
+        }
+
+        return euler;
     }
 };
 
@@ -802,21 +836,18 @@ class Matrix4x4
   public:
     inline Matrix4x4()
     {
-        Init(_flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
-             _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
-             _flt(0.f));
+        Init(_flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f),
+             _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f), _flt(0.f));
     }
 
-    inline Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12,
-                     float m13, float m20, float m21, float m22, float m23, float m30, float m31,
-                     float m32, float m33)
+    inline Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
+                     float m21, float m22, float m23, float m30, float m31, float m32, float m33)
     {
         Init(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
     }
 
-    inline void Init(float m00, float m01, float m02, float m03, float m10, float m11, float m12,
-                     float m13, float m20, float m21, float m22, float m23, float m30, float m31,
-                     float m32, float m33)
+    inline void Init(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20,
+                     float m21, float m22, float m23, float m30, float m31, float m32, float m33)
     {
         m[0][0] = m00;
         m[0][1] = m01;
@@ -861,8 +892,8 @@ class Matrix4x4
 
     Matrix4x4 transpose() const
     {
-        return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1],
-                         m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
+        return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2],
+                         m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
     }
 
     static Matrix4x4 Translate(Vector3 vector)
@@ -890,8 +921,7 @@ class Matrix4x4
 
     // game specific
     // needs to be implemented outside
-    static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear,
-                           float zFar);
+    static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar);
 
     union {
         float m[4][4];
@@ -940,12 +970,9 @@ inline Vector3 quatmult(const Vector3* point, Vector4* quat)
     float   num11 = quat->w * num2;
     float   num12 = quat->w * num3;
     Vector3 result;
-    result.x = (_flt(1.f) - (num5 + num6)) * point->x + (num7 - num12) * point->y +
-               (num8 + num11) * point->z;
-    result.y = (num7 + num12) * point->x + (_flt(1.f) - (num4 + num6)) * point->y +
-               (num9 - num10) * point->z;
-    result.z = (num8 - num11) * point->x + (num9 + num10) * point->y +
-               (_flt(1.f) - (num4 + num5)) * point->z;
+    result.x = (_flt(1.f) - (num5 + num6)) * point->x + (num7 - num12) * point->y + (num8 + num11) * point->z;
+    result.y = (num7 + num12) * point->x + (_flt(1.f) - (num4 + num6)) * point->y + (num9 - num10) * point->z;
+    result.z = (num8 - num11) * point->x + (num9 + num10) * point->y + (_flt(1.f) - (num4 + num5)) * point->z;
     return result;
 }
 
@@ -991,12 +1018,20 @@ namespace math_additional
     }
 }; // namespace math_additional
 
-inline float Remap(float value, float inputStart, float inputEnd, float outputStart,
-                   float outputEnd)
+inline float Remap(float value, float inputStart, float inputEnd, float outputStart, float outputEnd)
 {
-    float result =
-        (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
+    float result = (value - inputStart) / (inputEnd - inputStart) * (outputEnd - outputStart) + outputStart;
     return result;
+}
+
+inline float RemapClamped(float value, float inputStart, float inputEnd, float outputStart, float outputEnd)
+{
+    float t = (value - inputStart) / (inputEnd - inputStart);
+    if (t > 1.f)
+        return outputEnd;
+    if (t < 0.f)
+        return outputStart;
+    return outputStart + (outputEnd - outputStart) * t;
 }
 
 inline Vector2 Vector2::operator+(const Vector2& input) const

@@ -149,7 +149,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <AdditionalOptions>/clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-Wno-microsoft-cast /clang:-Werror=return-type  /clang:-Werror=uninitialized /clang:-mstackrealign %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -191,7 +191,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mno-stack-arg-probe /clang:-mstackrealign /clang:-Werror=uninitialized  %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>None</DebugInformationFormat>
