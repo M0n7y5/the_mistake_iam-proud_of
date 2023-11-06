@@ -5,6 +5,8 @@
 #include "../mrt/ww898/utf_converters.hpp"
 #include "../mrt/xorstr.hpp"
 #include "../mrt/fnv1a.hpp"
+#include "../mrt/scanner.h"
+#include "mem.h"
 #include "Offsets.h"
 #include "globals.h"
 #include "il2cpp_api.h"
@@ -219,6 +221,12 @@ CGameObject* CComponent::GetGameobject()
     return ((CGameObject * (__thiscall*)(CComponent*))(addr))(this);
 }
 
+CTransform* CComponent::GetTransform()
+{
+    static auto addr = OFF(Offsets::UnityEngine_Component::Methods::get_transform);
+    return ((CTransform * (__thiscall*)(CComponent*))(addr))(this);
+}
+
 void* CGameObjectRef::Get()
 {
     // FIXME: make this automatic
@@ -298,30 +306,31 @@ void CBaseMelee::MeleeAttack(CBaseEntity* owner, CBaseEntity* target, Vector3 ey
 
     auto pos = transform->GetPosition();
 
-    CRay ray(eyePos, (pos - eyePos).Normalized());
+    CRay ray(eyePos, (pos - eyePos).normalized());
 
-    hitTest->MaxDistance  = this->maxDistance + 1.f;
-    hitTest->HitTransform = (UnityEngine_Transform_o*)transform;
-    hitTest->AttackRay    = *(UnityEngine_Ray_o*)&ray;
-    hitTest->DidHit       = true;
+    auto hit = transform->InverseTransformPoint(pos);
+    auto hitNormal = transform->InverseTransformPoint(pos);
+
+    hitTest->HitEntity        = (BaseEntity_o*)target;
+    hitTest->DidHit           = true;
+    hitTest->MaxDistance      = this->maxDistance;
+    hitTest->HitTransform     = (UnityEngine_Transform_o*)transform;
+    hitTest->AttackRay        = *(UnityEngine_Ray_o*)&ray;
+    hitTest->HitNormal        = {0.f, 1.f, 0.f};
+    hitTest->HitPoint         = *(UnityEngine_Vector3_o*)&pos; // hit;
+    hitTest->damageProperties = this->damageProperties;
     // hitTest->BestHit          = 1;
-    hitTest->ignoreEntity = (BaseEntity_o*)owner;
+    // hitTest->ignoreEntity = (BaseEntity_o*)owner;
     // hitTest->type             = 3;
     // hitTest->Radius           = 0;
-    hitTest->HitEntity        = (BaseEntity_o*)target;
-    hitTest->HitNormal        = {0.f, 0.f, 0.f};
-    hitTest->damageProperties = this->damageProperties;
     // hitTest->Forgiveness      = std::min(this->attackRadius, 0.050000001f);
     //  hitTest->HitMaterial      = (System_String_o*)CString::newString(_("Wood"));
 
     // auto hit          = transform->InverseTransformPoint(pos);
-    // hitTest->HitPoint = *(UnityEngine_Vector3_o*)&pos; // hit;
 
     // constexpr static LayerMask ll = (LayerMask)1270440705;
 
     // CGameTrace::Trace(hitTest, (Layer)1270440705);
-
-    StartAttackCooldown(this->repeatDelay);
 
     if (needsRPC)
     {
@@ -329,10 +338,12 @@ void CBaseMelee::MeleeAttack(CBaseEntity* owner, CBaseEntity* target, Vector3 ey
         ProcessAttack(hitTest);
         this->SetAttacking(false);
 
+        StartAttackCooldown(this->repeatDelay);
         return;
     }
 
     ProcessAttack(hitTest);
+    StartAttackCooldown(this->repeatDelay);
 }
 
 CString* CStringPool::Get(uint32_t id)
@@ -564,6 +575,13 @@ bool CBaseProjectile::SupportsRapidFire()
     return true;
 }
 
+float CBaseProjectile::GetProjectileVelocityScale(bool getMax)
+{
+    static auto addr = OFF(Offsets::BaseProjectile::Methods::GetProjectileVelocityScale_System_Boolean_getMax___False);
+
+    return ((float(__thiscall*)(CBaseProjectile*, bool))(addr))(this, getMax);
+}
+
 float CBaseProjectile::CalculateServerCooldownTime(float nextTime, float cooldown)
 {
     auto  owner = (CBasePlayer*)this->addedToParentEntity;
@@ -690,8 +708,8 @@ void CBaseProjectile::Shoot()
     using namespace SettingsData;
 
     if (settings->ragebot.general.desync.RapidFire && prevNextAttackTime != nextAttackTime)
-        this->nextAttackTime = this->CalculateServerCooldownTime(
-            prevNextAttackTime, ScaleRepeatDelay(this->repeatDelay) + this->animationDelay);
+        this->nextAttackTime =
+            this->CalculateServerCooldownTime(prevNextAttackTime, this->repeatDelay + this->animationDelay);
 }
 
 void CPlayerWalkMovement::TeleportTo(Vector3 pos, CBasePlayer* player)
@@ -701,3 +719,16 @@ void CPlayerWalkMovement::TeleportTo(Vector3 pos, CBasePlayer* player)
 
     ((void(__thiscall*)(CPlayerWalkMovement*, Vector3, CBasePlayer*))(addr))(this, pos, player);
 }
+
+// CPlayerProjectileUpdate* CFacepunchPool::GetPlayerProjectileUpdate()
+// {
+//     static auto addr = OFF(Offsets::Facepunch_Pool::StaticMethods::T_Facepunch_Pool_Get_System_Object_);
+
+//     static MethodInfo* methodInfo = []() -> MethodInfo*
+//     {
+//         //48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 89 84 24 B0 00 00 00 48 89 7C 24 60
+
+//     }();
+
+//     return ((CPlayerProjectileUpdate* (*)())(addr))(this, pos, player);
+// }

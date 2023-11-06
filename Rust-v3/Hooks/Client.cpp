@@ -33,7 +33,7 @@ namespace
     // NOTE: Keep in mind, any crash mid init will rerun init again, trying to rehook shit thats hooked etc.
     static void hk_LateUpdate(CClient* _this)
     {
-
+        using namespace SettingsData;
         reinterpret_cast<decltype(&hk_LateUpdate)>(LateUpdate_o)(_this);
 
         static bool           initMe           = false;
@@ -154,8 +154,18 @@ namespace
             ImGui_Impl_Unity_NewFrame(io);
             ImGui::NewFrame();
 
+            if (settings->visuals.general.BiggerESPFont)
+            {
+                ImGui::PushFont(io.Fonts->Fonts[1]);
+            }
+
             ESP::g = ImGui::GetBackgroundDrawList();
             ESP::Draw();
+
+            if (settings->visuals.general.BiggerESPFont)
+            {
+                ImGui::PopFont();
+            }
 
             if (isMenuOpen)
             {
@@ -272,6 +282,10 @@ namespace
                 if (opt.Grenades)
                     type = EffectType::ExplosiveGrenade;
                 break;
+            case prefabs::effects::mlrsExplostion:
+                if (opt.MLRS)
+                    type = EffectType::MLRS;
+                break;
             default:
                 return;
             }
@@ -308,6 +322,8 @@ void Hooks::Client::Init()
     auto klass         = il2cpp::InitClass(_("Client"));
     LateUpdate_o       = il2cpp::HookVirtualFunction(klass, _("LateUpdate"), (void*)&hk_LateUpdate);
     OnNetworkMessage_o = il2cpp::HookVirtualFunction(klass, _("OnNetworkMessage"), (void*)&hk_OnNetworkMessage);
+
+    EntityManager::Init();
     // Awake_o      = il2cpp::HookVirtualFunction(klass, _("Awake"), (void*)&hk_Awake);
     // OnDisable_o  = il2cpp::HookVirtualFunction(klass, _("OnDisable"), (void*)&hk_OnDisable);
 }

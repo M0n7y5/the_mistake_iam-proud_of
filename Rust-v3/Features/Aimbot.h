@@ -13,6 +13,8 @@ namespace HitScanner
     {
         float                   priority{};
         float                   maxDistance{};
+        float                   currentMaxDistance{};
+        float                   currentMaxAltitude{};
         uint8_t                 maxReachablePoints{};
         Vector3                 direction{};
         std::array<Vector3, 22> points{};
@@ -31,6 +33,63 @@ namespace HitScanner
 
 namespace Aimbot
 {
+    // backup data for disabling things
+    struct WeaponBackupData
+    {
+        bool automatic{};
+        bool OverrideAimconeWithCurve{};
+        bool UseCurves{};
+        bool IsBaseLauncher{};
+
+        CBaseProjectile* wep{};
+
+        float Aimcone{};
+        float HipAimcone{};
+        float AimConePenalty{};
+        float AimConePenaltyMax{};
+        float AimConePenaltyPreShot{};
+        float ProjectileVelocityScale = 1.f;
+        float RecoilYawMin{};
+        float RecoilYawMax{};
+        float RecoilPitchMin{};
+        float RecoilPitchMax{};
+        float MaxRecoilRadius{};
+        float AimconeCurveScale{};
+        float AimSway{};
+    };
+
+    struct AmmoBackupData
+    {
+        float ProjectileSpread{};
+        float VelocitySpread{};
+        float SpreadAngle{};
+        float SpreadVelocityMin{};
+        float SpreadVelocityMax{};
+
+        // for prediction
+        float projectileInitialDistance{};
+        float Drag{};
+        float GravityModifier = 1.f;
+        float ProjectileVelocity{};
+
+        //?
+        bool projectileHasComponents = false;
+
+        CItemModProjectile* mod;
+        bool                isSpawn = false;
+    };
+
+    // inline WeaponBackupData* currentlyManagedWeapon{};
+    // inline AmmoBackupData*   currentlyManagedAmmo{};
+
+    inline int32_t  currentlyManagedAmmoID{};
+    inline uint32_t currentlyManagedWeaponID{};
+
+    // key prefabID
+    inline ankerl::unordered_dense::map<uint32_t, WeaponBackupData> weaponBackupData{};
+    // key itemID
+    inline ankerl::unordered_dense::map<int32_t, AmmoBackupData> ammoBackupData{};
+
     enum class TargetType
     {
         Invalid = -1,
@@ -79,10 +138,12 @@ namespace Aimbot
     };
 
     inline Utils::FOVCalc         FOV{};
-    inline Vector3                PredictedPosition = {};
     inline LauncherPredictionInfo launcherInfo{};
     inline TargetInfo             CurrentTarget{};
+    inline Vector3                PredictedPosition       = {};
+    inline Vector3                DesyncOffset            = {};
+    inline Vector3                DesyncPredictedPosition = {};
 
-    void ClientInput();
+    void ClientInput(CBasePlayer* localPlayer);
     void LateUpdate();
 } // namespace Aimbot

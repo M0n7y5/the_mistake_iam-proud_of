@@ -180,6 +180,12 @@
     <ClCompile Include="Hooks\Shared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mrt\xxh_x86dispatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\xxhash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mrt\xorstr.hpp">
@@ -324,6 +330,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SDK\prefab_ids.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mrt\xxhash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mrt\xxh_x86dispatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mrt\xxh3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

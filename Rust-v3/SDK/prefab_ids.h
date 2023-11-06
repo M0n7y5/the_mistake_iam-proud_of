@@ -5,7 +5,7 @@
 
 namespace prefabs
 {
-    //NOTE: Make shure all text is in lowercase
+    // NOTE: Make shure all text is in lowercase
     constexpr uint32_t ToInt32(md5::Digest const& num)
     {
         return (uint32_t)((int)(num[0]) | ((int)num[1] << 8) | ((int)num[2] << 16) | ((int)num[3] << 24));
@@ -17,7 +17,7 @@ namespace prefabs
     }
 
 #define PREFABID(name, x) constexpr auto name = STRHASH(x)
-#define BONEID(name) constexpr auto name = STRHASH(#name)
+#define BONEID(name)      constexpr auto name = STRHASH(#name)
 
     namespace other
     {
@@ -27,6 +27,7 @@ namespace prefabs
         PREFABID(workbench2, "assets/prefabs/deployable/tier 2 workbench/workbench2.deployed.prefab");
         PREFABID(workbench3, "assets/prefabs/deployable/tier 3 workbench/workbench3.deployed.prefab");
         PREFABID(toolcupboard, "assets/prefabs/deployable/tool cupboard/cupboard.tool.deployed.prefab");
+
     } // namespace other
 
     namespace weapon
@@ -45,6 +46,7 @@ namespace prefabs
         // 1289728008, string: assets/prefabs/weapons/satchelcharge/effects/satchel-charge-explosion.prefab
         // 1161374517, string: assets/content/vehicles/mlrs/effects/pfx_mlrs_rocket_explosion_ground.prefab
         PREFABID(grenadeExplosion, "assets/prefabs/weapons/f1 grenade/effects/f1grenade_explosion.prefab");
+        PREFABID(mlrsExplostion, "assets/content/vehicles/mlrs/effects/pfx_mlrs_rocket_explosion_ground.prefab");
         PREFABID(rocketExplosion, "assets/prefabs/weapons/rocketlauncher/effects/rocket_explosion.prefab");
         PREFABID(rocketIncendiaryExplosion,
                  "assets/prefabs/weapons/rocketlauncher/effects/rocket_explosion_incendiary.prefab");
@@ -82,6 +84,7 @@ namespace prefabs
     {
         PREFABID(player_model, "assets/prefabs/player/player_model.prefab");
         PREFABID(player, "assets/prefabs/player/player.prefab");
+        PREFABID(scarecrow, "assets/prefabs/npc/scarecrow/scarecrow.prefab");
         PREFABID(scientistnpc_arena, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_arena.prefab");
         PREFABID(scientistnpc_cargo, "assets/rust.ai/agents/npcplayer/humannpc/scientist/scientistnpc_cargo.prefab");
         PREFABID(scientistnpc_cargo_turret_any, "assets/rust.ai/agents/npcplayer/humannpc/"
@@ -172,7 +175,10 @@ namespace prefabs
         PREFABID(barrel_oil, "assets/bundled/prefabs/radtown/oil_barrel.prefab");
         PREFABID(crate_basic, "assets/bundled/prefabs/radtown/crate_basic.prefab");
         PREFABID(crate_elite, "assets/bundled/prefabs/radtown/crate_elite.prefab");
-        PREFABID(crate_mili, "assets/bundled/prefabs/radtown/crate_normal.prefab");
+        PREFABID(crate_mine, "assets/bundled/prefabs/radtown/crate_mine.prefab");
+        // PREFABID(crate_mili, "assets/bundled/prefabs/radtown/crate_normal.prefab");
+        // PREFABID(crate_bradley, "assets/bundled/prefabs/radtown/crate_normal.prefab");
+        PREFABID(crate_normal, "assets/bundled/prefabs/radtown/crate_normal.prefab");
         PREFABID(crate_normal2, "assets/bundled/prefabs/radtown/crate_normal_2.prefab");
         PREFABID(crate_normal_food, "assets/bundled/prefabs/radtown/crate_normal_2_food.prefab");
         PREFABID(crate_normal_medical, "assets/bundled/prefabs/radtown/crate_normal_2_medical.prefab");
@@ -196,12 +202,22 @@ namespace prefabs
         PREFABID(zombie, "assets/rust.ai/agents/zombie/zombie.prefab");
     } // namespace animals
 
+    namespace halloween
+    {
+        PREFABID(metalcross, "assets/bundled/prefabs/autospawn/collectable/stone/halloween/halloween-metal-collectable.prefab");
+        //3406326145
+        PREFABID(woodcross, "assets/bundled/prefabs/autospawn/collectable/stone/halloween/halloween-wood-collectable.prefab");
+        PREFABID(stonegrave, "assets/bundled/prefabs/autospawn/collectable/stone/halloween/halloween-stone-collectable.prefab");
+        PREFABID(spideregg, "assets/bundled/prefabs/autospawn/collectable/stone/halloween/halloween-sulfur-collectible.prefab");
+    } // namespace animals
+
     namespace traps
     {
         PREFABID(autoturret, "assets/prefabs/npc/autoturret/autoturret_deployed.prefab");
         PREFABID(flameturret, "assets/prefabs/npc/flame turret/flameturret.deployed.prefab");
         PREFABID(guntrap, "assets/prefabs/deployable/single shot trap/guntrap.deployed.prefab");
-        PREFABID(samsite, "assets/prefabs/npc/sam_site_turret/sam_site_turret_deployed.prefab");
+        PREFABID(samStatic, "assets/prefabs/npc/sam_site_turret/sam_static.prefab");
+        PREFABID(samDeployed, "assets/prefabs/npc/sam_site_turret/sam_site_turret_deployed.prefab");
         PREFABID(landdmine, "assets/prefabs/deployable/landmine/landmine.prefab");
         PREFABID(beartrap, "assets/prefabs/deployable/bear trap/beartrap.prefab");
     } // namespace traps
@@ -217,6 +233,6 @@ namespace prefabs
         BONEID(pelvis);
         BONEID(l_hip);
         BONEID(r_hip);
-    }
+    } // namespace bones
 
 } // namespace prefabs

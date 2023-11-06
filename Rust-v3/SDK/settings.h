@@ -157,8 +157,10 @@ struct Settings
                 bool        Friends         = false;
                 bool        Heli            = false;
                 bool        Traps           = false;
-                bool        VisCheck        = false;
+                bool        VisCheck        = true;
                 bool        TargetLock      = false;
+                bool        Sleepers        = false;
+                bool        Wounded         = true;
                 float       headAdjustmentX = {};
                 float       headAdjustmentY = {};
                 float       headAdjustmentZ = {};
@@ -218,6 +220,7 @@ struct Settings
         struct General
         {
             bool Enabled                    = true;
+            bool BiggerESPFont              = false;
             bool Sleepers                   = false;
             bool TeamAsFriends              = true;
             bool ForceSkeletonUpdate        = false;
@@ -512,6 +515,7 @@ struct Settings
             bool RocketIncendiary  = false;
             bool ExplosiveAmmo     = false;
             bool Grenades          = false;
+            bool MLRS              = false;
             bool ShowWhenStarted   = false;
             bool ShowLastExplosion = false;
             int  GroupByDistance   = 5;

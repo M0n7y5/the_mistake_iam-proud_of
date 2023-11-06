@@ -17,9 +17,9 @@
 #include <memory>
 #include <stdint.h>
 
-// #ifdef EAC_DEEZ
-// extern "C" IMAGE_DOS_HEADER __ImageBase;
-// #endif
+#ifdef EAC_DEEZ
+extern "C" IMAGE_DOS_HEADER __ImageBase;
+#endif
 
 #pragma clang optimize off
 
@@ -50,80 +50,80 @@ namespace SettingsData
     Settings* settings = nullptr;
 }
 
-struct eac_info
-{
-    uint32_t entry;
-    uint32_t cheat_base;
-};
+// struct eac_info
+// {
+//     uint32_t entry;
+//     uint32_t cheat_base;
+// };
 
-namespace eac
-{
-    inline uint64_t base;
-    inline uint64_t entry;
-}; // namespace eac
+// namespace eac
+// {
+//     inline uint64_t base;
+//     inline uint64_t entry;
+// }; // namespace eac
 
-static eac_info eac_data{};
+// static eac_info eac_data{};
 
-unsigned char _TAG[] = {0xFF, 0xAC, 0x32, 0x4D, 0xAB, 0xAB, 0x88, 0x69};
+// unsigned char _TAG[] = {0xFF, 0xAC, 0x32, 0x4D, 0xAB, 0xAB, 0x88, 0x69};
 
-static void fix_relocations()
-{
-    uint64_t          image_base = (eac::base + eac_data.cheat_base);
-    PIMAGE_DOS_HEADER dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(image_base);
-    PIMAGE_NT_HEADERS nt_headers =
-        reinterpret_cast<PIMAGE_NT_HEADERS>((reinterpret_cast<LPBYTE>(image_base) + dos_header->e_lfanew));
+// static void fix_relocations()
+// {
+//     uint64_t          image_base = (eac::base + eac_data.cheat_base);
+//     PIMAGE_DOS_HEADER dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(image_base);
+//     PIMAGE_NT_HEADERS nt_headers =
+//         reinterpret_cast<PIMAGE_NT_HEADERS>((reinterpret_cast<LPBYTE>(image_base) + dos_header->e_lfanew));
 
-    PIMAGE_BASE_RELOCATION BaseRelocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>(
-        eac::base + nt_headers->OptionalHeader.DataDirectory[5].VirtualAddress);
+//     PIMAGE_BASE_RELOCATION BaseRelocation = reinterpret_cast<IMAGE_BASE_RELOCATION*>(
+//         eac::base + nt_headers->OptionalHeader.DataDirectory[5].VirtualAddress);
 
-    DWORD RelocationSize = nt_headers->OptionalHeader.DataDirectory[5].Size;
+//     DWORD RelocationSize = nt_headers->OptionalHeader.DataDirectory[5].Size;
 
-    DWORD    nBytes = 0;
-    uint64_t delta =
-        reinterpret_cast<uint64_t>(reinterpret_cast<LPBYTE>(image_base) - nt_headers->OptionalHeader.ImageBase);
+//     DWORD    nBytes = 0;
+//     uint64_t delta =
+//         reinterpret_cast<uint64_t>(reinterpret_cast<LPBYTE>(image_base) - nt_headers->OptionalHeader.ImageBase);
 
-    while (true)
-    {
-        uint64_t count = (BaseRelocation->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(WORD);
-        WORD*    list  = reinterpret_cast<WORD*>(BaseRelocation + 1);
+//     while (true)
+//     {
+//         uint64_t count = (BaseRelocation->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(WORD);
+//         WORD*    list  = reinterpret_cast<WORD*>(BaseRelocation + 1);
 
-        if (nBytes >= RelocationSize)
-            break;
+//         if (nBytes >= RelocationSize)
+//             break;
 
-        for (uint64_t i = 0; i < count; i++)
-        {
-            if (list[i])
-            {
-                uint64_t* pointer =
-                    reinterpret_cast<uint64_t*>(eac::base + (BaseRelocation->VirtualAddress + (list[i] & 0xFFF)));
-                *pointer += delta;
-            };
-        };
+//         for (uint64_t i = 0; i < count; i++)
+//         {
+//             if (list[i])
+//             {
+//                 uint64_t* pointer =
+//                     reinterpret_cast<uint64_t*>(eac::base + (BaseRelocation->VirtualAddress + (list[i] & 0xFFF)));
+//                 *pointer += delta;
+//             };
+//         };
 
-        nBytes += BaseRelocation->SizeOfBlock;
-        BaseRelocation = reinterpret_cast<PIMAGE_BASE_RELOCATION>(reinterpret_cast<LPBYTE>(BaseRelocation) +
-                                                                  BaseRelocation->SizeOfBlock);
-    }
-}
+//         nBytes += BaseRelocation->SizeOfBlock;
+//         BaseRelocation = reinterpret_cast<PIMAGE_BASE_RELOCATION>(reinterpret_cast<LPBYTE>(BaseRelocation) +
+//                                                                   BaseRelocation->SizeOfBlock);
+//     }
+// }
 
 int Start(uint64_t imageBase)
 {
 #ifdef EAC_DEEZ
+    // fix_relocations();
     L::DebugOut(_("[GRInternal] Fixing Relocs\n"));
-    fix_relocations();
 #endif
 
 #ifdef MRT_ENABLED
-   L::DebugOut(_("[GRInternal] MRT Init\n"));
     _cinit();
+    L::DebugOut(_("[GRInternal] MRT Init\n"));
 #endif // MRT_ENABLED
 
-    // #ifdef _DEBUG
-    //     L::Attach("Rust v3 Dev Console");
-    //     L::Print("Sleeping for 3s ...");
-    //     L::Print("");
-    //     L::Print("");
-    // #endif // _DEBUG
+#ifdef _DEBUG
+    L::Attach("Rust v3 Dev Console");
+    L::Print("Waiting for main menu ...");
+    L::Print("");
+    L::Print("");
+#endif // _DEBUG
 
     // #ifdef _DEBUG
     //     LI_FN(Sleep)(3000);
@@ -197,19 +197,19 @@ BOOL WINAPI DllMain(uint64_t hinstDLL,    // handle to DLL module
     if (fdwReason == DLL_PROCESS_ATTACH)
     {
 #ifdef EAC_DEEZ
-        // const auto NtHeader  = (PIMAGE_NT_HEADERS)(((PUINT8)&__ImageBase) + __ImageBase.e_lfanew);
-        // const auto EacBase   = (PUINT8)hinstDLL;
-        // const auto EOS_Entry = &EacBase[NtHeader->OptionalHeader.AddressOfEntryPoint];
+        const auto NtHeader  = (PIMAGE_NT_HEADERS)(((PUINT8)&__ImageBase) + __ImageBase.e_lfanew);
+        const auto EacBase   = (PUINT8)hinstDLL;
+        const auto EOS_Entry = &EacBase[NtHeader->OptionalHeader.AddressOfEntryPoint];
 
         L::DebugOut(_("[GRInternal] DllMain\n"));
 
-        auto EPIC_EXPORT_AVOIDANCE = reinterpret_cast<eac_info*>(_TAG);
+        // auto EPIC_EXPORT_AVOIDANCE = reinterpret_cast<eac_info*>(_TAG);
 
-        eac_data.cheat_base = EPIC_EXPORT_AVOIDANCE->cheat_base;
-        eac_data.entry      = EPIC_EXPORT_AVOIDANCE->entry;
+        // eac_data.cheat_base = EPIC_EXPORT_AVOIDANCE->cheat_base;
+        // eac_data.entry      = EPIC_EXPORT_AVOIDANCE->entry;
 
-        eac::base  = hinstDLL;
-        eac::entry = (hinstDLL + eac_data.entry);
+        // eac::base  = hinstDLL;
+        // eac::entry = (hinstDLL + eac_data.entry);
 
 #endif
 
@@ -217,8 +217,8 @@ BOOL WINAPI DllMain(uint64_t hinstDLL,    // handle to DLL module
         Initialize((uint64_t)hinstDLL);
 
 #ifdef EAC_DEEZ
-        const auto eac_dll_fn = reinterpret_cast<decltype(&DllMain)>(hinstDLL + eac_data.entry);
-
+        // const auto eac_dll_fn = reinterpret_cast<decltype(&DllMain)>(hinstDLL + eac_data.entry);
+        const auto eac_dll_fn = reinterpret_cast<decltype(&DllMain)>(EOS_Entry);
         L::DebugOut(_("[GRInternal] Launching EAC Entry\n"));
 
         const auto result = eac_dll_fn(hinstDLL, fdwReason, lpvReserved);

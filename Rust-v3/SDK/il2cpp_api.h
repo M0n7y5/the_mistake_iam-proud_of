@@ -44,8 +44,7 @@ uint32_t               il2cpp_method_get_param_count(const MethodInfo* method);
 const Il2CppImage*     il2cpp_assembly_get_image(const Il2CppAssembly* assembly);
 const Il2CppAssembly** il2cpp_domain_get_assemblies(const Il2CppDomain* domain, size_t* size);
 Il2CppObject*          il2cpp_object_new(const Il2CppClass* klass);
-Il2CppClass*           il2cpp_class_from_name(const Il2CppImage* image, const char* namespaze,
-                                              const char* name);
+Il2CppClass*           il2cpp_class_from_name(const Il2CppImage* image, const char* namespaze, const char* name);
 void*                  il2cpp_resolve_icall(const char* name);
 void                   il2cpp_runtime_class_init(Il2CppClass* klass);
 Il2CppString*          il2cpp_string_new(const char* str);
@@ -58,20 +57,23 @@ namespace il2cpp
 {
     Il2CppClass* InitClass(const char* name, const char* name_space = "");
 
-    MethodInfo* GetMethod(Il2CppClass* klass, const char* name, int argCount = -1,
-                          const char* argName = nullptr, int selectedArg = -1);
-
-    MethodInfo* GetMethod(const char* klassName, const char* name, int argCount = -1,
-                          const char* argName = "", const char* nameSpace = "",
+    MethodInfo* GetMethod(Il2CppClass* klass, const char* name, int argCount = -1, const char* argName = nullptr,
                           int selectedArg = -1);
 
-    uintptr_t HookVirtualFunction(Il2CppClass* klass, const char* methodName, void* hook,
-                                  bool forceDirectHook = false, const char* name_space = "");
+    MethodInfo* GetMethod(const char* klassName, const char* name, int argCount = -1, const char* argName = "",
+                          const char* nameSpace = "", int selectedArg = -1);
 
-    uintptr_t HookVirtualFunction(const char* classname, const char* function_to_hook,
-                                  void* our_func, const char* name_space = "");
+    uintptr_t HookVirtualFunction(Il2CppClass* klass, const char* methodName, void* hook, bool forceDirectHook = false,
+                                  const char* name_space = "");
+
+    uintptr_t HookVirtualFunction(const char* classname, const char* function_to_hook, void* our_func,
+                                  const char* name_space = "");
 
     uintptr_t HookVirtualFunction(uint64_t start, uint64_t search, void* our_func);
 
     bool InheritsFrom(Il2CppClass* klass, const char* klassName);
+
+    void InitializeData(void* ptr);
+
+    void InitializeMethodInfo(void* ptr);
 } // namespace il2cpp

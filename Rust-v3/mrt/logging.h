@@ -118,6 +118,8 @@ namespace L
 
     inline void DebugOut(const char* fmt, ...)
     {
+
+        return;
         constexpr int bufferSize = 64;
 
         char dbg_out[bufferSize];
@@ -125,7 +127,7 @@ namespace L
 
         va_list argp;
         va_start(argp, fmt);
-        vsprintf_s(dbg_out, bufferSize, fmt, argp);
+        vsprintf(dbg_out, fmt, argp);
         va_end(argp);
 
 #ifdef _DEBUG
@@ -172,8 +174,11 @@ namespace L
         vec.assign((uint8_t*)dbg_out, ((uint8_t*)dbg_out) + sizeof(dbg_out));
 
         auto str = Base64::Encode(vec);
+        str.append("\n");
         LI_FN(OutputDebugStringA)(str.c_str());
 #else
+
+        return;
         OutputDebugStringA(dbg_out);
 #endif
     }

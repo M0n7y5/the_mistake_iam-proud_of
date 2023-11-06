@@ -37,47 +37,50 @@ void GUI::Init()
                                          {AimbotSmooth::Linear, AimbotSmooth::SlowEnd}, {_("Linear"), _("SlowEnd")});
                            fs.AddFeature(_("Smoothing"), &settings->ragebot.general.aimbot.Smooth, 0, 50, "%d");
                            fs.AddFeature(_("FOV Circle"), &settings->ragebot.general.aimbot.FOV);
-                           fs.AddFeature(_("FOV Radius"), &settings->ragebot.general.aimbot.FOVRadius, 10, 180, "%d");
+                           fs.AddFeature(_("FOV Radius"), &settings->ragebot.general.aimbot.FOVRadius, 5, 180, "%d");
                        })
-                    .AddFeatureSet(
-                        _("Deesync Nutz"),
-                        [](mui::FeatureSet& fs) {
-                            // static bool lll = false;
-
-                            // fs.AddFeature(_("FIXED IN NEXT UPDATE"), &settings->ragebot.general.desync.shoot);
-
-                            fs.AddFeature(_("Enabled"), &settings->ragebot.general.desync.shoot);
-                            fs.AddFeature(_("Rapid Fire"), &settings->ragebot.general.desync.RapidFire);
-                            //fs.AddFeature(_("Smart Hit Scan"), &settings->ragebot.general.desync.SmartHitscan);
-                            fs.AddFeature(_("Max Hitscan Points"),
-                                          &settings->ragebot.general.desync.NumberOfHitscanPoints, 30, 400, "%d");
-                        })
-                    .AddFeatureSet(_("Projectile"),
+                    .AddFeatureSet(_("Deesync Nutz"),
                                    [](mui::FeatureSet& fs) {
-                                       fs.AddFeature(_("Hit Override"),
-                                                     &settings->ragebot.general.projectile.HitOverride);
-                                       fs.AddFeature(_("Hit Override Hitbox"),
-                                                     &settings->ragebot.general.projectile.PlayerHitOverride,
-                                                     {
-                                                         PlayerBones::eyeTranform,
-                                                         PlayerBones::neck,
-                                                         PlayerBones::spine1,
-                                                         PlayerBones::penis,
-                                                         PlayerBones::BoobCensor,
-                                                     },
-                                                     {
-                                                         _("Head"),
-                                                         _("Neck"),
-                                                         _("Spine"),
-                                                         _("Pelvis"),
-                                                         _("Random"),
-                                                     });
-                                       // fs.AddFeature(_("Bullet Teleport"),
-                                       // &settings->ragebot.general.projectile.BulletTP); fs.AddFeature(_("Pierce"),
-                                       // &settings->ragebot.general.projectile.Pierce); fs.AddFeature(_("Insta Hit"),
-                                       // &settings->ragebot.general.projectile.InstaHit); fs.AddFeature(_("Bullet
-                                       // Rain"), &settings->ragebot.general.projectile.BulletRain);
+                                       // static bool lll = false;
+
+                                       // fs.AddFeature(_("FIXED IN NEXT UPDATE"),
+                                       // &settings->ragebot.general.desync.shoot);
+
+                                       fs.AddFeature(_("Enabled"), &settings->ragebot.general.desync.shoot);
+                                       fs.AddFeature(_("Rapid Fire"), &settings->ragebot.general.desync.RapidFire);
+                                       // fs.AddFeature(_("Smart Hit Scan"),
+                                       // &settings->ragebot.general.desync.SmartHitscan);
+                                       fs.AddFeature(_("Max Hitscan Points"),
+                                                     &settings->ragebot.general.desync.NumberOfHitscanPoints, 30, 400,
+                                                     "%d");
                                    })
+                    .AddFeatureSet(
+                        _("Projectile"),
+                        [](mui::FeatureSet& fs) {
+                            fs.AddFeature(_("Hit Override"), &settings->ragebot.general.projectile.HitOverride);
+                            fs.AddFeature(_("Hit Override Hitbox"),
+                                          &settings->ragebot.general.projectile.PlayerHitOverride,
+                                          {
+                                              PlayerBones::eyeTranform,
+                                              PlayerBones::neck,
+                                              PlayerBones::spine1,
+                                              PlayerBones::penis,
+                                              PlayerBones::BoobCensor,
+                                          },
+                                          {
+                                              _("Head"),
+                                              _("Neck"),
+                                              _("Spine"),
+                                              _("Pelvis"),
+                                              _("Random"),
+                                          });
+                            fs.AddFeature(_("Faster Bullets"), &settings->ragebot.general.projectile.FasterBullets);
+                            // fs.AddFeature(_("Bullet Teleport"),
+                            // &settings->ragebot.general.projectile.BulletTP); fs.AddFeature(_("Pierce"),
+                            // &settings->ragebot.general.projectile.Pierce); fs.AddFeature(_("Insta Hit"),
+                            // &settings->ragebot.general.projectile.InstaHit); fs.AddFeature(_("Bullet
+                            // Rain"), &settings->ragebot.general.projectile.BulletRain);
+                        })
                     .AddFeatureSet(_("Targeting"),
                                    [](mui::FeatureSet& fs) {
                                        fs.AddFeature(_("Players"), &settings->ragebot.general.targeting.Players);
@@ -112,6 +115,8 @@ void GUI::Init()
                                        fs.AddFeature(_("Friends"), &settings->ragebot.general.targeting.Friends);
                                        fs.AddFeature(_("Heli"), &settings->ragebot.general.targeting.Heli);
                                        fs.AddFeature(_("Traps"), &settings->ragebot.general.targeting.Traps);
+                                       fs.AddFeature(_("Sleepers"), &settings->ragebot.general.targeting.Sleepers);
+                                       fs.AddFeature(_("Wounded"), &settings->ragebot.general.targeting.Wounded);
                                        fs.AddFeature(_("Vis Check"), &settings->ragebot.general.targeting.VisCheck);
                                        fs.AddFeature(_("Target Lock"), &settings->ragebot.general.targeting.TargetLock);
                                        //   fs.AddFeature<float>("adj x",
@@ -166,7 +171,8 @@ void GUI::Init()
                 sub.AddFeatureSet(_("General"),
                                   [](mui::FeatureSet& fs) {
                                       fs.AddFeature(_("Enabled"), &settings->visuals.general.Enabled);
-                                      fs.AddFeature(_("Sleepers"), &settings->visuals.general.Sleepers);
+                                      //   fs.AddFeature(_("Sleepers"), &settings->visuals.general.Sleepers);
+                                      fs.AddFeature(_("Bigger ESP Font"), &settings->visuals.general.BiggerESPFont);
                                       fs.AddFeature(_("Show HotBar"), &settings->visuals.general.ShowHotBar);
                                       fs.AddFeature(_("Team As Friends"), &settings->visuals.general.TeamAsFriends);
                                       fs.AddFeature(_("Force Skeleton Update"),
@@ -403,6 +409,7 @@ void GUI::Init()
                 fs.AddFeature(_("Rocket Incendiary"), &settings->visuals.raid.RocketIncendiary);
                 fs.AddFeature(_("Explosive Ammo"), &settings->visuals.raid.ExplosiveAmmo);
                 fs.AddFeature(_("Grenades"), &settings->visuals.raid.Grenades);
+                fs.AddFeature(_("MLRS Rockets"), &settings->visuals.raid.MLRS);
                 fs.AddFeature(_("Show Time When Started"), &settings->visuals.raid.ShowWhenStarted);
                 fs.AddFeature(_("Show Time Since Last Explosion"), &settings->visuals.raid.ShowLastExplosion);
 

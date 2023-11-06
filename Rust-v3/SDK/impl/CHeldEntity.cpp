@@ -17,7 +17,7 @@ bool CHeldEntity::IsBaseProjectile()
         {
             switch (itemdef->itemid)
             {
-            // RIFLE AMMO
+            // RIFLE
             case 1545779598:  // assault rifle
             case -1335497659: // ICE AK 
             case -1812555177: // LR-300 Assault Rifle
@@ -28,8 +28,9 @@ bool CHeldEntity::IsBaseProjectile()
             case -2069578888: // M249
             case -1214542497: // HMLMG
             case -139037392:  // Abyss AK
+            case 1914691295:  // Prototype17
 
-            // PISTOL AMMO
+            // PISTOLs
             case 1796682209:  // Custom SMG
             case 1318558775:  // MP5A4
             case -852563019:  // M92 Pistol

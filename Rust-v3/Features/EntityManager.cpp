@@ -1,9 +1,14 @@
 #include "EntityManager.h"
+#include "../mrt/logging.h"
 #include "../SDK/prefab_ids.h"
 #include "../SDK/structs.h"
 #include "../SDK/settings.h"
 #include "../SDK/il2cpp_api.h"
+#include "../SDK/mem.h"
+#include "../SDK/globals.h"
+#include "../mrt/scanner.h"
 #include <span>
+#include <stdint.h>
 
 /*
 
@@ -104,31 +109,35 @@ namespace EntityManager
             case player::npc_tunneldweller:
             case player::npc_bandit_guard:
             case player::npc_underwaterdweller:
+            case player::scarecrow:
             {
                 auto entity = (CBasePlayer*)networkable;
 
                 if (entity->IsLocalPlayer())
                     continue;
 
-                auto playerName = ((CString*)entity->_displayName)->str();
+                // auto playerName = ((CString*)entity->_displayName)->str();
 
                 Player player{};
-                if (memcpy_s(player.name, 129, playerName.c_str(), playerName.size()) == 0)
-                {
-                    if (entity->playerModel->fields._IsNpc_k__BackingField)
-                    {
-                        DB::NPCCount++;
-                    }
-                    else
-                    {
-                        DB::PlayerCount++;
-                    }
-                    player.entity   = (CBasePlayer*)networkable;
-                    player.position = player.entity->GetOriginPosition();
-                    player.distance = currentLocalPosition.distance(player.position);
+                auto   isNpc    = entity->playerModel->fields._IsNpc_k__BackingField;
+                player.namePool = DB::GetPlayerName(entity, isNpc);
 
-                    DB::players.emplace_back(player);
+                if (player.namePool == nullptr)
+                    continue;
+
+                if (isNpc)
+                {
+                    DB::NPCCount++;
                 }
+                else
+                {
+                    DB::PlayerCount++;
+                }
+                player.entity   = (CBasePlayer*)networkable;
+                player.position = player.entity->GetOriginPosition();
+                player.distance = currentLocalPosition.distance(player.position);
+
+                DB::players.emplace_back(player);
 
                 continue;
             }
@@ -187,6 +196,10 @@ namespace EntityManager
             case collectable::collectStone:
             case collectable::collectSulfur:
             case collectable::collectWood:
+            case halloween::woodcross:
+            case halloween::metalcross:
+            case halloween::stonegrave:
+            case halloween::spideregg:
             {
                 Collectible collectible{};
                 collectible.entity   = (CBaseEntity*)networkable;
@@ -203,7 +216,9 @@ namespace EntityManager
             case radtown::barrel_oil:
             case radtown::crate_basic:
             case radtown::crate_elite:
-            case radtown::crate_mili:
+            case radtown::crate_mine:
+            // case radtown::crate_mili:
+            case radtown::crate_normal:
             case radtown::crate_normal2:
             case radtown::crate_normal_food:
             case radtown::crate_normal_medical:
@@ -253,7 +268,8 @@ namespace EntityManager
             case traps::autoturret:
             case traps::flameturret:
             case traps::guntrap:
-            case traps::samsite:
+            case traps::samDeployed:
+            case traps::samStatic:
             case traps::landdmine:
             case traps::beartrap:
             {
@@ -299,11 +315,14 @@ namespace EntityManager
 
                 if ((category == ItemCategory::Weapon && wepEnabled) || otherEnabled)
                 {
-                    auto itemId     = itemEnt->info->fields.itemid;
-                    item.itemid     = itemId;
-                    item.namePoolID = DB::GetItemName((CItemDefinition*)itemEnt->info);
+                    auto itemId   = itemEnt->info->fields.itemid;
+                    item.itemid   = itemId;
+                    item.namePool = DB::GetItemName((CItemDefinition*)itemEnt->info);
 
-                    auto hashedName = HASH_RUNTIME(DB::GetString(item.namePoolID)->c_str());
+                    if (item.namePool == nullptr)
+                        continue;
+
+                    auto hashedName = HASH_RUNTIME(item.namePool);
                     bool isBlacklistedItem =
                         HASH_CTIME("Wooden Arrow") == hashedName || hashedName == HASH_CTIME("Nailgun Nails");
 
@@ -453,6 +472,69 @@ namespace EntityManager
         std::ranges::sort(DB::corpses, {}, &Corpse::distance);
 
         return true;
+    }
+
+    void* BufferList_TVal__Add_o = nullptr;
+
+    void hkBufferList_TVal__Add(BufferList_TVal__o* _this, CBaseNetworkable* value, MethodInfo* method)
+    {
+
+        reinterpret_cast<decltype(&hkBufferList_TVal__Add)>(BufferList_TVal__Add_o)(_this, value, method);
+
+        static auto klass = (BaseNetworkable_c*)il2cpp::InitClass("BaseNetworkable");
+
+        auto entities = klass->static_fields->clientEntities;
+
+        if (entities == nullptr)
+            return;
+
+        if ((void*)entities->fields.entityList->fields.vals != (void*)_this)
+            return;
+
+#ifdef _DEBUG
+        L::Print("[ENTLIST] ADD -> ({}), prefabID: {}, prefab: {}", value->klass->_1.name, value->prefabID,
+                 CStringPool::Get(value->prefabID)->str().c_str());
+#endif
+    }
+
+    void SimpleHook(MethodInfo* target, void* hook, void*& original)
+    {
+        original                     = target->virtualMethodPointer;
+        target->virtualMethodPointer = (Il2CppMethodPointer)hook;
+    }
+
+    void Init()
+    {
+        //
+        // 4C 8B 0D ?? ?? ?? ?? 4C 8B C3 48 8B 52 10 E8 ?? ?? ?? ?? EB 21
+
+        auto methodInfoAdr = Forza::IDAScan((void*)G::baseGameAssemlby,
+                                            _("4C 8B 0D ?? ?? ?? ?? 4C 8B C3 48 8B 52 10 E8 ?? ?? ?? ?? EB 21"));
+
+        auto method = mem::ResolveMov(methodInfoAdr);
+
+        // methodIniter(method);
+
+        il2cpp::InitializeMethodInfo(method);
+
+        auto methodInfo = *(MethodInfo**)mem::ResolveMov(methodInfoAdr);
+
+        std::span rgctxs{(Il2CppRGCTXData*)methodInfo->klass->rgctx_data, 16};
+
+        SimpleHook((MethodInfo*)rgctxs[13].method, &hkBufferList_TVal__Add, BufferList_TVal__Add_o);
+
+        // {
+        //     auto _method                                           = (MethodInfo*)rgctxs[10].method;
+        //     System_Collections_Generic_Dictionary_TKey__int__Add_o = _method->virtualMethodPointer;
+        //     _method->virtualMethodPointer =
+        //         (Il2CppMethodPointer)&hkSystem_Collections_Generic_Dictionary_TKey__int__Add;
+        // }
+
+        // auto methodLL = methods[10];
+        // auto rwMethod = (MethodInfo*)RGCTXs->method;
+
+        // ProjectileShoot_o              = (uintptr_t)rwMethod->virtualMethodPointer;
+        // rwMethod->virtualMethodPointer = (Il2CppMethodPointer)&hk_ServerRpcProjectileShoot;
     }
 
 } // namespace EntityManager

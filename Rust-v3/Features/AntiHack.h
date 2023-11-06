@@ -58,7 +58,7 @@ namespace AntiHack
             layerMask &= -8193;
         }
         Vector3 positionDelta            = newPos - oldPos;
-        Vector3 direction                = positionDelta.Normalized();
+        Vector3 direction                = positionDelta.unity_Normalize();
         Vector3 maximumBacktrackPosition = oldPos - (direction * backtracking);
 
         positionDelta = newPos - maximumBacktrackPosition;
@@ -114,12 +114,12 @@ namespace AntiHack
         return flag;
     }
 
-    inline float MaximumDesyncDistance(CBasePlayer* player)
+    inline float MaximumDesyncDistance(CBasePlayer* player, float desync = 0.99f)
     {
         float eyeServerFrameStep =
             eye_serverframes *
             std::max<float>({CTime::GetDeltaTime(), CTime::GetSmoothDeltaTime(), CTime::GetFixedDeltaTime()});
-        float eyeForgivnessThisFrame = (0.99f + eyeClientFrameStep + eyeServerFrameStep) * eyeForgivenessBase;
+        float eyeForgivnessThisFrame = (desync + eyeClientFrameStep + eyeServerFrameStep) * eyeForgivenessBase;
 
         auto  parentVelocity          = player->GetParentVelocity();
         auto  playerMaxVel            = player->MaxVelocity();
@@ -129,12 +129,12 @@ namespace AntiHack
         return positionDeltaForgivness;
     }
 
-    inline float MaximumDesyncAltitude(CBasePlayer* player)
+    inline float MaximumDesyncAltitude(CBasePlayer* player, float desync = 0.99f)
     {
         float eyeServerFrameStep =
             eye_serverframes *
             std::max<float>({CTime::GetDeltaTime(), CTime::GetSmoothDeltaTime(), CTime::GetFixedDeltaTime()});
-        float eyeForgivnessThisFrame = (0.99f + eyeClientFrameStep + eyeServerFrameStep) * eyeForgivenessBase;
+        float eyeForgivnessThisFrame = (desync + eyeClientFrameStep + eyeServerFrameStep) * eyeForgivenessBase;
 
         float maxAltitude = std::abs(player->GetMountVelocity().y + player->GetParentVelocity().y);
         float maxAltitudeThisFrame =

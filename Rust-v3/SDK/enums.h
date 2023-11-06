@@ -867,6 +867,7 @@ enum class EffectType : uint32_t
     RocketIncen,
     ExplosiveAmmo,
     ExplosiveGrenade,
+    MLRS,
     Count
 };
 

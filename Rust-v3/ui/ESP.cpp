@@ -133,17 +133,29 @@ void RenderTextOutline(ImVec2 pos, ImColor color, ImColor outlineColor, const ch
 
     auto font = ImGui::GetFont();
 
-    g->AddText(font, 0.f, ImVec2(pos.x - 1.f, pos.y), outlineColor, text);
-    g->AddText(font, 0.f, ImVec2(pos.x + 1.f, pos.y), outlineColor, text);
+    float offset = 1.f;
 
-    g->AddText(font, 0.f, ImVec2(pos.x, pos.y - 1.f), outlineColor, text);
-    g->AddText(font, 0.f, ImVec2(pos.x, pos.y + 1.f), outlineColor, text);
+    using namespace SettingsData;
+    if (settings->visuals.general.BiggerESPFont)
+    {
+        offset = 2.f;
+    }
 
-    g->AddText(font, 0.f, ImVec2(pos.x - 1.f, pos.y + 1.f), outlineColor, text);
-    g->AddText(font, 0.f, ImVec2(pos.x + 1.f, pos.y - 1.f), outlineColor, text);
+    // auto fntSize = ImGui::GetFont()->FontSize;
 
-    g->AddText(font, 0.f, ImVec2(pos.x - 1.f, pos.y - 1.f), outlineColor, text);
-    g->AddText(font, 0.f, ImVec2(pos.x + 1.f, pos.y + 1.f), outlineColor, text);
+    // g->AddText(font, fntSize + 2.f, ImVec2(pos.x - 1.f, pos.y - 1.f), outlineColor, text);
+
+    g->AddText(font, 0.f, ImVec2(pos.x - offset, pos.y), outlineColor, text);
+    g->AddText(font, 0.f, ImVec2(pos.x + offset, pos.y), outlineColor, text);
+
+    g->AddText(font, 0.f, ImVec2(pos.x, pos.y - offset), outlineColor, text);
+    g->AddText(font, 0.f, ImVec2(pos.x, pos.y + offset), outlineColor, text);
+
+    g->AddText(font, 0.f, ImVec2(pos.x - offset, pos.y + offset), outlineColor, text);
+    g->AddText(font, 0.f, ImVec2(pos.x + offset, pos.y - offset), outlineColor, text);
+
+    g->AddText(font, 0.f, ImVec2(pos.x - offset, pos.y - offset), outlineColor, text);
+    g->AddText(font, 0.f, ImVec2(pos.x + offset, pos.y + offset), outlineColor, text);
 
     g->AddText(font, 0.f, pos, color, text);
 }
@@ -195,9 +207,9 @@ void DrawPlayerFlag(ImVec2& flagPosition, const char* flag)
 
 static float SinPulse(float time)
 {
-   const float pi = 3.14F;
-   const float frequency = 3.f; // Frequency in Hz
-   return 0.5F * (1.f + (float)std::sin(2.f * pi * frequency * time));
+    const float pi        = 3.14F;
+    const float frequency = 3.f; // Frequency in Hz
+    return 0.5F * (1.f + (float)std::sin(2.f * pi * frequency * time));
 }
 
 void Indicators()
@@ -206,33 +218,68 @@ void Indicators()
         return;
 
     Vector2 screenCenter = {currentScreenSize.m_Width / _flt(2.f), currentScreenSize.m_Height / _flt(2.f)};
-
+#ifdef _DEBUG
     if (settings->ragebot.general.desync.shoot.Active())
     {
+        ImVec2 tmp{200.f, 200.f};
+
+        char buff[48];
+
         if (_localPlayer->input->fields.state->fields.current != nullptr)
         {
-            // auto lastEyePos   = *(Vector3*)&_localPlayer->lastSentTick->fields.eyePos;
+            auto lastEyePos = *(Vector3*)&_localPlayer->lastSentTick->fields.eyePos;
             // auto lastLocalPos = *(Vector3*)&_localPlayer->lastSentTick->fields.position;
             // auto rotation     = *(Quaternion*)&_localPlayer->eyes->fields._rotationLook_k__BackingField;
 
-            for (const auto& ray : HitScanner::currentTraceRays)
+            for (const auto& tray : HitScanner::currentTraceRays)
             {
-                for (const auto& point : ray.points)
+                // snprintf(buff, 48, "MD: %.3f", tray.currentMaxDistance);
+                // RenderTextOutline(tmp, ImColor(255, 255, 255), {0, 0, 0, 255}, buff);
+                // tmp.y += fontSize + 1.f;
+
+                // snprintf(buff, 48, "MAL: %.3f", tray.currentMaxAltitude);
+                // RenderTextOutline(tmp, ImColor(255, 255, 255), {0, 0, 0, 255}, buff);
+                // tmp.y += fontSize + 1.f;
+
+                float offThis = 0.f;
+
+                auto color = ImColor(0, 255, 0);
+                for (const auto& point : tray.points)
                 {
-                    if (point.empty() == false)
+                    if (point.empty())
+                        continue;
+
+                    auto pDist = std::abs(point.distance(lastEyePos));
+                    // auto pAlt  = std::abs(point.y - lastEyePos.y);
+
+                    if (/*pAlt > tray.currentMaxAltitude || */ pDist > tray.currentMaxDistance)
                     {
-                        Vector2 screenPos{};
-                        // make it faster??
-                        if (camera->WorldToScreen(point, screenPos, currentScreenSize))
-                        {
-                            g->AddCircleFilled(ToImVec2(screenPos), 2.3f, ImColor(0, 255, 0));
-                        }
+                        color = ImColor(255, 0, 0);
+                    }
+
+                    // snprintf(buff, 48, "(%.3f %0.3f %.3f) PD: %.3f", point.x, point.y, point.z, pDist);
+
+                    if (offThis == 0.f)
+                    {
+                        offThis = GetTextSize(buff).x;
+                    }
+
+                    // RenderTextOutline(tmp, color, {0, 0, 0, 255}, buff);
+                    // tmp.y += fontSize + 1.f;
+
+                    Vector2 screenPos{};
+                    // make it faster??
+                    if (camera->WorldToScreen(point, screenPos, currentScreenSize))
+                    {
+                        g->AddCircleFilled(ToImVec2(screenPos), 2.3f, color);
                     }
                 }
+                // tmp.y = 200.f;
+                // tmp.x += offThis + 10.f;
             }
         }
     }
-
+#endif
     if (settings->visuals.ores.general.LineToClosest)
     {
         using namespace EntityManager;
@@ -312,7 +359,16 @@ void Indicators()
             }
         }
     }
-
+#ifdef _DEBUG
+    {
+        Vector2 pos{};
+        if (Aimbot::CurrentTarget.type != Aimbot::TargetType::Invalid &&
+            camera->WorldToScreen(Aimbot::CurrentTarget.TargetPos, pos, currentScreenSize))
+        {
+            g->AddCircleFilled({pos.x, pos.y}, 3.f, ImColor(0, 255, 120));
+        }
+    }
+#endif
     if (settings->visuals.general.indicators.Prediction.Enable && (Aimbot::PredictedPosition.empty() == false))
     {
         Vector2 pos{};
@@ -641,10 +697,40 @@ void Indicators()
         auto beltUiScale = gameHotBarRectTransform->GetLossyScale().x;
         auto beltUIPos   = ScreenToImgui({gameUipos.x, gameUipos.y});
 
-        if (Aimbot::CurrentTarget.type == Aimbot::TargetType::Player ||
-            Aimbot::CurrentTarget.type == Aimbot::TargetType::HotBar)
+        do
         {
+
+            bool validTarget = Aimbot::CurrentTarget.type == Aimbot::TargetType::Player |
+                               Aimbot::CurrentTarget.type == Aimbot::TargetType::HotBar;
+
+            if (validTarget == false || Aimbot::CurrentTarget.entity->entity->_IsDestroyed_k__BackingField)
+            {
+                break;
+            }
+
             auto target = (CBasePlayer*)Aimbot::CurrentTarget.entity->entity;
+
+            if (target->playerModel->fields._IsNpc_k__BackingField && settings->visuals.general.npc.Enabled == false)
+            {
+                break;
+            }
+            else if ((target->GetTeamID() == _localPlayer->GetTeamID() &&
+                      settings->visuals.general.friends.Enabled == false) ||
+                     (settings->visuals.general.friends.Sleeping.Enable == false && target->IsSleeping()))
+            {
+                break;
+            }
+            else
+            {
+                bool skip = settings->visuals.general.enemies.Enabled == false ||
+                            (settings->visuals.general.enemies.Sleeping.Enable == false && target->IsSleeping());
+
+                if (skip)
+                {
+                    break;
+                }
+            }
+
             // draw belt
             {
 
@@ -663,10 +749,10 @@ void Indicators()
 
                 auto activeItem = target->GetActiveItem();
 
-                auto playerNameID = EntityManager::DB::GetPlayerName(target);
-                auto playerName   = EntityManager::DB::GetString(playerNameID);
+                auto playerName =
+                    EntityManager::DB::GetPlayerName(target, target->playerModel->fields._IsNpc_k__BackingField);
 
-                RenderTextCenter({screenCenter.x, screenPos.y - fontSize - 3.f}, playerName->c_str());
+                RenderTextCenter({screenCenter.x, screenPos.y - fontSize - 3.f}, playerName);
 
                 // some design stuff
                 g->AddRectFilled({screenPos.x, screenPos.y}, {screenPos.x + totalWidth, screenPos.y + itemSize},
@@ -898,7 +984,8 @@ void Indicators()
                 //     currX += margin + itemSize;
                 // }
             }
-        }
+
+        } while (false);
     }
 
     // g->AddImage(ImTextureID user_texture_id, const ImVec2 &p_min, const ImVec2 &p_max)
@@ -1072,6 +1159,8 @@ void DrawRaids()
     char    tmpStr[64]{};
     Vector2 screenPos{};
 
+    const auto& opt = settings->visuals.raid;
+
     for (const auto raid : EntityManager::DB::raids)
     {
         auto dist = currentLocalPosition.distance(raid.position);
@@ -1087,8 +1176,6 @@ void DrawRaids()
                           tmpStr);
         RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
                           _("Raid"));
-
-        auto opt = settings->visuals.raid;
 
         for (int i = 0; i < (int)EffectType::Count; i++)
         {
@@ -1136,6 +1223,11 @@ void DrawRaids()
                     continue;
                 effectTypeName = _("Grenade");
                 break;
+            case EffectType::MLRS:
+                if (!opt.MLRS)
+                    continue;
+                effectTypeName = _("MLRS");
+                break;
 
             default:
                 return;
@@ -1174,6 +1266,27 @@ void DrawRaids()
             screenPos.y += fontSize;
             RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
                               tmpStr);
+        }
+    }
+
+    static Timer timer{};
+
+    if (timer.Expired(20.f))
+    {
+        decltype(EntityManager::DB::raids)::iterator iter;
+
+        for (iter = EntityManager::DB::raids.begin(); iter != EntityManager::DB::raids.end();)
+        {
+            float secondsSinceStart  = CTime::GetRealTime() - iter->startTime;
+            int   nSecondsSinceStart = (int)secondsSinceStart;
+
+            int seconds = nSecondsSinceStart % 60;
+            int minutes = (nSecondsSinceStart - seconds) / 60;
+
+            if (opt.MaxShowTime < minutes)
+                iter = EntityManager::DB::raids.erase(iter);
+            else
+                ++iter;
         }
     }
 }
@@ -1237,15 +1350,19 @@ void DrawCollectibles()
                 drawCollectible(_("Berry"), collectible, vis.colors.berryYellow);
                 break;
             case collectable::collectMetal:
+            case halloween::metalcross:
                 drawCollectible(_("Metal"), collectible, vis.colors.metal);
                 break;
             case collectable::collectStone:
+            case halloween::stonegrave:
                 drawCollectible(_("Stone"), collectible, vis.colors.stone);
                 break;
             case collectable::collectSulfur:
+            case halloween::spideregg:
                 drawCollectible(_("Sulfur"), collectible, vis.colors.sulfur);
                 break;
             case collectable::collectWood:
+            case halloween::woodcross:
                 drawCollectible(_("Wood"), collectible, vis.colors.wood);
                 break;
             case collectable::corn:
@@ -1384,11 +1501,12 @@ void DrawRadTown()
                 break;
             case radtown::crate_basic:
             case radtown::crate_underwater_basic:
+            case radtown::crate_normal:
             case radtown::crate_normal2:
             case radtown::crate_normal_medical:
                 drawRadTown(_("Crate"), radtown, vis.colors.crates);
                 break;
-            case radtown::crate_mili:
+            case radtown::crate_bradley:
                 drawRadTown(_("Crate Military"), radtown, vis.colors.military);
                 break;
             case radtown::crate_heli:
@@ -1436,7 +1554,7 @@ void DrawRadTown()
             case radtown::crate_normal_medical:
                 drawRadTown(_("Crate"), radtown, vis.colors.crates);
                 break;
-            case radtown::crate_mili:
+            case radtown::crate_bradley:
                 drawRadTown(_("Crate Military"), radtown, vis.colors.military);
                 break;
             case radtown::crate_heli:
@@ -1472,7 +1590,8 @@ void DrawVehicles()
     if (vis.general.Enabled == false)
         return;
 
-    auto drawVehicle = [&](const char* name, const Vehicle& item, const TCO& option, float maxDistance) -> void {
+    auto drawVehicle = [&](const char* name, const Vehicle& item, const TCO& option, float maxDistance,
+                           float percentHealth = -1.f) -> void {
         if (!option.Enable)
             return;
 
@@ -1488,7 +1607,43 @@ void DrawVehicles()
             col.Value.w = Remap(item.distance, 0.f, maxDistance, 1.f, 0.f);
         }
 
-        DrawDefault(name, item.position, col, item.distance);
+        // DrawDefault(name, item.position, col, item.distance);
+
+        Vector2 screenPos;
+        if (camera->WorldToScreen(item.position, screenPos, currentScreenSize))
+        {
+            if (percentHealth != -1.f)
+            {
+                float maxWidth     = GetTextSize(name).x;
+                float maxWidthHalf = maxWidth / 2.f;
+
+                ImVec2 pMin{screenPos.x - maxWidthHalf, screenPos.y + 6.f};
+                ImVec2 pMax{screenPos.x + maxWidthHalf, screenPos.y + 12.f};
+
+                g->AddRectFilled(pMin, pMax, ImColor(0, 0, 0));
+
+                pMin.x += 1.f;
+                pMin.y += 1.f;
+
+                float width = RemapClamped(percentHealth, 0.f, 1.f, 0.f, maxWidthHalf);
+
+                pMax.x = 1.f + width;
+                pMax.y -= 1.f;
+
+                auto col = ImLerp(ImColor(255, 0, 0).Value, ImColor(0, 255, 0).Value, percentHealth);
+
+                g->AddRectFilled(pMin, pMax, ImColor(col));
+
+                screenPos.y += 10.f;
+            }
+
+            char distBuff[8];
+
+            RenderTextCenter(screenPos, name, col);
+            screenPos.y += fontSize;
+            snprintf(distBuff, 8, _("%dm"), (int)item.distance);
+            RenderTextCenter(screenPos, distBuff, col);
+        }
     };
 
     std::ranges::reverse_view rv{DB::vehicles};
@@ -1638,8 +1793,17 @@ void DrawVehicles()
             drawVehicle(_("Chinook"), vehicle, vis.colors.chinook, vis.general.PatrolDistance);
             break;
         case vehicles::bradleyapc:
-            drawVehicle(_("Bradley APC"), vehicle, vis.colors.bradley, vis.general.PatrolDistance);
-            break;
+        {
+            auto       ent           = (CBaseCombatEntity*)vehicle.entity;
+            const auto currentHealth = ent->_health;
+            const auto healthPercent = RemapClamped(currentHealth, _flt(0.f), ent->_maxHealth, 0, 1.f);
+
+            drawVehicle(_("Bradley APC"), vehicle, vis.colors.bradley, vis.general.PatrolDistance, healthPercent);
+
+            // static ImVec2 boxLength = ImGui::CalcTextSize(_("Bradley APC"));
+        }
+
+        break;
         default:
             break;
         }
@@ -1715,7 +1879,7 @@ void DrawTraps()
             drawTrap(buf, trap, vis.colors.flameTurret);
             break;
         }
-        case traps::samsite:
+        case traps::samDeployed:
         {
             auto ent = (CBaseCombatEntity*)trap.entity;
 
@@ -1727,6 +1891,22 @@ void DrawTraps()
             const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
 
             snprintf(buf, 32, _("[%s] SAM Site [%d %%HP]"), (isOn ? _("ON") : _("OFF")), healthPercent);
+
+            drawTrap(buf, trap, vis.colors.samSite);
+            break;
+        }
+        case traps::samStatic:
+        {
+            auto ent = (CBaseCombatEntity*)trap.entity;
+
+            // auto isOn = ent->HasFlag(BaseEntityFlags::Reserved8);
+            // if (isOn == false && vis.general.HideInactive)
+            //     break;
+
+            // const auto currentHealth = ent->_health;
+            // const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
+
+            snprintf(buf, 32, _("[%s] SAM Site"), _("ON"));
 
             drawTrap(buf, trap, vis.colors.samSite);
             break;
@@ -1744,12 +1924,15 @@ void DrawTraps()
             auto auth     = turret->fields.authorizedPlayers;
             bool isAuthed = false;
 
-            for (auto id : std::span(auth->fields._items->m_Items, auth->fields._items->max_length))
+            if (auth != nullptr)
             {
-                if (id->fields.userid == _localPlayer->userID)
+                for (auto id : std::span(auth->fields._items->m_Items, auth->fields._size))
                 {
-                    isAuthed = true;
-                    break;
+                    if (id->fields.userid == _localPlayer->userID)
+                    {
+                        isAuthed = true;
+                        break;
+                    }
                 }
             }
 
@@ -1781,18 +1964,18 @@ void RenderItems()
     {
         using namespace prefabs;
 
-        auto name = DB::GetString(item.namePoolID);
+        // auto name = DB::GetString(item.namePoolID);
 
         if (item.amount > 1)
         {
-            snprintf(buf, 48, "%s (%dx)", name->c_str(), item.amount);
+            snprintf(buf, 48, "%s (%dx)", item.namePool, item.amount);
             DrawDefault(buf, item.position,
                         (item.category == ItemCategory::Weapon ? vis.general.weapons.Color : vis.general.other.Color),
                         item.distance);
         }
         else
         {
-            DrawDefault(name->c_str(), item.position,
+            DrawDefault(item.namePool, item.position,
                         (item.category == ItemCategory::Weapon ? vis.general.weapons.Color : vis.general.other.Color),
                         item.distance);
         }
@@ -1813,9 +1996,9 @@ void RenderItems()
         {
             // TODO: CACHE THOSE NAMES!! ALL NEEDED INFO IN PLAYER CORPSE
             auto cc   = (PlayerCorpse_o*)corpse.entity;
-            auto strr = (CString*)cc->fields._playerName;
+            auto strr = DB::GetCorpseName(cc);
 
-            snprintf(buf, 48, "Corpse %s", strr->str().c_str());
+            snprintf(buf, 48, "Corpse %s", strr);
 
             DrawDefault(buf, corpse.position, vis.corpses.option.Color, corpse.distance);
         }
@@ -1964,7 +2147,7 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
 
     char buf[128];
 
-    auto& vis = SettingsData::settings->visuals.general;
+    // uto& vis = SettingsData::settings->visuals.general;
 
     if (player.distance > 350)
         return;
@@ -2013,7 +2196,7 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
 
     if (opts.Name.Enable)
     {
-        const ImVec2 textSize        = GetTextSize(player.name);
+        const ImVec2 textSize        = GetTextSize(player.namePool);
         ImVec2       playerNamePoint = box.ToImVec2(0);
 
         playerNamePoint.x = box.points[0].x + (box.points[1].x - box.points[0].x) / 2.f;
@@ -2021,9 +2204,9 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
         playerNamePoint.y -= textSize.y + 2.f;
 
         if (player.entity->IsSleeping())
-            RenderTextOutline(playerNamePoint, opts.Sleeping.Color, ImColor(0, 0, 0), player.name);
+            RenderTextOutline(playerNamePoint, opts.Sleeping.Color, ImColor(0, 0, 0), player.namePool);
         else
-            RenderTextOutline(playerNamePoint, opts.Name.Color, ImColor(0, 0, 0), player.name);
+            RenderTextOutline(playerNamePoint, opts.Name.Color, ImColor(0, 0, 0), player.namePool);
     }
 
     if (opts.PlayerFlags.Enable)
@@ -2116,15 +2299,20 @@ void DrawPlayers()
             // todo: Handle friends
             if (vis.TeamAsFriends)
             {
-                auto myTeamID = _localPlayer->GetTeamID();
+                auto myTeamID   = _localPlayer->GetTeamID();
+                auto playerTeam = player.entity->GetTeamID();
 
-                if (myTeamID == 0)
+                if (myTeamID == 0 || playerTeam == 0)
                 {
                     RenderPlayer(settings->visuals.general.enemies, player, box);
                 }
                 else if (myTeamID == player.entity->GetTeamID())
                 {
                     RenderPlayer(settings->visuals.general.friends, player, box);
+                }
+                else
+                {
+                    RenderPlayer(settings->visuals.general.enemies, player, box);
                 }
             }
             else
@@ -2173,7 +2361,10 @@ void ESP::Draw()
 
     if (localPlayer == nullptr || localPlayer->m_CachedPtr == 0 || localPlayer->input == nullptr ||
         localPlayer->net == nullptr || localPlayer->eyes == nullptr)
+    {
+        EntityManager::DB::raids.clear();
         return;
+    }
 
     if (localPlayer->_IsDestroyed_k__BackingField || localPlayer->_JustCreated_k__BackingField)
         return;

@@ -95,14 +95,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;DEBUG_CONSOLE;NOMINMAX</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;DEBUG_CONSOLE;NOMINMAX;XXH_X86DISPATCH_ALLOW_AVX;XXH_INLINE_ALL;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mavx /clang:-fbracket-depth=512 /clang:-Werror=uninitialized %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mavx2 /clang:-fbracket-depth=512 /clang:-Werror=uninitialized %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -115,7 +115,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;NOMINMAX</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;NOMINMAX;XXH_X86DISPATCH_ALLOW_AVX;XXH_INLINE_ALL;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -124,7 +124,7 @@
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <Optimization>MaxSpeed</Optimization>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-fbracket-depth=512 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-mavx2 /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-fbracket-depth=512 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,7 +139,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED;_HAS_STATIC_RTTI=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED;_HAS_STATIC_RTTI=0;XXH_X86DISPATCH_ALLOW_AVX;XXH_INLINE_ALL;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -150,7 +150,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalOptions>/clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-Wno-microsoft-cast /clang:-Werror=return-type  /clang:-Werror=uninitialized /clang:-mstackrealign %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx2 /clang:-Wno-microsoft-cast /clang:-Werror=return-type  /clang:-Werror=uninitialized /clang:-mstackrealign %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -181,7 +181,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;JM_XORSTR_DISABLE_AVX_INTRINSICS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED;_HAS_STATIC_RTTI=0;EAC_DEEZ;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;_HAS_EXCEPTIONS=0;_KERNEL_MODE;NOMINMAX;MRT_ENABLED;_HAS_STATIC_RTTI=0;EAC_DEEZ;XXH_X86DISPATCH_ALLOW_AVX;XXH_INLINE_ALL;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -192,7 +192,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mno-stack-arg-probe /clang:-mstackrealign /clang:-Werror=uninitialized  %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions> /clang:-fno-builtin /Zc:threadSafeInit- /Gs9999999  /clang:-fno-unwind-tables /clang:-mavx2 /clang:-flto=thin /clang:-Wno-microsoft-cast /clang:-Werror=return-type /clang:-mno-stack-arg-probe /clang:-mstackrealign /clang:-Werror=uninitialized  %(AdditionalOptions)</AdditionalOptions>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <DebugInformationFormat>None</DebugInformationFormat>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -217,6 +217,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="mrt\xxhash.cpp" />
+    <ClCompile Include="mrt\xxh_x86dispatch.cpp" />
     <ClCompile Include="SDK\settings_types.cpp" />
     <ClCompile Include="ui\ESP.cpp" />
     <ClCompile Include="Features\EntityManager.cpp" />
@@ -275,6 +277,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Features\DesyncManager.h" />
+    <ClInclude Include="mrt\xxh3.h" />
+    <ClInclude Include="mrt\xxhash.h" />
+    <ClInclude Include="mrt\xxh_x86dispatch.h" />
     <ClInclude Include="SDK\input_data.h" />
     <ClInclude Include="SDK\prefab_ids.h" />
     <ClInclude Include="SDK\settings.h" />

@@ -375,7 +375,7 @@ namespace
             _this->movement->fields.adminCheat = true;
         }
 
-        Aimbot::ClientInput();
+        Aimbot::ClientInput(_this);
 
         Movement::PreClientInput(_this);
 
@@ -466,8 +466,6 @@ namespace
             }
             }
         }
-
-        
     }
 
     uint64_t GetRBX()
@@ -494,9 +492,7 @@ namespace
         // #ifdef _DEBUG
         //         std::string hitName{};
         //         std::string boneName{};
-
         //         auto boneID = playerProjectileAttack->fields.playerAttack->fields.attack->fields.hitBone;
-
         //         if (proj != nullptr)
         //         {
         //             if (proj->hitTest != nullptr)
@@ -504,17 +500,13 @@ namespace
         //                 if (proj->hitTest->fields.HitEntity != nullptr)
         //                 {
         //                     auto ent = proj->hitTest->fields.HitEntity;
-
         //                     auto nn = (CString*)ent->fields._prefabName;
-
         //                     if (nn != nullptr)
         //                     {
         //                         hitName = nn->str();
-
         //                         if (boneID != 0)
         //                         {
         //                             auto bonemapetit = CStringPool::Get(boneID);
-
         //                             if (bonemapetit != nullptr)
         //                             {
         //                                 boneName = bonemapetit->str();
@@ -524,7 +516,6 @@ namespace
         //                 }
         //             }
         //         }
-
         //         L::Print<L::Yellow>("BaseEntity ServerRPC_SendProjectileAttack -> CALL EntityHit: {}, BoneID: {},
         //         Bone: {}",
         //                             hitName, boneID, boneName);
@@ -643,19 +634,21 @@ void Hooks::BasePlayer::Init()
     auto klass    = il2cpp::InitClass(_("BasePlayer"));
     ClientInput_o = il2cpp::HookVirtualFunction(klass, _("ClientInput"), &hk_ClientInput);
 
-    auto methodInfoInitAdr =
-        Forza::IDAScan((void*)G::baseGameAssemlby,
-                       _("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 05 ?? ?? ?? ?? ?? 4C 8B 0D ?? ?? ?? ?? "
-                         "4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
+    // auto methodInfoInitAdr =
+    //     Forza::IDAScan((void*)G::baseGameAssemlby,
+    //                    _("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 05 ?? ?? ?? ?? ?? 4C 8B 0D ?? ?? ?? ?? "
+    //                      "4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
 
-    auto methodIniter = reinterpret_cast<decltype(&MethodInfoInitStub)>(mem::ResolveCall(methodInfoInitAdr));
+    // auto methodIniter = reinterpret_cast<decltype(&MethodInfoInitStub)>(mem::ResolveCall(methodInfoInitAdr));
 
     auto methodInfoAdr = Forza::IDAScan(
         (void*)G::baseGameAssemlby,
         _("4C 8B 0D ?? ?? ?? ?? 4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
     auto method = mem::ResolveMov(methodInfoAdr);
 
-    methodIniter(method);
+    //methodIniter(method);
+
+    il2cpp::InitializeMethodInfo(method);
 
     auto methodInfo = *(MethodInfo**)mem::ResolveMov(methodInfoAdr);
 

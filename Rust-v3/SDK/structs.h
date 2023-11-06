@@ -107,6 +107,11 @@ template <typename T> struct CArray : Il2CppArray, CArrayBase
         T* dataPtrDummy[8];
     };
 
+    std::span<T> AsSpan()
+    {
+        return std::span<T>(this->data, this->max_length);
+    }
+
     static CArray<T>* New(Il2CppClass* klass, il2cpp_array_size_t size)
     {
         return (CArray<T>*)NewInternal(klass, size);
@@ -171,6 +176,7 @@ struct CTransform : ILObjectBase<UnityEngine_Transform_Fields>
     Vector3 TransformPoint(Vector3 vec);
     Vector3 Forward();
     Vector3 InverseTransformPoint(Vector3 vec);
+    Vector3 InverseTransformDirection(Vector3 vec);
     Vector3 GetLossyScale();
 };
 
@@ -220,6 +226,7 @@ struct CGameObject : ILObjectBase<UnityEngine_GameObject_Fields>
 struct CComponent
 {
     CGameObject* GetGameobject();
+    CTransform*  GetTransform();
 };
 
 struct CGameObjectRef
@@ -635,9 +642,9 @@ struct CItemModProjectileSpawn : ILObjectBase<ItemModProjectileSpawn_Fields>
 
 struct CPlayerEyes : ILObjectBase<PlayerEyes_Fields>
 {
-    Vector3 GetPosition();
-    Vector3 BodyForward();
-    Vector3 GetCenter();
+    Vector3    GetPosition();
+    Vector3    BodyForward();
+    Vector3    GetCenter();
     Quaternion GetRotation();
 };
 
@@ -767,9 +774,10 @@ struct CBaseProjectile : CAttackEntity, BaseProjectile_Fields_s
     float CalculateServerCooldownTime(float nextTime, float cooldown);
     void  Shoot();
     float ScaleRepeatDelay(float delay);
+    float GetProjectileVelocityScale(bool getMax = false);
 
-    bool IsBurstDisabled() {
-
+    bool IsBurstDisabled()
+    {
         return this->HasFlag(BaseEntityFlags::Reserved6) == this->defaultOn;
     }
 
@@ -994,4 +1002,13 @@ struct CItemContainer : ILObjectBase<ItemContainer_Fields>
 
 struct CFlintStrikeWeapon : ILObjectBase<FlintStrikeWeapon_Fields>
 {
+};
+
+struct CPlayerProjectileUpdate : ILObjectBase<ProtoBuf_PlayerProjectileUpdate_Fields>
+{
+};
+
+struct CFacepunchPool
+{
+    static CPlayerProjectileUpdate* GetPlayerProjectileUpdate();
 };

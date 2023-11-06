@@ -1,7 +1,9 @@
 #include "il2cpp_api.h"
 #include "il2cpp.h"
+#include "globals.h"
 #include "../mrt/lazy_importer.hpp"
 #include "../mrt/logging.h"
+#include "../mrt/scanner.h"
 #include <algorithm>
 #include <cstring>
 #include <iterator>
@@ -85,6 +87,40 @@ const char* il2cpp_method_get_param_name(const MethodInfo* method, uint32_t inde
 
 void il2cpp_class_get_bitmap();
 
+void il2cpp::InitializeData(void* ptr)
+{
+    static void* initClass = nullptr;
+    if (!initClass)
+    {
+        uint64_t     found     = 0;
+        uint64_t     imageSize = 0x20;
+        static void* getBitmap = LI_FN(il2cpp_class_get_bitmap).in_safe(mod.get());
+        //(void*)mem::FindExportedFunction(module::assembly,
+        // XS("il2cpp_class_get_bitmap"));
+        mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)getBitmap, imageSize, &found);
+        uint64_t firstMethod = mem::ResolveCall<uint64_t>((uint8_t*)found);
+        mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)firstMethod, imageSize, &found);
+        uint64_t initMethod = mem::ResolveCall<uint64_t>((uint8_t*)found);
+
+        initClass = (void*)initMethod;
+    }
+
+    reinterpret_cast<void (*)(void*)>(initClass)(ptr);
+}
+
+void MethodInfoInitStub(void* adr);
+
+void il2cpp::InitializeMethodInfo(void* ptr)
+{
+    static auto methodInfoInitAdr =
+        Forza::IDAScan((void*)G::baseGameAssemlby,
+                       _("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 05 ?? ?? ?? ?? ?? 4C 8B 0D ?? ?? ?? ?? "
+                         "4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
+
+    static auto methodIniter = reinterpret_cast<decltype(&MethodInfoInitStub)>(mem::ResolveCall(methodInfoInitAdr));
+    methodIniter(ptr);
+}
+
 Il2CppClass* il2cpp::InitClass(const char* name, const char* name_space)
 {
     auto domain = il2cpp_domain_get();
@@ -99,23 +135,7 @@ Il2CppClass* il2cpp::InitClass(const char* name, const char* name_space)
         if (!kl)
             continue;
 
-        static void* initClass = nullptr;
-        if (!initClass)
-        {
-            uint64_t     found     = 0;
-            uint64_t     imageSize = 0x20;
-            static void* getBitmap = LI_FN(il2cpp_class_get_bitmap).in_safe(mod.get());
-            //(void*)mem::FindExportedFunction(module::assembly,
-            // XS("il2cpp_class_get_bitmap"));
-            mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)getBitmap, imageSize, &found);
-            uint64_t firstMethod = mem::ResolveCall<uint64_t>((uint8_t*)found);
-            mem::ScanPattern((unsigned char*)("\xE8"), 0xCC, 1, (uintptr_t)firstMethod, imageSize, &found);
-            uint64_t initMethod = mem::ResolveCall<uint64_t>((uint8_t*)found);
-
-            initClass = (void*)initMethod;
-        }
-
-        reinterpret_cast<void (*)(void*)>(initClass)(kl);
+        InitializeData(kl);
 
         return kl;
     }
@@ -187,7 +207,7 @@ uintptr_t il2cpp::HookVirtualFunction(Il2CppClass* _klass, const char* methodNam
         int idx = 0;
         for (auto kl : std::ranges::reverse_view(sp))
         {
-            
+
 #ifdef _DEBUG
             L::Print("IDX: {}, Klass: {}", idx++, kl->_1.name);
 #endif

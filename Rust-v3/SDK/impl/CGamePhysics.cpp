@@ -13,6 +13,16 @@ bool CGamePhysics::LineOfSight(Vector3 src, Vector3 dest, Layers layerMask, floa
                                                                                     padding, ignoreEntity);
 }
 
+bool CGamePhysics::LineOfSightRadius(Vector3 src, Vector3 dst, Layers layerMask, float radius,
+                                  CBaseEntity* ignoreEntity)
+{
+    static auto addr = OFF(
+        Offsets::GamePhysics::StaticMethods::
+            LineOfSightRadius_UnityEngine_Vector3_p0__UnityEngine_Vector3_p1__System_Int32_layerMask__System_Single_radius__BaseEntity_ignoreEntity___null);
+    return ((bool (*)(Vector3, Vector3, Layers, float, CBaseEntity*))(addr))(src, dst, layerMask, radius,
+                                                                                    ignoreEntity);
+}
+
 bool CGamePhysics::Raycast(Vector3 origin, Vector3 direction, CRaycastHit* hitInfo, float maxDistance, int layerMask)
 {
     static auto addr = OFF(
