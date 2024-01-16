@@ -7,6 +7,7 @@
 #include "mrt/logging.h"
 #include "mrt/xorstr.hpp"
 #include "mrt/steam.hpp"
+#include "mrt/fnv1a.hpp"
 
 #include "Hooks/Hooks.h"
 #include "SDK/globals.h"
@@ -23,27 +24,7 @@ extern "C" IMAGE_DOS_HEADER __ImageBase;
 
 #pragma clang optimize off
 
-unsigned int GetSizeOfImage(uint8_t* addr)
-{
-    IMAGE_DOS_HEADER* dosHeader = NULL;
-    IMAGE_NT_HEADERS* ntHeaders = NULL;
 
-    dosHeader = (IMAGE_DOS_HEADER*)addr;
-
-    if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
-    {
-        return 0;
-    }
-
-    ntHeaders = (IMAGE_NT_HEADERS*)(addr + dosHeader->e_lfanew);
-
-    if (ntHeaders->Signature != IMAGE_NT_SIGNATURE)
-    {
-        return 0;
-    }
-
-    return ntHeaders->OptionalHeader.SizeOfImage;
-}
 
 namespace SettingsData
 {
@@ -139,7 +120,7 @@ int Start(uint64_t imageBase)
     //     LI_FN(Sleep)(8000);
     // #endif
     // last module loaded
-    while (mem::GetModuleAddress(_(L"avrt.dll")) == 0)
+    while (mem::GetModuleAddressEX(HASH_CTIME(L"avrt.dll")) == 0)
     {
         LI_FN(Sleep)(2000);
     }
@@ -148,10 +129,10 @@ int Start(uint64_t imageBase)
     using namespace SettingsData;
     settings = new Settings();
 
-    G::baseUnityPlayer      = mem::GetModuleAddress(_(L"UnityPlayer.dll"));
-    G::baseUnityPlayerSize  = GetSizeOfImage((uint8_t*)G::baseUnityPlayer);
-    G::baseGameAssemlby     = mem::GetModuleAddress(_(L"GameAssembly.dll"));
-    G::baseGameAssemlbySize = GetSizeOfImage((uint8_t*)G::baseGameAssemlby);
+    G::baseUnityPlayer      = mem::GetModuleAddressEX(HASH_CTIME(L"UnityPlayer.dll"));
+    G::baseUnityPlayerSize  = mem::GetSizeOfImage((uint8_t*)G::baseUnityPlayer);
+    G::baseGameAssemlby     = mem::GetModuleAddressEX(HASH_CTIME(L"GameAssembly.dll"));
+    G::baseGameAssemlbySize = mem::GetSizeOfImage((uint8_t*)G::baseGameAssemlby);
 
 #ifdef _DEBUG
     L::Print("UnityPlayer.dll base 0x{:X}, Size: {}", G::baseUnityPlayer, G::baseUnityPlayerSize);

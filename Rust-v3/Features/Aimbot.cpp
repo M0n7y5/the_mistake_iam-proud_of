@@ -50,8 +50,9 @@ namespace HitScanner
         }
     }
 
-    void GenerateNormalizedLOSTraceRays(/*Vector3 position, Quaternion rotation, */ std::vector<TraceRay>& outVec,
-                                        float maxDistance, float heightLimit, float density)
+    void GenerateNormalizedLOSTraceRays(std::vector<TraceRay>& outVec, float maxDistance, float heightLimit,
+                                        float density, float angleLimit = 120, float sideAngleLimit = 22.f,
+                                        float rayDivider = 16.f)
     {
         if (currentSpherePoints.empty())
         {
@@ -65,7 +66,7 @@ namespace HitScanner
 
         for (auto rayStart : currentSpherePoints)
         {
-            auto ray     = /*rotation * */ rayStart;
+            auto ray     = rayStart;
             tr.direction = ray;
 
             auto angle = Vector3::Angle(ray, vec3Up);
@@ -73,12 +74,12 @@ namespace HitScanner
             if (angle > angleLimit)
                 continue;
 
-            auto frontAngle   = Vector3::Angle(ray, /*rotation **/ vec3Forward);
-            auto backAngle    = Vector3::Angle(ray, /*rotation **/ vec3Back);
-            auto leftAngle    = Vector3::Angle(ray, /*rotation **/ vec3Left);
-            auto leftUpAngle  = Vector3::Angle(ray, /*rotation **/ (vec3Left + vec3Up));
-            auto rightAngle   = Vector3::Angle(ray, /*rotation **/ vec3Right);
-            auto rightUpAngle = Vector3::Angle(ray, /*rotation **/ (vec3Right + vec3Up));
+            auto frontAngle   = Vector3::Angle(ray, vec3Forward);
+            auto backAngle    = Vector3::Angle(ray, vec3Back);
+            auto leftAngle    = Vector3::Angle(ray, vec3Left);
+            auto leftUpAngle  = Vector3::Angle(ray, (vec3Left + vec3Up));
+            auto rightAngle   = Vector3::Angle(ray, vec3Right);
+            auto rightUpAngle = Vector3::Angle(ray, (vec3Right + vec3Up));
 
             auto priorityAngle =
                 std::min<float>({leftAngle, leftUpAngle, rightAngle, rightUpAngle, frontAngle, backAngle, angle});
@@ -88,7 +89,7 @@ namespace HitScanner
 
             tr.priority = priorityAngle;
 
-            Vector3 vecCurr = ray * rayDistance;
+            Vector3 vecCurr = ray * maxDistance;
             vecCurr.y       = std::clamp(vecCurr.y, 0.f, heightLimit);
 
             auto rayDivider = tr.points.size();
@@ -715,7 +716,8 @@ namespace Aimbot
         CPlayerEyes* eyes = (CPlayerEyes*)localPlayer->eyes;
 
         float gravityModifier = currentlyManagedAmmo.GravityModifier;
-        float speed = currentlyManagedAmmo.ProjectileVelocity * currentlyManagedWeapon.wep->GetProjectileVelocityScale(false);
+        float speed =
+            currentlyManagedAmmo.ProjectileVelocity * currentlyManagedWeapon.wep->GetProjectileVelocityScale(false);
 
         if (gravityModifier == _flt(0.f) || speed == _flt(0.f))
             return false;
@@ -832,13 +834,18 @@ namespace Aimbot
                 if (wantsToShoot || localPlayer->clientTickInterval == 0.05f || lastEyePos != prevLastPos)
                 {
                     // we just start desync, set shit up
+                    // setup TP points if needed
+                    if (settings->ragebot.general.projectile.BulletTP)
+                    {
+                        HitScanner::currentTPTraceRays = HitScanner::bulletTPNormalizedTraceRays;
+                    }
 
                     prevLastPos = lastEyePos;
 
                     localPlayer->input->fields.state->fields.previous->fields.buttons =
                         localPlayer->input->fields.state->fields.current->fields.buttons;
 
-                    HitScanner::currentTraceRays = HitScanner::testNormalizedTraceRays;
+                    HitScanner::currentTraceRays = HitScanner::desyncNormalizedTraceRays;
 
                     auto maxDistance = AntiHack::MaximumDesyncDistance(localPlayer);
                     auto maxAltitude = AntiHack::MaximumDesyncAltitude(localPlayer);
@@ -919,6 +926,54 @@ namespace Aimbot
                 Vector3      CurrentDesyncPredictedPosition = {};
                 if (scanThrottle.Expired(1.f / 30.f))
                 {
+                    // setup TP points if needed
+                    // FIX: maybe throttle can broke something?
+                    if (settings->ragebot.general.projectile.BulletTP)
+                    {
+                        auto currTarget  = (CBasePlayer*)CurrentTarget.entity->entity;
+                        auto tp_eyePos   = ((CModel*)currTarget->model)->GetBonePosition(PlayerBones::eyeTranform);
+                        auto tp_rotation = *(CQuaternion*)&currTarget->eyes->fields._bodyRotation_k__BackingField;
+
+                        auto tp_eulerAngles = tp_rotation.GetEulerAngles();
+
+                        auto tp_finalRot = CQuaternion::Euler({0.f, tp_eulerAngles.y, 0.f});
+
+                        for (auto& tptray : HitScanner::currentTPTraceRays)
+                        {
+                            CRaycastHit raycastHit{};
+                            float       currentMaxDistance = 2.f;
+                            auto        newPos             = tp_finalRot * tptray.points[1] + tp_eyePos;
+
+                            CRay ray(tp_eyePos, (newPos - tp_eyePos).unity_Normalize());
+
+                            if (CGamePhysics::Raycast(ray, &raycastHit, 2.f, (uint32_t)Layers::EntityLineOfSightCheck,
+                                                      QueryTriggerInteraction::Ignore))
+                            {
+                                currentMaxDistance = std::abs(raycastHit.m_Distance);
+                            }
+
+                            tptray.maxDistance = currentMaxDistance;
+
+                            for (auto& point : tptray.points)
+                            {
+                                if (point.empty())
+                                    continue;
+
+                                point = finalRot * point + tp_eyePos;
+
+                                // auto pAlt = std::abs(point.y - tp_eyePos.y);
+
+                                auto pDist = std::abs(point.distance(tp_eyePos));
+
+                                if (pDist > tptray.maxDistance)
+                                {
+                                    point = {};
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
                     for (auto& tray : HitScanner::currentTraceRays)
                     {
                         // we want from farthest
@@ -1412,9 +1467,11 @@ namespace Aimbot
 
     void ClientInput(CBasePlayer* localPlayer)
     {
-        if (HitScanner::testNormalizedTraceRays.empty())
+        if (HitScanner::desyncNormalizedTraceRays.empty())
         {
-            HitScanner::GenerateNormalizedLOSTraceRays(HitScanner::testNormalizedTraceRays, 10.f, 3.f, 444.f);
+            HitScanner::GenerateNormalizedLOSTraceRays(HitScanner::desyncNormalizedTraceRays, 10.f, 3.f, 444.f);
+            HitScanner::GenerateNormalizedLOSTraceRays(HitScanner::bulletTPNormalizedTraceRays, 1.99f, 2.1f, 25.f,
+                                                       120.f, 45.f, 6.f);
         }
 
         if (localPlayer->HasFlag(PlayerFlags::Sleeping))

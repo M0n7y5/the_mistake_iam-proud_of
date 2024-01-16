@@ -465,7 +465,7 @@ struct CInput : ILObjectBase<UnityEngine_Input_Fields>
     static void     SetBind(std::string name, std::string value, bool cycled = false);
 };
 
-struct CHitTest : HitTest_Fields
+struct CHitTest : ILObjectBase<HitTest_Fields>
 {
     static CHitTest* New();
 };
@@ -648,6 +648,7 @@ struct CPlayerEyes : ILObjectBase<PlayerEyes_Fields>
     Quaternion GetRotation();
 };
 
+struct CPlayerProjectileUpdate;
 struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
 {
     uint64_t     GetTeamID();
@@ -670,6 +671,12 @@ struct CBasePlayer : CBaseCombatEntity, BasePlayer_Fields_s
     CItem*       GetActiveItem();
     bool         UpdateLookingAt(float radius, bool includeSecondaryEntities);
     Vector3      GetMountVelocity();
+    Vector3      ClosestPoint(Vector3 position);
+    void         SendProjectileUpdate(CPlayerProjectileUpdate* update);
+
+    CPlayerEyes* Eyes(){
+        return (CPlayerEyes*)this->eyes;
+    }
 
     float GetDesyncTimeRaw()
     {
@@ -787,15 +794,15 @@ struct CBaseProjectile : CAttackEntity, BaseProjectile_Fields_s
     }
 };
 
-struct CGatherPropertyEntry : ResourceDispenser_GatherPropertyEntry_Fields
+struct CGatherPropertyEntry : ILObjectBase<ResourceDispenser_GatherPropertyEntry_Fields>
 {
 };
 
 struct CBaseMelee : CAttackEntity, BaseMelee_Fields_s
 {
     CGatherPropertyEntry* GetGatherInfoFromIndex(GatherType type);
-    void MeleeAttack(CBaseEntity* owner, CBaseEntity* target, Vector3 eyePos, CTransform* transform, bool player = true,
-                     bool needsRPC = false);
+    void MeleeAttack(CBaseEntity* owner, CBaseEntity* target, Vector3 eyePos, CTransform* hitTranform, Vector3 hitPos,
+                     bool player = true, bool needsRPC = false);
     void ProcessAttack(CHitTest* hit);
 
     void SetAttacking(bool value)
@@ -863,6 +870,8 @@ class CGamePhysics
 
 struct CProjectile : ILObjectBase<Projectile_Fields>
 {
+    bool DoHit(CHitTest* hitTest, Vector3 pos, Vector3 point);
+    void UpdateVelocity(float deltaTime);
 };
 
 struct CServerProjectile : ILObjectBase<ServerProjectile_Fields>

@@ -39,11 +39,9 @@ void CBaseEntity::ServerRPC(const char* name, bool flag)
 
     if (methodInfoAddr == 0)
     {
-        //static auto addrTemp = OFF(Offsets::Candle::Methods::Menu_Ignite_BasePlayer_player);
-        auto        found    = Forza::Find((uint8_t*)G::baseGameAssemlby, G::baseGameAssemlbySize,
-                                           _("\x4C\x8B\x0D\xCC\xCC\xCC\xCC\x41\xB0\x01\x48\x8B\x15\xCC\xCC\xCC\xCC\x48\x8B\xCB"
-                                                       "\x48\x83\xC4\x20\x5B\xE9"),
-                                           _("xxx????xxxxxx????xxxxxxxxx"));
+        // static auto addrTemp = OFF(Offsets::Candle::Methods::Menu_Ignite_BasePlayer_player);
+        auto found = Forza::IDAScan((uint8_t*)G::baseGameAssemlby,
+                                    _("4C 8B 0D ? ? ? ? 41 B0 01 48 8B 15 ? ? ? ? 48 8B CB 48 83 C4 20 5B E9"));
 
         methodInfoAddr = *mem::ResolveMov<uintptr_t*>(found);
 

@@ -117,6 +117,18 @@ void CBasePlayer::OnLand(float velocity)
     reinterpret_cast<void (*)(CBasePlayer*, float)>(addr)(this, velocity);
 }
 
+Vector3 CBasePlayer::ClosestPoint(Vector3 position)
+{
+    auto addr = OFF(Offsets::BaseEntity::Methods::ClosestPoint_UnityEngine_Vector3_position);
+    return ((Vector3(__thiscall*)(void*, Vector3))(addr))(this, position);
+}
+
+void CBasePlayer::SendProjectileUpdate(CPlayerProjectileUpdate* update)
+{
+    auto addr = OFF(Offsets::BasePlayer::Methods::SendProjectileUpdate_ProtoBuf_PlayerProjectileUpdate_update);
+    return reinterpret_cast<void (*)(void*, CPlayerProjectileUpdate*)>(addr)(this, update);
+}
+
 // float CBasePlayer::GetPlayerSpeedMaximum(bool flyhackActive)
 // {
 //     using namespace

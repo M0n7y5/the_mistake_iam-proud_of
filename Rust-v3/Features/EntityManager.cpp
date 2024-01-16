@@ -50,6 +50,7 @@ namespace EntityManager
             return false;
 
         auto currentLocalPosition = localPlayer->GetOriginPosition();
+        auto currentEyesPosition = localPlayer->Eyes()->GetPosition();
 
         // auto enityList = klass->StaticFields<BaseNetworkable_StaticFields>();
         auto cc = klass2->static_fields->clientEntities;
@@ -399,23 +400,23 @@ namespace EntityManager
             if (settings->misc.other.SilentFarm.Active())
             {
                 // here we collect needed stuff for silent farm this frame
-                if (DB::silentFarmStuff.size() >= 20)
+                if (DB::silentFarmStuff.size() >= 40)
                 {
                     // 1000 trees wont probably fit in 3 meters radius anyways so ...
                     continue;
                 }
 
-                auto localPlayer = CLocalPlayer::GetLocalPlayer();
+                // auto localPlayer = CLocalPlayer::GetLocalPlayer();
 
-                if (localPlayer == nullptr)
-                    continue;
+                // if (localPlayer == nullptr)
+                //     continue;
 
                 auto entity   = (CBaseEntity*)networkable;
                 auto position = entity->GetOriginPosition();
                 // auto lastTickPos = *(Vector3*)&localPlayer->lastSentTick->fields.eyePos;
-                auto distance = currentLocalPosition.distance(position);
+                auto distance = currentEyesPosition.distance(position);
 
-                if (distance > 3.f + 1.8f) // yeah but it saves cycles
+                if (distance > 8.f) // yeah but it saves cycles
                     continue;
 
                 SilentFarmTarget target{};
@@ -440,7 +441,7 @@ namespace EntityManager
                     if (tree->lastTreeFallTickTime > 0.f)
                         continue;
 
-                    position.y  = currentLocalPosition.y;
+                    position.y  = currentEyesPosition.y;
                     target.type = SilentFarmTargetType::Tree;
                     break;
                 }
@@ -481,7 +482,7 @@ namespace EntityManager
 
         reinterpret_cast<decltype(&hkBufferList_TVal__Add)>(BufferList_TVal__Add_o)(_this, value, method);
 
-        static auto klass = (BaseNetworkable_c*)il2cpp::InitClass("BaseNetworkable");
+        static auto klass = (BaseNetworkable_c*)il2cpp::InitClass(_("BaseNetworkable"));
 
         auto entities = klass->static_fields->clientEntities;
 
@@ -505,6 +506,10 @@ namespace EntityManager
 
     void Init()
     {
+        return;
+
+        //FIX: signature is outdated
+
         //
         // 4C 8B 0D ?? ?? ?? ?? 4C 8B C3 48 8B 52 10 E8 ?? ?? ?? ?? EB 21
 

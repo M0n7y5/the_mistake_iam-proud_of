@@ -302,37 +302,66 @@ namespace Forza
      */
     inline std::uint8_t* IDAScan(void* module, const char* signature)
     {
-        static auto pattern_to_byte = [](const char* pattern) {
-            auto bytes = std::vector<int>{};
-            auto start = const_cast<char*>(pattern);
-            auto end   = const_cast<char*>(pattern) + strlen(pattern);
-
-            for (auto current = start; current < end; ++current)
-            {
-                if (*current == '?')
-                {
-                    ++current;
-                    if (*current == '?')
-                        ++current;
-                    bytes.push_back(-1);
-                }
-                else
-                {
-                    bytes.push_back(strtoul(current, &current, 16));
-                }
-            }
-            return bytes;
-        };
-
         auto dosHeader = (PIMAGE_DOS_HEADER)module;
         auto ntHeaders = (PIMAGE_NT_HEADERS)((std::uint8_t*)module + dosHeader->e_lfanew);
 
-        auto sizeOfImage  = ntHeaders->OptionalHeader.SizeOfImage;
-        auto patternBytes = pattern_to_byte(signature);
-        auto scanBytes    = reinterpret_cast<std::uint8_t*>(module);
+        auto sizeOfImage = ntHeaders->OptionalHeader.SizeOfImage;
 
-        auto s = patternBytes.size();
-        auto d = patternBytes.data();
+        int patternBytes[64];
+        // we can use memset, it may no be available
+        // memset(patternBytes, 0, sizeof(int) * 64);
+        int bytesCount = 0;
+
+        auto start = const_cast<char*>(signature);
+        auto end   = const_cast<char*>(signature) + strlen(signature);
+
+        for (auto current = start; current < end; ++current)
+        {
+            if (*current == ' ')
+                continue;
+            if (*current == '?')
+            {
+                ++current;
+                if (*current == '?')
+                    ++current;
+
+                patternBytes[bytesCount] = -1;
+                ++bytesCount;
+            }
+            else
+            {
+                patternBytes[bytesCount] = strtoul(current, &current, 16);
+                ++bytesCount;
+            }
+        }
+
+        // static auto pattern_to_byte = [](const char* pattern) {
+        //     // auto bytes = std::vector<int>{};
+        //     auto start = const_cast<char*>(pattern);
+        //     auto end   = const_cast<char*>(pattern) + strlen(pattern);
+
+        //     for (auto current = start; current < end; ++current)
+        //     {
+        //         if (*current == '?')
+        //         {
+        //             ++current;
+        //             if (*current == '?')
+        //                 ++current;
+        //             bytes.push_back(-1);
+        //         }
+        //         else
+        //         {
+        //             bytes.push_back(strtoul(current, &current, 16));
+        //         }
+        //     }
+        //     return bytes;
+        // };
+
+        // auto patternBytes = pattern_to_byte(signature);
+        auto scanBytes = reinterpret_cast<std::uint8_t*>(module);
+
+        auto        s = bytesCount;   // patternBytes.size();
+        const auto& d = patternBytes; // patternBytes.data();
 
         for (auto i = 0ul; i < sizeOfImage - s; ++i)
         {
@@ -353,149 +382,149 @@ namespace Forza
         return nullptr;
     }
 
-    template <size_t N> struct StringLiteral
-    {
-        constexpr StringLiteral(const char (&str)[N])
-        {
-            std::copy_n(str, N, value);
-        }
+    //     template <size_t N> struct StringLiteral
+    //     {
+    //         constexpr StringLiteral(const char (&str)[N])
+    //         {
+    //             std::copy_n(str, N, value);
+    //         }
 
-        char value[N];
-    };
+    //         char value[N];
+    //     };
 
-    template <StringLiteral str> static constexpr int GetArraySize()
-    {
-        std::string_view pattern(str.value);
-        int              idx = 1;
-        for (auto c : pattern)
-        {
-            if (c == ' ')
-            {
-                idx++;
-                continue;
-            }
-        }
+    //     template <StringLiteral str> static constexpr int GetArraySize()
+    //     {
+    //         std::string_view pattern(str.value);
+    //         int              idx = 1;
+    //         for (auto c : pattern)
+    //         {
+    //             if (c == ' ')
+    //             {
+    //                 idx++;
+    //                 continue;
+    //             }
+    //         }
 
-        return idx;
-    }
+    //         return idx;
+    //     }
 
-    template <StringLiteral str> struct Needle
-    {
-        std::array<char, GetArraySize<str>() + 1> signature{};
-        std::array<char, GetArraySize<str>() + 1> mask{};
+    //     template <StringLiteral str> struct Needle
+    //     {
+    //         std::array<char, GetArraySize<str>() + 1> signature{};
+    //         std::array<char, GetArraySize<str>() + 1> mask{};
 
-        constexpr Needle()
-        {
-            std::string_view view(str.value);
+    //         constexpr Needle()
+    //         {
+    //             std::string_view view(str.value);
 
-            int idx    = 0;
-            int idxTmp = 0;
+    //             int idx    = 0;
+    //             int idxTmp = 0;
 
-            char temp[2];
+    //             char temp[2];
 
-            for (auto c : view)
-            {
-                if (c == ' ')
-                {
-                    temp[0] = 0;
-                    temp[1] = 0;
-                    continue;
-                }
+    //             for (auto c : view)
+    //             {
+    //                 if (c == ' ')
+    //                 {
+    //                     temp[0] = 0;
+    //                     temp[1] = 0;
+    //                     continue;
+    //                 }
 
-                if (idxTmp == 2)
-                {
-                    if (temp[0] == '?' && temp[1] == '?')
-                    {
-                        mask[idx]      = '?';
-                        signature[idx] = 0;
-                        idx++;
-                        idxTmp = 0;
-                        continue;
-                    }
+    //                 if (idxTmp == 2)
+    //                 {
+    //                     if (temp[0] == '?' && temp[1] == '?')
+    //                     {
+    //                         mask[idx]      = '?';
+    //                         signature[idx] = 0;
+    //                         idx++;
+    //                         idxTmp = 0;
+    //                         continue;
+    //                     }
 
-                    auto data = HexToNumber(std::string_view(temp));
+    //                     auto data = HexToNumber(std::string_view(temp));
 
-                    if (data == ULONG_MAX)
-                    {
+    //                     if (data == ULONG_MAX)
+    //                     {
 
-#ifdef _DEBUG
-                        throw std::logic_error(_("Pattern contains invalid data."));
-#else
-                        abort();
-#endif
-                    }
+    // #ifdef _DEBUG
+    //                         throw std::logic_error(_("Pattern contains invalid data."));
+    // #else
+    //                         abort();
+    // #endif
+    //                     }
 
-                    mask[idx]      = 'x';
-                    signature[idx] = (char)data;
-                    idx++;
-                    idxTmp = 0;
-                    continue;
-                }
+    //                     mask[idx]      = 'x';
+    //                     signature[idx] = (char)data;
+    //                     idx++;
+    //                     idxTmp = 0;
+    //                     continue;
+    //                 }
 
-                if ((c >= '0' || c <= '9') || (c >= 'A' || c <= 'F'))
-                {
-                    temp[idxTmp++] = c;
-                }
-            }
-        }
-    };
+    //                 if ((c >= '0' || c <= '9') || (c >= 'A' || c <= 'F'))
+    //                 {
+    //                     temp[idxTmp++] = c;
+    //                 }
+    //             }
+    //         }
+    //     };
 
-    template <StringLiteral str> inline constexpr Needle<str> GetNeedle()
-    {
-        std::string_view view(str.value);
-        Needle<str>      needle;
+    //     template <StringLiteral str> inline constexpr Needle<str> GetNeedle()
+    //     {
+    //         std::string_view view(str.value);
+    //         Needle<str>      needle;
 
-        int idx    = 0;
-        int idxTmp = 0;
+    //         int idx    = 0;
+    //         int idxTmp = 0;
 
-        char temp[2];
+    //         char temp[2];
 
-        for (auto c : view)
-        {
-            if (c == ' ')
-            {
-                temp[0] = 0;
-                temp[1] = 0;
-                continue;
-            }
+    //         for (auto c : view)
+    //         {
+    //             if (c == ' ')
+    //             {
+    //                 temp[0] = 0;
+    //                 temp[1] = 0;
+    //                 continue;
+    //             }
 
-            if (idxTmp == 2)
-            {
-                if (temp[0] == '?' && temp[1] == '?')
-                {
-                    needle.mask[idx]      = '?';
-                    needle.signature[idx] = 0;
-                    idx++;
-                    idxTmp = 0;
-                    continue;
-                }
+    //             if (idxTmp == 2)
+    //             {
+    //                 if (temp[0] == '?' && temp[1] == '?')
+    //                 {
+    //                     needle.mask[idx]      = '?';
+    //                     needle.signature[idx] = 0;
+    //                     idx++;
+    //                     idxTmp = 0;
+    //                     continue;
+    //                 }
 
-                auto data = HexToNumber(std::string_view(temp));
+    //                 auto data = HexToNumber(std::string_view(temp));
 
-                if (data == ULONG_MAX)
-                {
-#ifdef _DEBUG
-                    throw std::logic_error("Pattern contains invalid data.");
-#else
-                    abort();
-#endif
-                }
+    //                 if (data == ULONG_MAX)
+    //                 {
+    // #ifdef _DEBUG
+    //                     throw std::logic_error("Pattern contains invalid data.");
+    // #else
+    //                     abort();
+    // #endif
+    //                 }
 
-                needle.mask[idx]      = 'x';
-                needle.signature[idx] = (char)data;
-                idx++;
-                idxTmp = 0;
-                continue;
-            }
+    //                 needle.mask[idx]      = 'x';
+    //                 needle.signature[idx] = (char)data;
+    //                 idx++;
+    //                 idxTmp = 0;
+    //                 continue;
+    //             }
 
-            if ((c >= '0' || c <= '9') || (c >= 'A' || c <= 'F'))
-            {
-                temp[idxTmp++] = c;
-            }
-        }
+    //             if ((c >= '0' || c <= '9') || (c >= 'A' || c <= 'F'))
+    //             {
+    //                 temp[idxTmp++] = c;
+    //             }
+    //         }
 
-        return needle;
-    }
+    //         return needle;
+    //     }
 
     // constexpr static inline auto nn = GetNeedle<
     //     "4C 8B 0D ?? ?? ?? ?? 41 B0 01 48 8B 15 ?? ?? ?? ?? 48 8B CB 48 83 C4 20 5B E9">();
@@ -505,9 +534,9 @@ namespace Forza
     // constexpr inline auto asasas = GetArraySize<
     //     "4C 8B 0D ?? ?? ?? ?? 41 B0 01 48 8B 15 ?? ?? ?? ?? 48 8B CB 48 83 C4 20 5B E9">();
 
-    template <typename C = const char*> inline uint8_t* FindIDA(C pattern)
-    {
-        constexpr auto needle = Needle<GetArraySize(pattern)>::Construct(pattern);
-    }
+    // template <typename C = const char*> inline uint8_t* FindIDA(C pattern)
+    // {
+    //     constexpr auto needle = Needle<GetArraySize(pattern)>::Construct(pattern);
+    // }
 
 } // namespace Forza

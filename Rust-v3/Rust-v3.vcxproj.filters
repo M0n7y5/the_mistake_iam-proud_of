@@ -186,6 +186,15 @@
     <ClCompile Include="mrt\xxhash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mrt\heapsort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\qsort.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mrt\ctype.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mrt\xorstr.hpp">

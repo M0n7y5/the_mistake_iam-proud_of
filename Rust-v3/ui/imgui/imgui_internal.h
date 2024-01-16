@@ -4183,7 +4183,7 @@ namespace ImGui
     {
         ImGuiContext& g   = *GImGui;
         const char*   msg = g.LocalizationTable[key];
-        return msg ? msg : "*Missing Text*";
+        return msg ? msg : "-";
     }
 
     // Scrolling

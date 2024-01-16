@@ -75,10 +75,12 @@ void GUI::Init()
                                               _("Random"),
                                           });
                             fs.AddFeature(_("Faster Bullets"), &settings->ragebot.general.projectile.FasterBullets);
+                            fs.AddFeature(_("Bullet Teleport"), &settings->ragebot.general.projectile.BulletTP);
+                            fs.AddFeature(_("InstaHit"), &settings->ragebot.general.projectile.InstaHit);
                             // fs.AddFeature(_("Bullet Teleport"),
                             // &settings->ragebot.general.projectile.BulletTP); fs.AddFeature(_("Pierce"),
                             // &settings->ragebot.general.projectile.Pierce); fs.AddFeature(_("Insta Hit"),
-                            // &settings->ragebot.general.projectile.InstaHit); fs.AddFeature(_("Bullet
+                            // &settings->ragebot.general.projectile.InstaHit); fs.AddFeature(_("Bullet))
                             // Rain"), &settings->ragebot.general.projectile.BulletRain);
                         })
                     .AddFeatureSet(_("Targeting"),
@@ -178,7 +180,7 @@ void GUI::Init()
                                       fs.AddFeature(_("Force Skeleton Update"),
                                                     &settings->visuals.general.ForceSkeletonUpdate);
                                       fs.AddFeature(_("Skeleton Distance"), &settings->visuals.general.SkeletonDistance,
-                                                    50, 300, "%d meters");
+                                                    50, 300, _("%d meters"));
                                   })
                     .AddFeatureSet(_("Indicators"), [](mui::FeatureSet& fs) {
                         fs.AddFeature(_("Enabled"), &settings->visuals.general.indicators.Enabled);
@@ -247,7 +249,7 @@ void GUI::Init()
                                 fs.AddFeature(_("Enabled"), &settings->visuals.collectibles.general.Enabled);
                                 fs.AddFeature(_("Fade"), &settings->visuals.collectibles.general.Fade);
                                 fs.AddFeature(_("Distance"), &settings->visuals.collectibles.general.Distance, 50, 350,
-                                              "%d meters");
+                                              _("%d meters"));
                                 fs.AddFeature(_("AntiClutter"), &settings->visuals.collectibles.general.AntiClutter);
                                 fs.AddFeature(_("Show max"),
                                               &settings->visuals.collectibles.general.MaxAnticlutterCount, 3, 10, "%d");
@@ -277,7 +279,7 @@ void GUI::Init()
                 sub.AddFeatureSet(_("General"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Enabled"), &settings->visuals.radtown.general.Enabled);
                     fs.AddFeature(_("Fade"), &settings->visuals.radtown.general.Fade);
-                    fs.AddFeature(_("Distance"), &settings->visuals.radtown.general.Distance, 50, 350, "%d meters");
+                    fs.AddFeature(_("Distance"), &settings->visuals.radtown.general.Distance, 50, 350, _("%d meters"));
                     fs.AddFeature(_("AntiClutter"), &settings->visuals.radtown.general.AntiClutter);
                     fs.AddFeature(_("Show max"), &settings->visuals.radtown.general.MaxAnticlutterCount, 3, 10, "%d");
                 });
@@ -298,7 +300,7 @@ void GUI::Init()
                 sub.AddFeatureSet(_("General"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Enabled"), &settings->visuals.ores.general.Enabled);
                     fs.AddFeature(_("Fade"), &settings->visuals.ores.general.Fade);
-                    fs.AddFeature(_("Distance"), &settings->visuals.ores.general.Distance, 50, 300, "%d meters");
+                    fs.AddFeature(_("Distance"), &settings->visuals.ores.general.Distance, 50, 300, _("%d meters"));
                     fs.AddFeature(_("AntiClutter"), &settings->visuals.ores.general.AntiClutter);
                     fs.AddFeature(_("Show max"), &settings->visuals.ores.general.MaxAnticlutterCount, 3, 10, "%d");
                     fs.AddFeature(_("Line to closest"), &settings->visuals.ores.general.LineToClosest);
@@ -316,21 +318,21 @@ void GUI::Init()
                 sub.AddFeatureSet(_("Dropped Items"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Weapons"), &settings->visuals.item.general.weapons);
                     fs.AddFeature(_("Other"), &settings->visuals.item.general.other);
-                    fs.AddFeature(_("Distance"), &settings->visuals.item.general.Distance, 50, 350, "%d meters");
+                    fs.AddFeature(_("Distance"), &settings->visuals.item.general.Distance, 50, 350, _("%d meters"));
                 });
                 sub.AddFeatureSet(_("Backpacks"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Enabled"), &settings->visuals.item.backpacks.color);
-                    fs.AddFeature(_("Distance"), &settings->visuals.item.backpacks.Distance, 50, 350, "%d meters");
+                    fs.AddFeature(_("Distance"), &settings->visuals.item.backpacks.Distance, 50, 350, _("%d meters"));
                 });
                 sub.AddFeatureSet(_("Corpse"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Enabled"), &settings->visuals.item.corpses.option);
                     fs.AddFeature(_("Name"), &settings->visuals.item.corpses.Name);
-                    fs.AddFeature(_("Distance"), &settings->visuals.item.corpses.Distance, 50, 350, "%d meters");
+                    fs.AddFeature(_("Distance"), &settings->visuals.item.corpses.Distance, 50, 350, _("%d meters"));
                 });
                 sub.AddFeatureSet(_("Stash"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Enabled"), &settings->visuals.item.stashes.option);
                     fs.AddFeature(_("Hide Open"), &settings->visuals.item.stashes.HideOpenStashes);
-                    fs.AddFeature(_("Distance"), &settings->visuals.item.stashes.Distance, 50, 350, "%d meters");
+                    fs.AddFeature(_("Distance"), &settings->visuals.item.stashes.Distance, 50, 350, _("%d meters"));
                 });
             })
         .AddSubCategory(_("Animals"),
@@ -339,7 +341,7 @@ void GUI::Init()
                                 fs.AddFeature(_("Enabled"), &settings->visuals.animals.general.Enabled);
                                 fs.AddFeature(_("Fade"), &settings->visuals.animals.general.Fade);
                                 fs.AddFeature(_("Distance"), &settings->visuals.animals.general.Distance, 50, 300,
-                                              "%d meters");
+                                              _("%d meters"));
                             });
                             sub.AddFeatureSet(_("Colors"), [](mui::FeatureSet& fs) {
                                 fs.AddFeature(_("Bear"), &settings->visuals.animals.colors.bear);
@@ -358,13 +360,13 @@ void GUI::Init()
                                 fs.AddFeature(_("Fade"), &settings->visuals.vehicles.general.PatrolHealth);
                                 fs.AddFeature(_("Patrol Health"), &settings->visuals.vehicles.general.Fade);
                                 fs.AddFeature(_("Heli Distance"), &settings->visuals.vehicles.general.HeliDistance, 50,
-                                              2000, "%d meters");
+                                              2000, _("%d meters"));
                                 fs.AddFeature(_("Boat Distance"), &settings->visuals.vehicles.general.BoatDistance, 50,
-                                              1500, "%d meters");
+                                              1500, _("%d meters"));
                                 fs.AddFeature(_("Patrol Distance"), &settings->visuals.vehicles.general.PatrolDistance,
-                                              50, 4000, "%d meters");
+                                              50, 4000, _("%d meters"));
                                 fs.AddFeature(_("Other Distance"), &settings->visuals.vehicles.general.OtherDistance,
-                                              50, 1500, "%d meters");
+                                              50, 1500, _("%d meters"));
                             });
                             sub.AddFeatureSet(_("Colors Ridable"), [](mui::FeatureSet& fs) {
                                 fs.AddFeature(_("Mini"), &settings->visuals.vehicles.colors.mini);
@@ -388,7 +390,7 @@ void GUI::Init()
             [](mui::SubCategory& sub) {
                 sub.AddFeatureSet(_("General"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Enabled"), &settings->visuals.traps.general.Enabled);
-                    fs.AddFeature(_("Distance"), &settings->visuals.traps.general.Distance, 50, 350, "%d meters");
+                    fs.AddFeature(_("Distance"), &settings->visuals.traps.general.Distance, 50, 350, _("%d meters"));
                 });
                 sub.AddFeatureSet(_("Colors"), [](mui::FeatureSet& fs) {
                     fs.AddFeature(_("Auto Turret"), &settings->visuals.traps.colors.autoTurret);
@@ -413,9 +415,9 @@ void GUI::Init()
                 fs.AddFeature(_("Show Time When Started"), &settings->visuals.raid.ShowWhenStarted);
                 fs.AddFeature(_("Show Time Since Last Explosion"), &settings->visuals.raid.ShowLastExplosion);
 
-                fs.AddFeature(_("Group by distance"), &settings->visuals.raid.GroupByDistance, 2, 20, "%d meters");
-                fs.AddFeature(_("Max Distance Render"), &settings->visuals.raid.Distance, 50, 1500, "%d meters");
-                fs.AddFeature(_("Max Show Time"), &settings->visuals.raid.MaxShowTime, 2, 60, "%d minutes");
+                fs.AddFeature(_("Group by distance"), &settings->visuals.raid.GroupByDistance, 2, 20, _("%d meters"));
+                fs.AddFeature(_("Max Distance Render"), &settings->visuals.raid.Distance, 50, 1500, _("%d meters"));
+                fs.AddFeature(_("Max Show Time"), &settings->visuals.raid.MaxShowTime, 2, 60, _("%d minutes"));
             });
         });
 

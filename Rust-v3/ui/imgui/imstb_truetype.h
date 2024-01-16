@@ -500,6 +500,8 @@ typedef char stbtt__check_size16[sizeof(stbtt_int16) == 2 ? 1 : -1];
 ////
 ////
 
+#include "../../mrt/xorstr.hpp"
+
 #ifndef __STB_INCLUDE_STB_TRUETYPE_H__
     #define __STB_INCLUDE_STB_TRUETYPE_H__
 
@@ -1509,14 +1511,14 @@ static int stbtt_InitFont_internal(stbtt_fontinfo* info, unsigned char* data, in
     info->fontstart = fontstart;
     info->cff       = stbtt__new_buf(NULL, 0);
 
-    cmap       = stbtt__find_table(data, fontstart, "cmap"); // required
-    info->loca = stbtt__find_table(data, fontstart, "loca"); // required
-    info->head = stbtt__find_table(data, fontstart, "head"); // required
-    info->glyf = stbtt__find_table(data, fontstart, "glyf"); // required
-    info->hhea = stbtt__find_table(data, fontstart, "hhea"); // required
-    info->hmtx = stbtt__find_table(data, fontstart, "hmtx"); // required
-    info->kern = stbtt__find_table(data, fontstart, "kern"); // not required
-    info->gpos = stbtt__find_table(data, fontstart, "GPOS"); // not required
+    cmap       = stbtt__find_table(data, fontstart, _("cmap")); // required
+    info->loca = stbtt__find_table(data, fontstart, _("loca")); // required
+    info->head = stbtt__find_table(data, fontstart, _("head")); // required
+    info->glyf = stbtt__find_table(data, fontstart, _("glyf")); // required
+    info->hhea = stbtt__find_table(data, fontstart, _("hhea")); // required
+    info->hmtx = stbtt__find_table(data, fontstart, _("hmtx")); // required
+    info->kern = stbtt__find_table(data, fontstart, _("kern")); // not required
+    info->gpos = stbtt__find_table(data, fontstart, _("GPOS")); // not required
 
     if (!cmap || !info->head || !info->hhea || !info->hmtx)
         return 0;
@@ -1533,7 +1535,7 @@ static int stbtt_InitFont_internal(stbtt_fontinfo* info, unsigned char* data, in
         stbtt_uint32 cstype = 2, charstrings = 0, fdarrayoff = 0, fdselectoff = 0;
         stbtt_uint32 cff;
 
-        cff = stbtt__find_table(data, fontstart, "CFF ");
+        cff = stbtt__find_table(data, fontstart, _("CFF "));
         if (!cff)
             return 0;
 

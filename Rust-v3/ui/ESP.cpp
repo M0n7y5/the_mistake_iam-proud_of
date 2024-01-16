@@ -1,11 +1,7 @@
 #include "ESP.h"
 
 #include <algorithm>
-#include <iterator>
-#include <numeric>
 #include <span>
-#include <stdint.h>
-#include <utility>
 #include <vcruntime.h>
 #include <vector>
 #include <xutility>
@@ -138,7 +134,7 @@ void RenderTextOutline(ImVec2 pos, ImColor color, ImColor outlineColor, const ch
     using namespace SettingsData;
     if (settings->visuals.general.BiggerESPFont)
     {
-        offset = 2.f;
+        offset = 1.2f;
     }
 
     // auto fntSize = ImGui::GetFont()->FontSize;
@@ -190,7 +186,7 @@ bool DrawDefault(const char* str, const Vector3& pos, const ImColor& clr, const 
         char distBuff[8];
 
         RenderTextCenter(screenPos, str, clr);
-        snprintf(distBuff, 8, _("%dm"), (int)distance);
+        sprintf_s(distBuff, _("%dm"), (int)distance);
         screenPos.y += fontSize;
         RenderTextCenter(screenPos, distBuff, clr);
         return true;
@@ -227,6 +223,27 @@ void Indicators()
 
         if (_localPlayer->input->fields.state->fields.current != nullptr)
         {
+            if (settings->ragebot.general.projectile.BulletTP)
+            {
+                for (const auto& tptray : HitScanner::currentTPTraceRays)
+                {
+                    auto color = ImColor(255, 0, 0);
+
+                    for (const auto& point : tptray.points)
+                    {
+                        if (point.empty())
+                            continue;
+
+                        Vector2 screenPos{};
+                        // make it faster??
+                        if (camera->WorldToScreen(point, screenPos, currentScreenSize))
+                        {
+                            g->AddCircleFilled(ToImVec2(screenPos), 2.3f, color);
+                        }
+                    }
+                }
+            }
+
             auto lastEyePos = *(Vector3*)&_localPlayer->lastSentTick->fields.eyePos;
             // auto lastLocalPos = *(Vector3*)&_localPlayer->lastSentTick->fields.position;
             // auto rotation     = *(Quaternion*)&_localPlayer->eyes->fields._rotationLook_k__BackingField;
@@ -481,11 +498,13 @@ void Indicators()
 
         char buff[32];
 
-        sprintf(buff, _("Players: %d"), EntityManager::DB::PlayerCount);
+        // auto ddd = std::format("Players: {}", EntityManager::DB::PlayerCount);
+
+        sprintf_s(buff, _("Players: %d"), EntityManager::DB::PlayerCount);
 
         RenderTextCenterVH({radarX, 320}, buff, {255, 255, 255});
 
-        sprintf(buff, _("NPCs: %d"), EntityManager::DB::NPCCount);
+        sprintf_s(buff, _("NPCs: %d"), EntityManager::DB::NPCCount);
 
         RenderTextCenterVH({radarX, 320 + fontSize}, buff, settings->visuals.general.npc.Name.Color);
 
@@ -826,7 +845,7 @@ void Indicators()
                             }
                         }
                         g->AddImage((ImTextureID)tex, rectMin, rectMax);
-                        snprintf(buf, 16, "[%dx]", currentItem->amount);
+                        sprintf_s(buf, "[%dx]", currentItem->amount);
 
                         auto txtSize = GetTextSize(buf);
                         auto txtPos  = ImVec2{rectMax.x - txtSize.x - 5.f, rectMax.y - fontSize - 5.f};
@@ -1171,7 +1190,7 @@ void DrawRaids()
         if (camera->WorldToScreen(raid.position, screenPos, currentScreenSize) == false)
             continue;
 
-        snprintf(tmpStr, 64, _("%dm"), (int)dist);
+        sprintf_s(tmpStr, _("%dm"), (int)dist);
         RenderTextOutline({screenPos.x, screenPos.y - fontSize}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
                           tmpStr);
         RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
@@ -1235,7 +1254,7 @@ void DrawRaids()
 
             screenPos.y += fontSize;
 
-            snprintf(tmpStr, 64, _("%s %dx"), effectTypeName.c_str(), effectCount);
+            sprintf_s(tmpStr, _("%s %dx"), effectTypeName.c_str(), effectCount);
             RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
                               tmpStr);
         }
@@ -1248,7 +1267,7 @@ void DrawRaids()
             int seconds = nSecondsSinceStart % 60;
             int minutes = (nSecondsSinceStart - seconds) / 60;
 
-            snprintf(tmpStr, 64, _("Start: %dm%ds"), minutes, seconds);
+            sprintf_s(tmpStr, _("Start: %dm%ds"), minutes, seconds);
             screenPos.y += fontSize;
             RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
                               tmpStr);
@@ -1262,7 +1281,7 @@ void DrawRaids()
             int seconds = nSecondsSinceLastExpl % 60;
             int minutes = (nSecondsSinceLastExpl - seconds) / 60;
 
-            snprintf(tmpStr, 64, _("Last: %dm%ds"), minutes, seconds);
+            sprintf_s(tmpStr, _("Last: %dm%ds"), minutes, seconds);
             screenPos.y += fontSize;
             RenderTextOutline({screenPos.x, screenPos.y}, settings->visuals.raid.Enabled.Color, ImColor(0, 0, 0),
                               tmpStr);
@@ -1625,12 +1644,12 @@ void DrawVehicles()
                 pMin.x += 1.f;
                 pMin.y += 1.f;
 
-                float width = RemapClamped(percentHealth, 0.f, 1.f, 0.f, maxWidthHalf);
+                float width = RemapClamped(percentHealth, 0.f, 1.f, maxWidthHalf, 0.f);
 
-                pMax.x = 1.f + width;
+                pMax.x -= 1.f - width;
                 pMax.y -= 1.f;
 
-                auto col = ImLerp(ImColor(255, 0, 0).Value, ImColor(0, 255, 0).Value, percentHealth);
+                auto col = ImLerp(ImColor(0, 255, 0).Value, ImColor(255, 0, 0).Value, percentHealth);
 
                 g->AddRectFilled(pMin, pMax, ImColor(col));
 
@@ -1641,12 +1660,17 @@ void DrawVehicles()
 
             RenderTextCenter(screenPos, name, col);
             screenPos.y += fontSize;
-            snprintf(distBuff, 8, _("%dm"), (int)item.distance);
+            sprintf_s(distBuff, _("%dm"), (int)item.distance);
             RenderTextCenter(screenPos, distBuff, col);
         }
     };
 
     std::ranges::reverse_view rv{DB::vehicles};
+
+    // static Timer heliGroundCheckThrottle{};
+
+    // //every 30 ms should be good for not spaming raycast
+    // auto heliShouldCheckGround = heliGroundCheckThrottle.Expired(30.f);
 
     for (const auto& vehicle : rv)
     {
@@ -1655,8 +1679,12 @@ void DrawVehicles()
         switch (vehicle.prefabId)
         {
         case vehicles::mini:
+        {
+            // check if grounded if not dont limit distance, make it really high
+
             drawVehicle(_("Minicopter"), vehicle, vis.colors.mini, vis.general.HeliDistance);
-            break;
+        }
+        break;
         case vehicles::scrap:
             drawVehicle(_("Scrap Heli"), vehicle, vis.colors.scrapHeli, vis.general.HeliDistance);
             break;
@@ -1683,7 +1711,6 @@ void DrawVehicles()
             break;
         case vehicles::patrolheli:
             drawVehicle(_("Patrol Heli"), vehicle, vis.colors.patrol, vis.general.PatrolDistance);
-
             {
                 const auto& option = vis.colors.patrol;
                 const auto& item   = vehicle;
@@ -1703,7 +1730,7 @@ void DrawVehicles()
                     char distBuff[8];
 
                     RenderTextCenter(screenPos, _("Patrol Heli"), option.Color);
-                    snprintf(distBuff, 8, _("%dm"), (int)item.distance);
+                    sprintf_s(distBuff, _("%dm"), (int)item.distance);
                     screenPos.y += fontSize;
                     RenderTextCenter(screenPos, distBuff, option.Color);
                 }
@@ -1796,7 +1823,7 @@ void DrawVehicles()
         {
             auto       ent           = (CBaseCombatEntity*)vehicle.entity;
             const auto currentHealth = ent->_health;
-            const auto healthPercent = RemapClamped(currentHealth, _flt(0.f), ent->_maxHealth, 0, 1.f);
+            const auto healthPercent = RemapClamped(currentHealth, _flt(0.f), ent->_maxHealth, 0, 0.f);
 
             drawVehicle(_("Bradley APC"), vehicle, vis.colors.bradley, vis.general.PatrolDistance, healthPercent);
 
@@ -1863,7 +1890,7 @@ void DrawTraps()
             const auto currentHealth = ent->_health;
             const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
 
-            snprintf(buf, 32, _("Flame Turret [%d %%HP]"), healthPercent);
+            sprintf_s(buf, _("Flame Turret [%d %%HP]"), healthPercent);
 
             drawTrap(buf, trap, vis.colors.flameTurret);
             break;
@@ -1874,7 +1901,7 @@ void DrawTraps()
             const auto currentHealth = ent->_health;
             const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
 
-            snprintf(buf, 32, _("Shotgun Trap [%d %%HP]"), healthPercent);
+            sprintf_s(buf, _("Shotgun Trap [%d %%HP]"), healthPercent);
 
             drawTrap(buf, trap, vis.colors.flameTurret);
             break;
@@ -1890,7 +1917,7 @@ void DrawTraps()
             const auto currentHealth = ent->_health;
             const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
 
-            snprintf(buf, 32, _("[%s] SAM Site [%d %%HP]"), (isOn ? _("ON") : _("OFF")), healthPercent);
+            sprintf_s(buf, _("[%s] SAM Site [%d %%HP]"), (isOn ? _("ON") : _("OFF")), healthPercent);
 
             drawTrap(buf, trap, vis.colors.samSite);
             break;
@@ -1906,7 +1933,7 @@ void DrawTraps()
             // const auto currentHealth = ent->_health;
             // const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
 
-            snprintf(buf, 32, _("[%s] SAM Site"), _("ON"));
+            sprintf_s(buf, _("[%s] SAM Site"), _("ON"));
 
             drawTrap(buf, trap, vis.colors.samSite);
             break;
@@ -1942,7 +1969,7 @@ void DrawTraps()
             const auto currentHealth = ent->_health;
             const int  healthPercent = Remap(currentHealth, _flt(0.f), ent->_maxHealth, 0, 100);
 
-            snprintf(buf, 32, _("[%s] Auto Turret [%d %%HP]"), (isOn ? _("ON") : _("OFF")), healthPercent);
+            sprintf_s(buf, _("[%s] Auto Turret [%d %%HP]"), (isOn ? _("ON") : _("OFF")), healthPercent);
 
             drawTrap(buf, trap, isAuthed ? vis.colors.autoTurretAuthed : vis.colors.autoTurret);
             break;
@@ -1968,7 +1995,7 @@ void RenderItems()
 
         if (item.amount > 1)
         {
-            snprintf(buf, 48, "%s (%dx)", item.namePool, item.amount);
+            sprintf_s(buf, _("%s (%dx)"), item.namePool, item.amount);
             DrawDefault(buf, item.position,
                         (item.category == ItemCategory::Weapon ? vis.general.weapons.Color : vis.general.other.Color),
                         item.distance);
@@ -1998,7 +2025,7 @@ void RenderItems()
             auto cc   = (PlayerCorpse_o*)corpse.entity;
             auto strr = DB::GetCorpseName(cc);
 
-            snprintf(buf, 48, "Corpse %s", strr);
+            sprintf_s(buf, _("Corpse %s"), strr);
 
             DrawDefault(buf, corpse.position, vis.corpses.option.Color, corpse.distance);
         }
@@ -2249,9 +2276,9 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
             localPoint.x -= textSize.x / 2.f;
 
             if (item->amount > 1)
-                snprintf(buf, 128, _("%s (%dx)"), name.c_str(), item->amount);
+                sprintf_s(buf, _("%s (%dx)"), name.c_str(), item->amount);
             else
-                snprintf(buf, 128, _("%s"), name.c_str());
+                sprintf_s(buf, _("%s"), name.c_str());
 
             RenderTextOutline(localPoint, opts.ActiveItem.Color, ImColor(0, 0, 0), buf);
 
@@ -2261,7 +2288,7 @@ void RenderPlayer(SettingsDataTypes::Player const& opts, EntityManager::Player c
 
     if (opts.Dist.Enable)
     {
-        snprintf(buf, 128, _("%dm"), (int)player.distance);
+        sprintf_s(buf, _("%dm"), (int)player.distance);
 
         ImVec2 textSize   = GetTextSize(buf);
         auto   localPoint = itemNamePoint;
@@ -2392,9 +2419,9 @@ void ESP::Draw()
     Indicators();
 
     char buf[48];
-    snprintf(buf, 48, "Total Entities: %d", EntityManager::nNetworkablesTotal);
+    sprintf_s(buf, _("Total Entities: %d"), EntityManager::nNetworkablesTotal);
     RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f + fontSize)}, ImColor(255, 249, 97), ImColor(0, 0, 0), buf);
 
-    snprintf(buf, 48, "Saved Entities: %d", EntityManager::nNetworkablesSaved);
-    RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f + fontSize * 3)}, ImColor(0, 255, 90), ImColor(0, 0, 0), buf);
+    sprintf_s(buf, _("Saved Entities: %d"), EntityManager::nNetworkablesSaved);
+    RenderTextOutline(ImVec2{_flt(2.f), _flt(0.f + fontSize * 2)}, ImColor(0, 255, 90), ImColor(0, 0, 0), buf);
 }

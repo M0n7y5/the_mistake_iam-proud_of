@@ -183,7 +183,7 @@ namespace Steam
 
         if (!m_pRequest || !m_bResult)
         {
-            snprintf(buff, 192, _("https://dev.getrekt.me/sugondese/karpalnitunel?karbanatek=%llu&spenat=%llu"), 42llu,
+            sprintf_s(buff, _("https://dev.getrekt.me/sugondese/karpalnitunel?karbanatek=%llu&spenat=%llu"), 42llu,
                      hashedName);
 
             m_pRequest = m_pSteamHTTP->CreateHTTPRequest(k_EHTTPMethodGET, buff);

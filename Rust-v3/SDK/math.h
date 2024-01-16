@@ -334,7 +334,7 @@ class Vector3
 
     float unity_magnitude()
     {
-        return (float)std::sqrt((double)(x * x + y * y + z * z));
+        return std::sqrtf(x * x + y * y + z * z);
     }
 
     Vector3 Cross(Vector3 rhs)
@@ -429,7 +429,7 @@ class Vector3
 
     static float Angle(Vector3 from, Vector3 to)
     {
-        float num  = (float)std::sqrt((double)(from.Magnitude() * to.Magnitude()));
+        float num  = std::sqrtf((from.Magnitude() * to.Magnitude()));
         bool  flag = num < _flt(1E-15f);
         float result;
         if (flag)
@@ -1080,5 +1080,30 @@ struct Line
             return p0;
         Vector3 vector = a / magnitude;
         return p0 + vector * Vector3::Clamp((pos - p0).dot_product(vector), _flt(0.f), magnitude);
+    }
+};
+
+struct LineSegment
+{
+    Vector3 a;
+    Vector3 b;
+
+    Vector3 ClosestPointOnLineToPos(Vector3 p)
+    {
+        Vector3 ab       = b - a;
+        Vector3 ap       = p - a;
+        float   lenSqrAB = ab.length_sqr();
+        float   t        = ap.dot_product(ab) / lenSqrAB;
+        if (t > 1.f)
+            t = 1.f;
+        else if (t < 0.f)
+            t = 0.f;
+
+        return a + ab * t;
+    }
+
+    float DistanceToPoint(Vector3 p)
+    {
+        return ClosestPointOnLineToPos(p).distance(p);
     }
 };

@@ -242,7 +242,7 @@ namespace
 
         if (settings->visuals.raid.Enabled.Enable && ((MessageType)packet->type == MessageType::Effect))
         {
-            static auto EffectNetworkKlass = (EffectNetwork_c*)il2cpp::InitClass("EffectNetwork");
+            static auto EffectNetworkKlass = (EffectNetwork_c*)il2cpp::InitClass(_("EffectNetwork"));
 
             auto effect = EffectNetworkKlass->static_fields->effect->fields;
 

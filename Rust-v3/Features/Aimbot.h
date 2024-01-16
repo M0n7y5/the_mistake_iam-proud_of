@@ -20,15 +20,17 @@ namespace HitScanner
         std::array<Vector3, 22> points{};
     };
 
-    inline int   defaultDensity = 400;
-    inline float angleLimit     = 120.f;
-    inline float sideAngleLimit = 22.f;
-    inline float rayDistance    = 13.f;
-    inline float rayDivider     = 16.f;
+    // inline int   defaultDensity = 400;
+    // inline float angleLimit     = 120.f;
+    // inline float sideAngleLimit = 22.f;
+    // inline float rayDistance    = 13.f;
+    // inline float rayDivider     = 16.f;
 
     inline std::vector<Vector3>  currentSpherePoints;
     inline std::vector<TraceRay> currentTraceRays;
-    inline std::vector<TraceRay> testNormalizedTraceRays;
+    inline std::vector<TraceRay> currentTPTraceRays;
+    inline std::vector<TraceRay> desyncNormalizedTraceRays;
+    inline std::vector<TraceRay> bulletTPNormalizedTraceRays;
 } // namespace HitScanner
 
 namespace Aimbot

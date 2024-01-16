@@ -6,12 +6,12 @@
 
 namespace G
 {
-    inline uint64_t baseGameAssemlby     = 0;
-    inline uint64_t baseGameAssemlbySize = 0;
-    inline uint64_t baseUnityPlayer      = 0;
-    inline uint64_t baseUnityPlayerSize  = 0;
-    inline float    screenWidth          = 0.f;
-    inline float    screenHeight         = 0.f;
+    inline uint64_t baseGameAssemlby;
+    inline uint64_t baseGameAssemlbySize;
+    inline uint64_t baseUnityPlayer;
+    inline uint64_t baseUnityPlayerSize;
+    inline float    screenWidth  = 0.f;
+    inline float    screenHeight = 0.f;
 
     inline std::vector<uint8_t> fontello{};
     inline std::vector<uint8_t> NotoSans_Regular{};

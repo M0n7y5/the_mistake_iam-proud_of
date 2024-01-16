@@ -427,18 +427,21 @@ struct Settings
         {
             struct General
             {
-                bool Enabled        = false;
-                bool Fade           = false;
-                bool PatrolHealth   = false;
-                int  HeliDistance   = 500;
-                int  BoatDistance   = 350;
-                int  PatrolDistance = 1500;
-                int  OtherDistance  = 350;
+                bool Enabled                = false;
+                bool Fade                   = false;
+                bool PatrolHealth           = false;
+                bool NoLimitInAirHeli       = false;
+                bool NoLimitInAirAttackHeli = false;
+                int  HeliDistance           = 500;
+                int  BoatDistance           = 350;
+                int  PatrolDistance         = 1500;
+                int  OtherDistance          = 350;
             } general{};
 
             struct Colors
             {
                 TCO mini          = {118, 191, 255};
+                TCO attackHeli    = {118, 191, 255};
                 TCO scrapHeli     = {71, 121, 165};
                 TCO boat          = {145, 103, 48};
                 TCO rhib          = {145, 103, 48};

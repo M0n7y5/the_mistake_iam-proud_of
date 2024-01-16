@@ -222,7 +222,7 @@ Index of this file:
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
     #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-
+#include "../../mrt/xorstr.hpp"
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
     #include "imgui_internal.h"
@@ -3842,9 +3842,9 @@ static void TableSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandle
             continue;
 
         buf->reserve(buf->size() + 30 + settings->ColumnsCount * 50); // ballpark reserve
-        buf->appendf("[%s][0x%08X,%d]\n", handler->TypeName, settings->ID, settings->ColumnsCount);
+        buf->appendf(_("[%s][0x%08X,%d]\n"), handler->TypeName, settings->ID, settings->ColumnsCount);
         if (settings->RefScale != 0.0f)
-            buf->appendf("RefScale=%g\n", settings->RefScale);
+            buf->appendf(_("RefScale=%g\n"), settings->RefScale);
         ImGuiTableColumnSettings* column = settings->GetColumnSettings();
         for (int column_n = 0; column_n < settings->ColumnsCount; column_n++, column++)
         {
@@ -3853,11 +3853,11 @@ static void TableSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandle
                                (save_sort && column->SortOrder != -1);
             if (!save_column)
                 continue;
-            buf->appendf("Column %-2d", column_n);
+            buf->appendf(_("Column %-2d"), column_n);
             if (column->UserID != 0)
-                buf->appendf(" UserID=%08X", column->UserID);
+                buf->appendf(_(" UserID=%08X"), column->UserID);
             if (save_size && column->IsStretch)
-                buf->appendf(" Weight=%.4f", column->WidthOrWeight);
+                buf->appendf(_(" Weight=%.4f"), column->WidthOrWeight);
             if (save_size && !column->IsStretch)
                 buf->appendf(" Width=%d", (int)column->WidthOrWeight);
             if (save_visible)
@@ -3877,13 +3877,13 @@ static void TableSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandle
 void ImGui::TableSettingsAddSettingsHandler()
 {
     ImGuiSettingsHandler ini_handler;
-    ini_handler.TypeName   = "Table";
-    ini_handler.TypeHash   = ImHashStr("Table");
-    ini_handler.ClearAllFn = TableSettingsHandler_ClearAll;
-    ini_handler.ReadOpenFn = TableSettingsHandler_ReadOpen;
-    ini_handler.ReadLineFn = TableSettingsHandler_ReadLine;
-    ini_handler.ApplyAllFn = TableSettingsHandler_ApplyAll;
-    ini_handler.WriteAllFn = TableSettingsHandler_WriteAll;
+    // ini_handler.TypeName   = "Table";
+    // ini_handler.TypeHash   = ImHashStr("Table");
+    // ini_handler.ClearAllFn = TableSettingsHandler_ClearAll;
+    // ini_handler.ReadOpenFn = TableSettingsHandler_ReadOpen;
+    // ini_handler.ReadLineFn = TableSettingsHandler_ReadLine;
+    // ini_handler.ApplyAllFn = TableSettingsHandler_ApplyAll;
+    // ini_handler.WriteAllFn = TableSettingsHandler_WriteAll;
     AddSettingsHandler(&ini_handler);
 }
 

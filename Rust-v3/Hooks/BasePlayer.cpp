@@ -57,7 +57,7 @@ namespace
         }
     };
 
-    void SilentFarm(CBasePlayer* player, CCamera* cam)
+    void SilentFarm(CBasePlayer* player)
     {
         const auto activeItem = reinterpret_cast<CBaseMelee*>(player->GetHeldEntity());
         if (activeItem == nullptr)
@@ -94,45 +94,81 @@ namespace
 
         using namespace EntityManager;
 
-        const auto gatherEntryTree = activeItem->GetGatherInfoFromIndex(GatherType::Tree);
-        const auto gatherEntryOre  = activeItem->GetGatherInfoFromIndex(GatherType::Ore);
+        const CGatherPropertyEntry* gatherEntryTree = activeItem->GetGatherInfoFromIndex(GatherType::Tree);
+        const CGatherPropertyEntry* gatherEntryOre  = activeItem->GetGatherInfoFromIndex(GatherType::Ore);
 
-        // if (gatherEntryTree == nullptr || gatherEntryOre == nullptr)
-        //     return;
+        if (gatherEntryTree == nullptr || gatherEntryOre == nullptr)
+            return;
 
-        // GatherDamage dmg(gatherEntryTree->gatherDamage, gatherEntryOre->gatherDamage);
+        GatherDamage dmg(gatherEntryTree->gatherDamage, gatherEntryOre->gatherDamage);
+        Vector3      targetPos{};
+        CTransform*  targetTransform{};
 
-        if (gatherEntryTree != nullptr)
+        auto eyePos   = player->Eyes()->GetPosition();
+        auto maxReach = 3.5f;
+        if (dmg.tree > 0.f)
         {
             // wood moment
 
             // first, try to get TreeMarker if its not success
             // get closest tree
             // Remember its presorted by distance
-            const SilentFarmTarget* target = nullptr;
+            CBaseEntity* target = nullptr;
 
             for (const auto& entry : DB::silentFarmStuff)
             {
                 if (entry.type == SilentFarmTargetType::TreeMarker)
                 {
-                    if (entry.distance > activeItem->maxDistance)
+                    if (entry.entity->_IsDestroyed_k__BackingField)
                         continue;
 
-                    target = &entry;
+                    if (eyePos.distance(entry.position) > maxReach)
+                        continue;
+
+                    target    = entry.entity;
+                    targetPos = entry.position;
+
+                    for (const auto& entry : DB::silentFarmStuff)
+                    {
+                        if (entry.type == SilentFarmTargetType::Tree)
+                        {
+                            if (entry.entity->_IsDestroyed_k__BackingField)
+                                continue;
+
+                            if (entry.position.distance(eyePos) > maxReach)
+                                continue;
+
+                            targetTransform = ((CGameObject*)target)->GetTransform();
+                            target          = entry.entity;
+
+                            break;
+                        }
+                    }
+
                     break;
                 }
             }
 
             if (target == nullptr)
             {
+                targetPos       = {};
+                targetTransform = {};
+
                 // well of the find some trees
                 for (const auto& entry : DB::silentFarmStuff)
                 {
                     if (entry.type == SilentFarmTargetType::Tree)
                     {
-                        if (entry.distance > activeItem->maxDistance)
+                        if (entry.entity->_IsDestroyed_k__BackingField)
                             continue;
-                        target = &entry;
+
+                        if (entry.position.distance(eyePos) > maxReach)
+                            continue;
+
+                        target          = entry.entity;
+                        targetTransform = ((CGameObject*)target)->GetTransform();
+                        targetPos       = entry.position;
+
                         break;
                     }
                 }
@@ -142,9 +178,6 @@ namespace
             if (target == nullptr)
                 return;
 
-            auto transform = ((CGameObject*)target->entity)->GetTransform();
-            auto camPos    = cam->GetPosition();
-
             if (itemDefinition->fields.itemid == 1104520648)
             {
                 if (activeItem->HasFlag(BaseEntityFlags::On) == false)
@@ -153,27 +186,52 @@ namespace
                     return;
                 }
 
-                // activeItem->MeleeAttack(target->entity, camPos, transform, false, true);
+                activeItem->MeleeAttack(player, target, eyePos, targetTransform, targetPos, false, true);
             }
             else
             {
-                // activeItem->MeleeAttack(target->entity, camPos, transform, false);
+                activeItem->MeleeAttack(player, target, eyePos, targetTransform, targetPos, false);
             }
         }
-        else if (gatherEntryOre != nullptr)
+        else if (dmg.ore > 0.f)
         {
             // ore moment
 
-            const SilentFarmTarget* target = nullptr;
+            CBaseEntity* target = nullptr;
 
             for (const auto& entry : DB::silentFarmStuff)
             {
                 if (entry.type == SilentFarmTargetType::OreHotSpot)
                 {
+                    if (entry.entity->_IsDestroyed_k__BackingField)
+                        continue;
+
+                    if (entry.position.distance(eyePos) > maxReach)
+                        continue;
+
+                    target          = entry.entity;
+                    targetTransform = ((CGameObject*)target)->GetTransform();
+                    targetPos       = entry.position;
+
+                    break;
+                }
+            }
+
+            if (target == nullptr)
+            {
+                for (const auto& entry : DB::ores)
+                {
+                    if (entry.entity->_IsDestroyed_k__BackingField)
+                        continue;
+
                     if (entry.distance > activeItem->maxDistance)
                         continue;
 
-                    target = &entry;
+                    target          = entry.entity;
+                    targetTransform = ((CGameObject*)target)->GetTransform();
+                    targetPos       = entry.position;
+                    targetPos.y += 0.1f;
+
                     break;
                 }
             }
@@ -182,10 +240,7 @@ namespace
             if (target == nullptr)
                 return;
 
-            auto transform = ((CGameObject*)target->entity)->GetTransform();
-
-            // activeItem->MeleeAttack(target->entity, *(Vector3*)&player->lastSentTick->fields.eyePos, transform,
-            // false);
+            activeItem->MeleeAttack(player, target, eyePos, targetTransform, targetPos, false);
         }
         else
         {
@@ -204,7 +259,7 @@ namespace
         {
             for (const auto& collectible : DB::collectibles)
             {
-                if (collectible.distance > 2.8f)
+                if (collectible.distance > 3.f)
                     continue;
 
                 if (timer.Expired(0.15))
@@ -216,7 +271,7 @@ namespace
         }
     }
 
-    void SilentMelee(CHeldEntity* weapon, CBasePlayer* localPlayer, CCamera* camera)
+    void SilentMelee(CHeldEntity* weapon, CBasePlayer* localPlayer)
     {
         using namespace SettingsData;
         using namespace EntityManager;
@@ -226,17 +281,21 @@ namespace
             if (weapon->IsMelee())
             {
                 auto melee    = (CBaseMelee*)weapon;
-                auto maxReach = std::clamp(melee->maxDistance + 1.f, 0.f, 3.f);
+                auto maxReach = 3.5f;
+                auto eyePos   = ((CPlayerEyes*)localPlayer->eyes)->GetPosition();
 
                 for (const auto& player : DB::players)
                 {
-                    if (player.distance < maxReach)
-                    {
-                        auto model                 = (CModel*)player.entity->model;
-                        auto targetHitPosTransform = model->GetBoneTransform(PlayerBones::head);
-                        auto eyePos                = ((CPlayerEyes*)localPlayer->eyes)->GetPosition();
+                    if (player.entity->_IsDestroyed_k__BackingField)
+                        continue;
 
-                        melee->MeleeAttack(localPlayer, player.entity, eyePos, targetHitPosTransform);
+                    auto model           = (CModel*)player.entity->model;
+                    auto targetTransform = model->GetBoneTransform(PlayerBones::head);
+                    auto targetPos       = targetTransform->GetPosition();
+
+                    if (eyePos.distance(targetPos) < maxReach)
+                    {
+                        melee->MeleeAttack(localPlayer, player.entity, eyePos, targetTransform, targetPos);
                         return;
                     }
                 }
@@ -327,7 +386,7 @@ namespace
             tod->Day->fields.AmbientMultiplier = mult;
         }
 
-        static auto graphics = (ConVar_Graphics_c*)il2cpp::InitClass("Graphics", "ConVar");
+        static auto graphics = (ConVar_Graphics_c*)il2cpp::InitClass(_("Graphics"), _("ConVar"));
 
         if (settings->misc.visibility.ForceFOV && settings->misc.visibility.Zoom.Active() == false)
         {
@@ -367,7 +426,7 @@ namespace
 
         if (settings->misc.other.SilentFarm.Active())
         {
-            SilentFarm(_this, camera);
+            SilentFarm(_this);
         }
 
         if (settings->misc.movement.SilentWalk || settings->ragebot.general.weapon.NoRestrictions)
@@ -420,7 +479,7 @@ namespace
                 }
             }
 
-            SilentMelee(heldEntity, _this, camera);
+            SilentMelee(heldEntity, _this);
         }
 
         auto lookingAt = (CBaseEntity*)_this->_lookingAtEntity;
@@ -636,7 +695,8 @@ void Hooks::BasePlayer::Init()
 
     // auto methodInfoInitAdr =
     //     Forza::IDAScan((void*)G::baseGameAssemlby,
-    //                    _("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 05 ?? ?? ?? ?? ?? 4C 8B 0D ?? ?? ?? ?? "
+    //                    _("E8 ?? ?? ?? ?? 48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? C6 05 ?? ?? ?? ?? ?? 4C 8B 0D ?? ?? ??
+    //                    ?? "
     //                      "4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
 
     // auto methodIniter = reinterpret_cast<decltype(&MethodInfoInitStub)>(mem::ResolveCall(methodInfoInitAdr));
@@ -646,7 +706,7 @@ void Hooks::BasePlayer::Init()
         _("4C 8B 0D ?? ?? ?? ?? 4C 8B C3 48 8B 15 ?? ?? ?? ?? 48 8B CF 48 8B 5C 24 30 48 83 C4 20 5F E9"));
     auto method = mem::ResolveMov(methodInfoAdr);
 
-    //methodIniter(method);
+    // methodIniter(method);
 
     il2cpp::InitializeMethodInfo(method);
 

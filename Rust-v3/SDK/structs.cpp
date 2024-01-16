@@ -23,7 +23,7 @@ std::string Il2CppString::str()
 {
     using namespace ww898::utf;
     if (length > 512)
-        return {"ERR_STR: LENGHT"};
+        return {_("ERR_STR: LENGHT")};
 
     std::wstring_view ws(this->chars);
     return conv<char>(ws);
@@ -290,8 +290,8 @@ void CBaseMelee::ProcessAttack(CHitTest* hit)
     ((void(__thiscall*)(CBaseMelee*, CHitTest*))(addr))(this, hit);
 }
 
-void CBaseMelee::MeleeAttack(CBaseEntity* owner, CBaseEntity* target, Vector3 eyePos, CTransform* transform,
-                             bool player, bool needsRPC)
+void CBaseMelee::MeleeAttack(CBaseEntity* owner, CBaseEntity* target, Vector3 eyePos, CTransform* hitTranform,  Vector3 hitPos, bool player,
+                             bool needsRPC)
 {
     if (this->nextAttackTime >= CTime::GetTime() || this->timeSinceDeploy < this->deployDelay)
         return;
@@ -304,20 +304,20 @@ void CBaseMelee::MeleeAttack(CBaseEntity* owner, CBaseEntity* target, Vector3 ey
     if (hitTest == nullptr)
         return;
 
-    auto pos = transform->GetPosition();
+    auto transform = hitTranform;
 
-    CRay ray(eyePos, (pos - eyePos).normalized());
+    CRay ray(eyePos, (hitPos - eyePos).normalized());
 
-    auto hit = transform->InverseTransformPoint(pos);
-    auto hitNormal = transform->InverseTransformPoint(pos);
+    auto hit       = transform->InverseTransformPoint(hitPos);
+    auto hitNormal = transform->InverseTransformDirection(hitPos.unity_Normalize());
 
     hitTest->HitEntity        = (BaseEntity_o*)target;
     hitTest->DidHit           = true;
-    hitTest->MaxDistance      = this->maxDistance;
+    hitTest->MaxDistance      = 8.f; // this->maxDistance;
     hitTest->HitTransform     = (UnityEngine_Transform_o*)transform;
     hitTest->AttackRay        = *(UnityEngine_Ray_o*)&ray;
-    hitTest->HitNormal        = {0.f, 1.f, 0.f};
-    hitTest->HitPoint         = *(UnityEngine_Vector3_o*)&pos; // hit;
+    hitTest->HitNormal        = *(UnityEngine_Vector3_o*)&hitNormal;
+    hitTest->HitPoint         = *(UnityEngine_Vector3_o*)&hit; // hit;
     hitTest->damageProperties = this->damageProperties;
     // hitTest->BestHit          = 1;
     // hitTest->ignoreEntity = (BaseEntity_o*)owner;
@@ -720,15 +720,37 @@ void CPlayerWalkMovement::TeleportTo(Vector3 pos, CBasePlayer* player)
     ((void(__thiscall*)(CPlayerWalkMovement*, Vector3, CBasePlayer*))(addr))(this, pos, player);
 }
 
-// CPlayerProjectileUpdate* CFacepunchPool::GetPlayerProjectileUpdate()
-// {
-//     static auto addr = OFF(Offsets::Facepunch_Pool::StaticMethods::T_Facepunch_Pool_Get_System_Object_);
+CPlayerProjectileUpdate* CFacepunchPool::GetPlayerProjectileUpdate()
+{
+    static auto addr = OFF(Offsets::Facepunch_Pool::StaticMethods::T_Facepunch_Pool_Get_System_Object_);
 
-//     static MethodInfo* methodInfo = []() -> MethodInfo*
-//     {
-//         //48 8B 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 89 84 24 B0 00 00 00 48 89 7C 24 60
+    static MethodInfo* methodInfoArg = []() -> MethodInfo* {
+        // 48 8B 0D ? ? ? ? E8 ? ? ? ? 48 89 84 24 ? ? ? ? 48 89 7C 24 ? 48 8D 84 24 ? ? ? ? 48 89 44 24 ? 8B 8B
+        auto methodInfoAdr = Forza::IDAScan(
+            (void*)G::baseGameAssemlby,
+            _("48 8B 0D ? ? ? ? E8 ? ? ? ? 48 89 84 24 ? ? ? ? 48 89 7C 24 ? 48 8D 84 24 ? ? ? ? 48 89 44 24 ? 8B 8B"));
 
-//     }();
+        auto method = mem::ResolveMov(methodInfoAdr);
+        il2cpp::InitializeMethodInfo(method);
+        auto methodInfo = *(MethodInfo**)method;
 
-//     return ((CPlayerProjectileUpdate* (*)())(addr))(this, pos, player);
-// }
+        return methodInfo;
+    }();
+
+    return ((CPlayerProjectileUpdate * (*)(MethodInfo*))(addr))(methodInfoArg);
+}
+
+bool CProjectile::DoHit(CHitTest* hitTest, Vector3 pos, Vector3 point)
+{
+    static auto addr =
+        OFF(Offsets::Projectile::Methods::DoHit_HitTest_test__UnityEngine_Vector3_point__UnityEngine_Vector3_normal);
+
+    return ((bool(__thiscall*)(CProjectile*, Vector3, Vector3))(addr))(this, pos, point);
+}
+
+void CProjectile::UpdateVelocity(float deltaTime)
+{
+    static auto addr = OFF(Offsets::Projectile::Methods::UpdateVelocity_System_Single_deltaTime);
+
+    ((void(__thiscall*)(CProjectile*, float))(addr))(this, deltaTime);
+}

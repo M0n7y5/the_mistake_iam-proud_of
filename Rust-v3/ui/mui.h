@@ -680,8 +680,8 @@ namespace mui
                 {
                     if (ImGui::BeginTooltip())
                     {
-                        ImGui::TextUnformatted(_("Click to setup bind"),
-                                               ImGui::FindRenderedTextEnd(_("Click to setup bind")));
+                        static const std::string ss = _("Click to setup bind");
+                        ImGui::TextUnformatted(ss.c_str(), ImGui::FindRenderedTextEnd(ss.c_str()));
                         ImGui::EndTooltip();
                     }
                 }
@@ -705,6 +705,7 @@ namespace mui
                     }
                     if (ImGui::Checkbox(_("Always On"), &always))
                     {
+                        //FIXME: Tak ted nevim
                         if (toggle)
                             (*key).buttonData.type = TriggerType::ALWAYS_ON;
                     }
@@ -911,7 +912,7 @@ namespace mui
             // ImGui::SetCursorPosX(size.x - 37.f + curX);
 
             char buf[48]{};
-            snprintf(buf, 48, (const char*)format, *this->_data);
+            sprintf_s(buf, (const char*)format, *this->_data);
 
             auto txtSize = ImGui::CalcTextSize(buf);
             ImGui::SameLine(size.x - txtSize.x);
@@ -1001,7 +1002,7 @@ namespace mui
         std::vector<RenderableFeature*> _features;
 
         ImVec2 min{}, max{};
-        //bool   gotSize = false;
+        // bool   gotSize = false;
 
       public:
         explicit FeatureSet(std::string name) : _name(std::move(name)) {}
@@ -1351,7 +1352,7 @@ namespace mui
             }
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
-            ImGui::Begin("___MainWindows", &this->IsOpen,
+            ImGui::Begin(_("___MainWindows"), &this->IsOpen,
                          ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
             {
                 // PostProcessing::performFullscreenBlur(ImGui::GetWindowDrawList(), 1.f);
@@ -1397,7 +1398,7 @@ namespace mui
                     ImGui::EndGroup();
 
                     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-                    if (ImGui::BeginTabBar("__MyTabBar", tab_bar_flags))
+                    if (ImGui::BeginTabBar(_("__MyTabBar"), tab_bar_flags))
                     {
                         for (const auto category : this->categories)
                         {
@@ -1566,7 +1567,7 @@ namespace mui
 
                         ImGui::Dummy({0, 3});
 
-                        //auto deafultFontSizeY = ImGui::CalcTextSize("A").y;
+                        // auto deafultFontSizeY = ImGui::CalcTextSize("A").y;
 
                         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{});
 
@@ -1619,8 +1620,8 @@ namespace mui
                 ImGui::End();
             }
 
-            //static bool jjj    = true;
-            ImVec2      center = ImGui::GetMainViewport()->GetCenter();
+            // static bool jjj    = true;
+            ImVec2 center = ImGui::GetMainViewport()->GetCenter();
             ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
             if (KeyBindActivePopup)

@@ -152,7 +152,7 @@ namespace AntiHack
                               true, nullptr, true, nullptr, maxDist);
     }
 
-    inline bool ValidateEyePos(CBasePlayer* player, Vector3 eyePos, bool checkLineOfSight = true,
+    inline bool ValidateEyePos(CBasePlayer* player, Vector3 eyePos, bool checkLineOfSight = true, bool bulletTP = false,
                                int eyeProtectionLevel = 4)
     {
         // eye pos is valid = true
@@ -171,22 +171,25 @@ namespace AntiHack
         auto currentEyePosition = ((CPlayerEyes*)player->eyes)->GetPosition();
         auto currentEyeCenter   = ((CPlayerEyes*)player->eyes)->GetCenter();
 
-        // distance check
-        if (eyeProtectionLevel >= 1)
+        if (bulletTP == false)
         {
-            float maxVelocity                 = player->MaxVelocity() + player->GetParentVelocity().Magnitude();
-            float positionForgivnessThisFrame = player->BoundsPadding() + eyeForgivnessThisFrame * maxVelocity;
-            isValid                           = currentEyePosition.distance(eyePos) < positionForgivnessThisFrame;
-        }
+            // distance check
+            if (eyeProtectionLevel >= 1)
+            {
+                float maxVelocity                 = player->MaxVelocity() + player->GetParentVelocity().Magnitude();
+                float positionForgivnessThisFrame = player->BoundsPadding() + eyeForgivnessThisFrame * maxVelocity;
+                isValid                           = currentEyePosition.distance(eyePos) < positionForgivnessThisFrame;
+            }
 
-        // altitude check
-        if (eyeProtectionLevel >= 3)
-        {
-            float maxAltitude = std::abs(player->GetMountVelocity().y + player->GetParentVelocity().y);
-            float maxAltitudeThisFrame =
-                player->BoundsPadding() + eyeForgivnessThisFrame * maxAltitude + player->GetJumpHeight();
-            float altitudeDelta = std::abs(currentEyePosition.y - eyePos.y);
-            isValid             = altitudeDelta < maxAltitudeThisFrame;
+            // altitude check
+            if (eyeProtectionLevel >= 3)
+            {
+                float maxAltitude = std::abs(player->GetMountVelocity().y + player->GetParentVelocity().y);
+                float maxAltitudeThisFrame =
+                    player->BoundsPadding() + eyeForgivnessThisFrame * maxAltitude + player->GetJumpHeight();
+                float altitudeDelta = std::abs(currentEyePosition.y - eyePos.y);
+                isValid             = altitudeDelta < maxAltitudeThisFrame;
+            }
         }
 
         // LOS check
