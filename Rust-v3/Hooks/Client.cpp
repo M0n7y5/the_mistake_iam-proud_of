@@ -54,7 +54,7 @@ namespace
             if (isMenuOpen == false)
                 return;
 
-#if 1
+#if 0
             static bool fontsDone = false;
             if (fontsDone == false)
             {

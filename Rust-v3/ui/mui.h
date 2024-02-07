@@ -10,7 +10,7 @@
 
 #include "STween.h"
 // #include "fsm.hpp"
-// #include "fonts/grlogofont.hpp"
+#include "fonts/grlogofont.hpp"
 
 #include "imgui/imgui_internal.h"
 // #include "postprocessing/PostProccessing.h"
@@ -67,7 +67,7 @@ namespace mui
             builder.AddRanges(io.Fonts->GetGlyphRangesChineseSimplifiedCommon()); // Add one of the
                                                                                   // default ranges
             builder.BuildRanges(&ranges);
-#if 1
+#if 0
             fonts::esp = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(G::lanaPixel.data(), G::lanaPixel.size(), 13.f,
                                                                     &cfg, ranges.Data);
             fonts::defaultFont = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(
@@ -81,11 +81,11 @@ namespace mui
                 ImGui::GetIO().Fonts->AddFontFromMemoryTTF(G::fontello.data(), G::fontello.size(), 40.f, &cfg);
 #else
             fonts::defaultFont =
-                ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\NotoSans-Regular.ttf", 19.f, &cfg, ranges.Data);
+                ImGui::GetIO().Fonts->AddFontFromFileTTF("F:\\fonts\\NotoSans-Regular.ttf", 19.f, &cfg, ranges.Data);
             fonts::boldFont =
-                ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\NotoSans-Bold.ttf", 20.f, &cfg, ranges.Data);
+                ImGui::GetIO().Fonts->AddFontFromFileTTF("F:\\fonts\\NotoSans-Bold.ttf", 20.f, &cfg, ranges.Data);
             fonts::logo = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedBase85TTF(GrLogoData_base85, 50.f, &cfg);
-            fonts::categoryFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("G:\\fonts\\fontello.ttf", 40.f, &cfg);
+            fonts::categoryFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("F:\\fonts\\fontello.ttf", 40.f, &cfg);
 
 #endif
             io.Fonts->Flags = ImFontAtlasFlags_NoMouseCursors;

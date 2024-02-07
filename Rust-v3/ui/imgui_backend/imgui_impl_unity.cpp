@@ -2,7 +2,6 @@
     Unity Native Imgui Renderer
     Version: 1.0.1-alpha
     Author: M0N7Y5
-    NOTE: Bobby if you RAT me and steal this shit write me 3 skulls emoji in DMs
 */
 
 #include "imgui_impl_unity.h"
@@ -216,7 +215,7 @@ bool ImGui_Impl_Unity_Init(CCamera* mainCam)
     //  - CanvasCamera - for canvases
     //
 
-#if 1
+#if 0
 
     // auto data = CArray<uint8_t>::New(_("Byte[]"), G::shaders.size() + 1, _("System"));
 
@@ -242,7 +241,7 @@ bool ImGui_Impl_Unity_Init(CCamera* mainCam)
 
 #else
     //_bundle = CAssetBundle::LoadFileFromFile("C:\\uishaders");
-    _bundle = CAssetBundle::LoadFileFromFile("C:\\Users\\user\\RustAssests\\AssetBundles\\uishaders");
+    _bundle = CAssetBundle::LoadFileFromFile("D:\\fonts\\uishaders");
 #endif
 
     InitializeRenderResources();
